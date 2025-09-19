@@ -1,9 +1,11 @@
-# 모든 파일 무시
+# 기본적으로 모든 파일 무시
 *
 
-# Source 폴더만 추적
-!/Source/
-!/Source/**
-
-# .gitignore 파일은 무시되지 않도록
+# 필수 예외 처리
 !.gitignore
+!*.uproject
+!/Source/**
+!/Config/**
+
+# 필요에 따라 포함할 수 있는 폴더
+# !/Content/**
