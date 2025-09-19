@@ -1,0 +1,9 @@
+# 모든 파일 무시
+*
+
+# Source 폴더만 추적
+!/Source/
+!/Source/**
+
+# .gitignore 파일은 무시되지 않도록
+!.gitignore
