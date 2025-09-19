@@ -1,11 +1,32 @@
-# 기본적으로 모든 파일 무시
-*
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.opendb
 
-# 필수 예외 처리
-!.gitignore
-!*.uproject
-!/Source/**
-!/Config/**
+# Unreal Engine build artifacts
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
 
-# 필요에 따라 포함할 수 있는 폴더
-# !/Content/**
+# User-specific files
+*.sln
+*.suo
+*.user
+*.userprefs
+*.opensdf
+*.sdf
+*.ipch
+*.log
+*.tlog
+
+# Build results
+*.obj
+*.pch
+*.pdb
+*.exe
+*.dll
+*.lib
+*.app
+*.dylib
+*.so
