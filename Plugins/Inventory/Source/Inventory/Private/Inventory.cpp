@@ -1,4 +1,4 @@
-// Gihyeon's Inventory Plugin
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Inventory.h"
 
