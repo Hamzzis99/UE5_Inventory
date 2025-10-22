@@ -28,9 +28,7 @@ void AInventoryProjectPlayerController::BeginPlay()
 		else {
 
 			UE_LOG(LogInventoryProject, Error, TEXT("Could not spawn mobile controls widget."));
-
 		}
-
 	}
 }
 
@@ -60,4 +58,3 @@ void AInventoryProjectPlayerController::SetupInputComponent()
 		}
 	}
 }
-
