@@ -84,10 +84,10 @@ void AInv_PlayerController::TraceForItem()
 
 	if (ThisActor.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Tracing."));
+		UE_LOG(LogTemp, Warning, TEXT("Started Tracing"))
 	}
 	if (LastActor.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DeTracing"));
+		UE_LOG(LogTemp, Warning, TEXT("Stopped tracing"))
 	}
 }
