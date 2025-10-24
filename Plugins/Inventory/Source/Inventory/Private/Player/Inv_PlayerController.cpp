@@ -12,6 +12,13 @@ AInv_PlayerController::AInv_PlayerController()
 	TraceLength = 500.0;
 }
 
+void AInv_PlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	TraceForItem();
+}
+
 void AInv_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -66,8 +73,21 @@ void AInv_PlayerController::TraceForItem()
 
 	const FVector TraceEnd = TraceStart + (Forward * TraceLength); //괄호는 쉽게 변경할 수 있는 매개변수	
 	FHitResult HitResult;
-	//선 추적부분 기억하지 이제 매 프레임마다 라인트레이스를 한다. (ToonTanks 처럼)
+	//라인트레이스는 한 번 봐야겠음
+	//선 추적부분 기억하지 이제 매 프레임마다 라인트레이스를 한다. (ToonTanks 처럼) 
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ItemTraceChannel);
 
+	LastActor = ThisActor;
+	ThisActor = HitResult.GetActor();
 
+	if (ThisActor == LastActor) return;
+
+	if (ThisActor.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Tracing."));
+	}
+	if (LastActor.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DeTracing"));
+	}
 }

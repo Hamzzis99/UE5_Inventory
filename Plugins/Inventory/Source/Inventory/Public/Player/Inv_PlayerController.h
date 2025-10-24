@@ -17,6 +17,8 @@ class INVENTORY_API AInv_PlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	AInv_PlayerController();
+	virtual void Tick(float DeltaSeconds) override;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
@@ -44,5 +46,8 @@ private:
 	double TraceLength; // 추적 길이
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")	
-	TEnumAsByte<ECollisionChannel> ItemTraceChannel; // 추적 채널? 충동 채널?
+	TEnumAsByte<ECollisionChannel> ItemTraceChannel; // 추적 채널? 충동 채널? 왜 굳이 Enum을 쓰는지 보자
+
+	TWeakObjectPtr<AActor> ThisActor; // 객체에 대한 포인터는 유지하지만 가비지 컬렉션엔 영향은 없음
+	TWeakObjectPtr<AActor> LastActor; // 마지막으로 상호작용한 액터
 };
