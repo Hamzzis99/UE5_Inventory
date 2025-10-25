@@ -80,6 +80,7 @@ void AInv_PlayerController::TraceForItem()
 	LastActor = ThisActor;
 	ThisActor = HitResult.GetActor();
 
+
 	if (ThisActor == LastActor) return;
 
 	if (ThisActor.IsValid())
