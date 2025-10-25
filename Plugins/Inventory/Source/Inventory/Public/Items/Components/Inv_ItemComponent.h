@@ -7,7 +7,8 @@
 #include "Inv_ItemComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+//Blueprintable: 블루프린트 클래스로 만들 수 있게 하는 것.
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable )
 class INVENTORY_API UInv_ItemComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -15,8 +16,11 @@ class INVENTORY_API UInv_ItemComponent : public UActorComponent
 public:	
 	UInv_ItemComponent();
 
+	FString GetPickupMessage() const { return PickupMessage;  }
+
 protected:
 
 private:
-		
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FString PickupMessage;
 };

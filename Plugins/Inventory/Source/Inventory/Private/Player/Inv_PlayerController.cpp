@@ -1,15 +1,18 @@
 #include "Player/Inv_PlayerController.h"
+#include "Items/Components/Inv_ItemComponent.h"
 
-#include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Kismet/GameplayStatics.h"
 #include "Widgets/HUD/Inv_HUDWidget.h"
+
 
 AInv_PlayerController::AInv_PlayerController()
 {
 	// 추적길이 초기화
 	PrimaryActorTick.bCanEverTick = true;
 	TraceLength = 500.0;
+	ItemTraceChannel = ECC_GameTraceChannel1; //커스텀 채널 1번을 사용
 }
 
 void AInv_PlayerController::Tick(float DeltaSeconds)
@@ -80,13 +83,23 @@ void AInv_PlayerController::TraceForItem()
 	LastActor = ThisActor;
 	ThisActor = HitResult.GetActor();
 
+	//픽업 부분 관련의 코드들.
+	if (!ThisActor.IsValid())
+	{
+		if (IsValid(HUDWidget)) HUDWidget->HidePickupMessage(); //블루프린트에서 구현할 것들.
+	}
 
 	if (ThisActor == LastActor) return;
 
 	if (ThisActor.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Started Tracing"))
+		UInv_ItemComponent* ItemComponent = ThisActor->FindComponentByClass<UInv_ItemComponent>();
+		if (!IsValid(ItemComponent)) return;
+
+		if (IsValid(HUDWidget)) HUDWidget->ShowPickupMessage(ItemComponent->GetPickupMessage()); //블루프린트에서 구현할 것들.
+		UE_LOG(LogTemp, Warning, TEXT("Started tracing"))
 	}
+
 	if (LastActor.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Stopped tracing"))
