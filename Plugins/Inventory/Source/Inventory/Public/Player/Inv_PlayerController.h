@@ -19,7 +19,7 @@ public:
 	AInv_PlayerController();
 	virtual void Tick(float DeltaSeconds) override;
 
-	UFUNCTION(Blueprintable)
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void ToggleInventory(); // 인벤토리 토글 함수
 
 protected:
