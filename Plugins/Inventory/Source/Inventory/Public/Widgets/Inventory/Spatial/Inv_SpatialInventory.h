@@ -19,10 +19,9 @@ class INVENTORY_API UInv_SpatialInventory : public UInv_InventoryBase
 	
 private:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UWidgetSwitcher> Switcher; // 위젯 연결을 위한 스위처
-
+	TObjectPtr<UWidgetSwitcher> Switcher;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UInv_InventoryGrid> Grid_Equippable;
+	TObjectPtr<UInv_InventoryGrid> Grid_Equippables;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UInv_InventoryGrid> Grid_Consumables;
 	UPROPERTY(meta = (BindWidget))
