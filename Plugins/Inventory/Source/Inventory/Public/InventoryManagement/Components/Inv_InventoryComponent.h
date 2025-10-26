@@ -7,9 +7,15 @@
 #include "CoreMinimal.h"
 //#include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 #include "Components/ActorComponent.h"
+#pragma once
+
 #include "Inv_InventoryComponent.generated.h"
 
+class UInv_InventoryItem;
 class UInv_InventoryBase;
+
+//델리게이트
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChange, UInv_InventoryItem*, Item);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable ) // Blueprintable : 블루프린트에서 상속
 class INVENTORY_API UInv_InventoryComponent : public UActorComponent
@@ -21,6 +27,9 @@ public:
 	UInv_InventoryComponent();
 
 	void ToggleInventoryMenu(); //인벤토리 메뉴 토글 함수
+
+	FInventoryItemChange OnItemAdded;
+	FInventoryItemChange OnItemRemoved;
 
 protected:
 	// Called when the game starts

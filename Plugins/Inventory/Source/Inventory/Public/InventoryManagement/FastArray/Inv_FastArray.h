@@ -6,8 +6,8 @@
 
 #include "Inv_FastArray.generated.h"
 
-class UInv_InventoryItem;
 class UInv_InventoryComponent;
+class UInv_InventoryItem;
 class UInv_ItemComponent;
 
 /* A Single entry in an Inventory*/
@@ -34,12 +34,12 @@ private:
 /* List of inventory Items 
 인벤토리 아이템 등록하는 거?*/
 USTRUCT(BlueprintType)
-struct FInv_InventoryFastArray : FFastArraySerializer
+struct FInv_InventoryFastArray : public FFastArraySerializer
 {
 	GENERATED_BODY()
 
-	FInv_InventoryFastArray() : OwnerComponent(nullptr) {  }
-	~FInv_InventoryFastArray(UActorComponent* InOwnerComponent) : OwnerComponent(InOwnerComponent) {}
+	FInv_InventoryFastArray() : OwnerComponent(nullptr) {}
+	FInv_InventoryFastArray(UActorComponent* InOwnerComponent) : OwnerComponent(InOwnerComponent) {}
 
 	//유틸리티 함수 구현
 	TArray<UInv_InventoryItem*> GetAllItems() const; // 아이템 정보 얻어오기
