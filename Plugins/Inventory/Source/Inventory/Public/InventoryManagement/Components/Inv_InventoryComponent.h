@@ -20,6 +20,8 @@ public:
 	// Sets default values for this component's properties
 	UInv_InventoryComponent();
 
+	void ToggleInventoryMenu(); //인벤토리 메뉴 토글 함수
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -35,4 +37,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_InventoryBase> InventoryMenuClass;
+
+	bool bInventoryMenuOpen; //인벤토리 메뉴 열림 여부
+	void OpenInventoryMenu();
+	void CloseInventoryMenu();
 };

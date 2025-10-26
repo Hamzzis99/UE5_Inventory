@@ -14,6 +14,18 @@ UInv_InventoryComponent::UInv_InventoryComponent()
 
 }
 
+void UInv_InventoryComponent::ToggleInventoryMenu()
+{
+	if (bInventoryMenuOpen)
+	{
+		CloseInventoryMenu();
+	}
+	else
+	{
+		OpenInventoryMenu();
+	}
+}
+
 
 // Called when the game starts
 void UInv_InventoryComponent::BeginPlay()
@@ -25,6 +37,7 @@ void UInv_InventoryComponent::BeginPlay()
 }
 
 
+//인벤토리 메뉴 위젯 생성 함수
 void UInv_InventoryComponent::ConstructInventory()
 {
 	OwningController = Cast<APlayerController>(GetOwner());
@@ -34,6 +47,35 @@ void UInv_InventoryComponent::ConstructInventory()
 	//블루프린터 위젯 클래스가 설정되어 있는지 확인
 	InventoryMenu = CreateWidget<UInv_InventoryBase>(OwningController.Get(), InventoryMenuClass);
 	InventoryMenu->AddToViewport();
+	CloseInventoryMenu();
+}
 
+//인벤토리 메뉴 열기/닫기 함수
+void UInv_InventoryComponent::OpenInventoryMenu()
+{
+	if (!IsValid(InventoryMenu)) return;
+
+	InventoryMenu->SetVisibility(ESlateVisibility::Visible);
+	bInventoryMenuOpen = true;
+	
+	if (!OwningController->IsValidLowLevel()) return;
+
+	FInputModeGameAndUI InputMode;
+	OwningController->SetInputMode(InputMode);
+	OwningController->SetShowMouseCursor(true);
+}
+
+void UInv_InventoryComponent::CloseInventoryMenu()
+{
+	if (!IsValid(InventoryMenu)) return;
+
+	InventoryMenu->SetVisibility(ESlateVisibility::Collapsed);
+	bInventoryMenuOpen = false;
+
+	if (!OwningController.IsValid()) return;
+
+	FInputModeGameOnly InputMode;
+	OwningController->SetInputMode(InputMode);
+	OwningController->SetShowMouseCursor(false);
 }
 

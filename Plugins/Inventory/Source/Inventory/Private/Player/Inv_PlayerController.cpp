@@ -1,15 +1,17 @@
-#include "Player/Inv_PlayerController.h"
-#include "Items/Components/Inv_ItemComponent.h"
-
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Interaction/Inv_Highlightable.h"
+#include "InventoryManagement/Components/Inv_InventoryComponent.h"
+#include "Player/Inv_PlayerController.h"
+#include "Items/Components/Inv_ItemComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Widgets/HUD/Inv_HUDWidget.h"
-#include "Interaction/Inv_Highlightable.h"
+
+
 
 AInv_PlayerController::AInv_PlayerController()
 {
-	// 추적길이 초기화
+	// 추적길이 초기화 (추적길이란? 내 시점에서 얼마만큼 거리를 두고 라인트레이스를 할 것인지)
 	PrimaryActorTick.bCanEverTick = true;
 	TraceLength = 500.0;
 	ItemTraceChannel = ECC_GameTraceChannel1; //커스텀 채널 1번을 사용
@@ -20,6 +22,13 @@ void AInv_PlayerController::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	TraceForItem();
+}
+
+void AInv_PlayerController::ToggleInventory()
+{
+	//약한 포인터가 유효한지? 이거로 참조하여 메뉴를 만든다? WeakPtr은 좀 공부를 해야겠다.
+	if (!InventoryComponent.IsValid()) return;
+	InventoryComponent->ToggleInventoryMenu();
 }
 
 void AInv_PlayerController::BeginPlay()
@@ -35,6 +44,7 @@ void AInv_PlayerController::BeginPlay()
 		}
 	}
 
+	InventoryComponent = FindComponentByClass<UInv_InventoryComponent>();
 	CreateHUDWidget(); // 위젯 생성 호출
 }
 
@@ -44,7 +54,9 @@ void AInv_PlayerController::SetupInputComponent()
 
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
 
+	//키 활성화 등록들 (바인딩) 나중에 GPT에게 더 물어보자.
 	EnhancedInputComponent->BindAction(PrimaryInteractAction, ETriggerEvent::Started, this, &AInv_PlayerController::PrimaryInteract);
+	EnhancedInputComponent->BindAction(ToggleInventoryAction, ETriggerEvent::Started, this, &AInv_PlayerController::ToggleInventory);
 }
 
 void AInv_PlayerController::PrimaryInteract()
