@@ -73,7 +73,7 @@ void AInv_PlayerController::TraceForItem()
 	FVector TraceStart;
 	FVector Forward; //당연히 법선벡터
 	if (!UGameplayStatics::DeprojectScreenToWorld(this, ViewportCenter, TraceStart, Forward)) return;
-
+	 
 	const FVector TraceEnd = TraceStart + (Forward * TraceLength); //괄호는 쉽게 변경할 수 있는 매개변수	
 	FHitResult HitResult;
 	//라인트레이스는 한 번 봐야겠음
