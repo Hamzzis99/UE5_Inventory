@@ -5,7 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
 #include "Widgets/HUD/Inv_HUDWidget.h"
-
+#include "Interaction/Inv_Highlightable.h"
 
 AInv_PlayerController::AInv_PlayerController()
 {
@@ -93,6 +93,11 @@ void AInv_PlayerController::TraceForItem()
 
 	if (ThisActor.IsValid())
 	{
+		if (UActorComponent* Highlightable = ThisActor->FindComponentByInterface(UInv_Highlightable::StaticClass()); IsValid(Highlightable))
+		{
+			IInv_Highlightable::Execute_Highlight(Highlightable); //배우 컴포넌트?
+		}
+
 		UInv_ItemComponent* ItemComponent = ThisActor->FindComponentByClass<UInv_ItemComponent>();
 		if (!IsValid(ItemComponent)) return;
 
@@ -102,6 +107,9 @@ void AInv_PlayerController::TraceForItem()
 
 	if (LastActor.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Stopped tracing"))
+		if (UActorComponent* Highlightable = LastActor->FindComponentByInterface(UInv_Highlightable::StaticClass()); IsValid(Highlightable))
+		{
+			IInv_Highlightable::Execute_UnHighlight(Highlightable); //배우 컴포넌트?
+		}
 	}
 }
