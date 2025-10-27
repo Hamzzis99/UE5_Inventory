@@ -53,17 +53,24 @@ void AInv_PlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
+	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-	//키 활성화 등록들 (바인딩) 나중에 GPT에게 더 물어보자.
+	//키 활성 바인딩 부분.
 	EnhancedInputComponent->BindAction(PrimaryInteractAction, ETriggerEvent::Started, this, &AInv_PlayerController::PrimaryInteract);
 	EnhancedInputComponent->BindAction(ToggleInventoryAction, ETriggerEvent::Started, this, &AInv_PlayerController::ToggleInventory);
 }
 
 void AInv_PlayerController::PrimaryInteract()
 {
-	UE_LOG(LogTemp, Log, TEXT("Primary Interact"))
+	if (!ThisActor.IsValid()) return;
+
+	//이게 뭐하는 부분이지?
+	UInv_ItemComponent* ItemComp = ThisActor->FindComponentByClass<UInv_ItemComponent>();
+	if (!IsValid(ItemComp) || !InventoryComponent.IsValid()) return;
+
+	InventoryComponent->TryAddItem(ItemComp);
 }
+
 
 void AInv_PlayerController::CreateHUDWidget() // 위젯 생성 부분
 {

@@ -7,9 +7,11 @@
 /**
  * 
  */
+class UInv_InventoryComponent;
 class UInputMappingContext;
 class UInputAction;
 class UInv_HUDWidget;
+
 
 UCLASS()
 class INVENTORY_API AInv_PlayerController : public APlayerController

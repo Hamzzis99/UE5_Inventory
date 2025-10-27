@@ -1,11 +1,9 @@
-// Gihyeon's Inventory Project
-
-
+//아 왜 안 돼
 #include "Widgets/HUD/Inv_InfoMessage.h"
 
 #include "Components/TextBlock.h"
 
-void UInv_InfoMessage::NativeConstruct()
+void UInv_InfoMessage::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
@@ -13,7 +11,6 @@ void UInv_InfoMessage::NativeConstruct()
 	MessageHide();
 }
 
-//메시지 출력할 때 쓰이는 CPP
 void UInv_InfoMessage::SetMessage(const FText& Message)
 {
 	Text_Message->SetText(Message);
@@ -24,9 +21,9 @@ void UInv_InfoMessage::SetMessage(const FText& Message)
 	}
 	bIsMessageActive = true;
 
-	GetWorld()->GetTimerManager().SetTimer(MessageTimer, [this]() //람다를 써서 과부화를 줄이는 것.
+	GetWorld()->GetTimerManager().SetTimer(MessageTimer, [this]()
 		{
 			MessageHide();
 			bIsMessageActive = false;
-		}, MessageLifetime, false);  // 수명 이후 사라지게 만드는 것.
+		}, MessageLifetime, false);
 }
