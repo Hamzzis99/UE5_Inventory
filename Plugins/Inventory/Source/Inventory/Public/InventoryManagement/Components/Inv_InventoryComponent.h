@@ -16,6 +16,7 @@ class UInv_InventoryBase;
 
 //델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChange, UInv_InventoryItem*, Item);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FNoRoomInInventory);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable ) // Blueprintable : 블루프린트에서 상속
 class INVENTORY_API UInv_InventoryComponent : public UActorComponent
@@ -26,10 +27,14 @@ public:
 	// Sets default values for this component's properties
 	UInv_InventoryComponent();
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void TryAddItem(UInv_ItemComponent* ItemComponent);
+
 	void ToggleInventoryMenu(); //인벤토리 메뉴 토글 함수
 
 	FInventoryItemChange OnItemAdded;
 	FInventoryItemChange OnItemRemoved;
+	FNoRoomInInventory NoRoomInInventory;
 
 protected:
 	// Called when the game starts

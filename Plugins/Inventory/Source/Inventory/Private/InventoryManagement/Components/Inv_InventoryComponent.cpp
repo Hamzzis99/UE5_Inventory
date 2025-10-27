@@ -5,13 +5,14 @@
 #include "Blueprint/UserWidget.h"
 #include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 
-// Sets default values for this component's properties
 UInv_InventoryComponent::UInv_InventoryComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
+}
 
+void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
+{
+	NoRoomInInventory.Broadcast(); // 나 인벤토리 꽉찼어! 이걸 알려주는거야! 방송 삐용삐용 모두 알아둬라!
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()
