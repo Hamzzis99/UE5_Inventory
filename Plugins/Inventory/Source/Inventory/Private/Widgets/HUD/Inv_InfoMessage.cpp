@@ -21,9 +21,9 @@ void UInv_InfoMessage::SetMessage(const FText& Message)
 	}
 	bIsMessageActive = true;
 
-	GetWorld()->GetTimerManager().SetTimer(MessageTimer, [this]()
+	GetWorld()->GetTimerManager().SetTimer(MessageTimer, [this]() //람다를 써서 과부화를 줄이는 것.
 		{
 			MessageHide();
 			bIsMessageActive = false;
-		}, MessageLifetime, false);
+		}, MessageLifetime, false); // 수명 이후 사라지게 만드는 것.
 }
