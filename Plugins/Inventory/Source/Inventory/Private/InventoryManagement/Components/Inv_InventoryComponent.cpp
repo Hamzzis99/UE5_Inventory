@@ -19,7 +19,31 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 		NoRoomInInventory.Broadcast(); // 나 인벤토리 꽉찼어! 이걸 알려주는거야! 방송 삐용삐용 모두 알아둬라!
 		
 	}
-	// TODO : 실제로 인벤토리에 추가하는 부분을 만들 것.
+	// TODO : 실제로 인벤토리에 추가하는 부분을 만들 것. (일단 나중에)
+
+	// 아이템 스택 가능 정보를 전달하는 것? 서버 RPC로 해보자.
+	if (Result.Item.IsValid() && Result.bStackable)
+	{
+		// 이미 존재하는 아이템에 스택을 추가하는 부분. 
+		// Add stacks to an item that already exists in the inventory. We only want to update the stack count,
+		// not create a new item of this type.
+		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
+	}
+	else if (Result.TotalRoomToFill > 0)
+	{
+		// This item type dosen't exist in the inventory. Create a new one and update all partient slots.
+		Server_AddNewItem(ItemComponent, Result.bStackable ?  Result.TotalRoomToFill : 0); //쌓을 수 있다면 채울 수 있는 공간 이런 문법은 또 처음 보네
+	}
+}
+
+void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount)
+{
+
+}
+
+void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
+{
+
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()
