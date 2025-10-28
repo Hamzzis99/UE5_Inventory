@@ -19,6 +19,11 @@ void UInv_SpatialInventory::NativeOnInitialized()
 	ShowEquippables(); // 기본값으로 장비창을 보여주자.
 }
 
+FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemComponent* ItemComponent) const
+{
+	return FInv_SlotAvailabilityResult();
+}
+
 void UInv_SpatialInventory::ShowEquippables()
 {
 	SetActiveGrid(Grid_Equippables, Button_Equippables);

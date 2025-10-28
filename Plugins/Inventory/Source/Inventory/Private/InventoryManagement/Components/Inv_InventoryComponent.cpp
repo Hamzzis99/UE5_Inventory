@@ -12,7 +12,14 @@ UInv_InventoryComponent::UInv_InventoryComponent()
 
 void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 {
-	NoRoomInInventory.Broadcast(); // 나 인벤토리 꽉찼어! 이걸 알려주는거야! 방송 삐용삐용 모두 알아둬라!
+	FInv_SlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent);
+
+	if (Result.TotalRoomToFill == 0)
+	{
+		NoRoomInInventory.Broadcast(); // 나 인벤토리 꽉찼어! 이걸 알려주는거야! 방송 삐용삐용 모두 알아둬라!
+		
+	}
+	// TODO : 실제로 인벤토리에 추가하는 부분을 만들 것.
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()

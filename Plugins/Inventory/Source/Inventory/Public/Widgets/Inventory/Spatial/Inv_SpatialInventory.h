@@ -21,6 +21,9 @@ class INVENTORY_API UInv_SpatialInventory : public UInv_InventoryBase
 public:
 	virtual void NativeOnInitialized() override; // NativeOnInitialized 이게 뭐지?
 
+	//실제 공간이 있는지 확인하는 곳.
+	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
+	
 private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함.
 	//스위치
 	UPROPERTY(meta = (BindWidget))

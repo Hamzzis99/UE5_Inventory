@@ -2,6 +2,8 @@
 
 #include "Inv_GridTypes.generated.h"
 
+class UInv_InventoryItem;
+
 UENUM(BlueprintType)
 enum class EInv_ItemCategory : uint8 // 위젯 만들 때 정확한 이름을 작성해야해 enum으로 알겠지. 기억해.
 {
@@ -10,4 +12,34 @@ enum class EInv_ItemCategory : uint8 // 위젯 만들 때 정확한 이름을 작성해야해 en
 	Craftable,
 	Build,
 	None
+};
+
+USTRUCT()
+struct FInv_SlotAvailability
+{
+	GENERATED_BODY()
+
+	//초기화 부분인데 왜 굳이 두 개를 쓰지?
+	FInv_SlotAvailability() {}
+	FInv_SlotAvailability(int32 ItemIndex, int32 Room, bool bHasItem) : Index(ItemIndex), AmountToFill(Room), bItemAtIndex(bHasItem) {}
+
+	int32 Index{INDEX_NONE}; // 아이템을 얼마나 채울지
+	int32 AmountToFill{ 0 }; // 얼마나 채우고 있으며
+	bool bItemAtIndex{ false }; // 아이콘 위젯을 만들어야 하는지
+};
+
+USTRUCT()
+//어떤 항목인기 결정해주게 하는 부분들.
+struct FInv_SlotAvailabilityResult
+{
+	GENERATED_BODY()
+
+	FInv_SlotAvailabilityResult() {} //엥 왜 재귀적인 방법을 쓰지?
+
+	
+	TWeakObjectPtr<UInv_InventoryItem> Item;
+	int32 TotalRoomToFill{ 0 }; // 채울 수 있는 공간 (0개면 불가능)
+	int32 Remainder{ 0 };
+	bool bStackable = {false }; // 쌓을 수 있는지
+	TArray<FInv_SlotAvailability> SlotAvailabilities; //슬롯 가능 여부를 만드는 것.
 };
