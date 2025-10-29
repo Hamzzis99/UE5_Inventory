@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Types/Inv_GridTypes.h"
+
 #include "Inv_ItemManifest.generated.h"
 
 /*
