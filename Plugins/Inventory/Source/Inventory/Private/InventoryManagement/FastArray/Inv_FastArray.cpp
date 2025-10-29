@@ -39,7 +39,7 @@ void FInv_InventoryFastArray::PostReplicatedAdd(const TArrayView<int32> AddedInd
 
 UInv_InventoryItem* FInv_InventoryFastArray::AddEntry(UInv_ItemComponent* ItemComponent)
 {
-	//TODO : Implement once ItemComponent is more complete
+	//TODO : Implement once ItemComponent is more complete 
 	return nullptr;
 }
 

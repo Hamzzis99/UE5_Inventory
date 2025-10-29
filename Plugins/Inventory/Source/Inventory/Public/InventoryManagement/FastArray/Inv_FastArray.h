@@ -56,6 +56,7 @@ struct FInv_InventoryFastArray : public FFastArraySerializer
 		return FastArrayDeltaSerialize<FInv_InventoryEntry, FInv_InventoryFastArray>(Entries, DeltaParams, *this);
 	}
 
+	//새항목 추가 관련 구조체들
 	UInv_InventoryItem* AddEntry(UInv_ItemComponent* ItemComponent); // 인벤토리 항목 추가
 	UInv_InventoryItem* AddEntry(UInv_InventoryItem* Item);
 	void RemoveEntry(UInv_InventoryItem* Item); // 인벤토리 항목 제거

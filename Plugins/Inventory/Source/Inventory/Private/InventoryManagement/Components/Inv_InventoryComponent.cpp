@@ -29,6 +29,7 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 		// not create a new item of this type.
 		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
 	}
+	// 서버에서 아이템 등록 우와.... 죽을까
 	else if (Result.TotalRoomToFill > 0)
 	{
 		// This item type dosen't exist in the inventory. Create a new one and update all partient slots.
@@ -38,7 +39,7 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 
 void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount)
 {
-
+	
 }
 
 void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
