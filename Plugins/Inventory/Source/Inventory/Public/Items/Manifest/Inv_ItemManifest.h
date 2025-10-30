@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Types/Inv_GridTypes.h"
+#include "StructUtils/InstancedStruct.h"
 
 #include "Inv_ItemManifest.generated.h"
 
@@ -8,6 +9,7 @@
 	The Item Manifest contains all of the necessary data
 	for creating a new Inventory Item
 */
+class UInv_InventoryItem;
 
 USTRUCT(BlueprintType)
 struct INVENTORY_API FInv_ItemManifest
@@ -21,3 +23,4 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	EInv_ItemCategory ItemCategory{ EInv_ItemCategory::None }; // 개별 구성요소?
 };
+

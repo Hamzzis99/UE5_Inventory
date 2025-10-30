@@ -38,6 +38,8 @@ public:
 	void Server_AddStacksToItem(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
 
 	void ToggleInventoryMenu(); //인벤토리 메뉴 토글 함수
+	void AddRepSubObj(UObject* SubObj); //복제 하위 객체 추가 함수
+
 
 	FInventoryItemChange OnItemAdded;
 	FInventoryItemChange OnItemRemoved;

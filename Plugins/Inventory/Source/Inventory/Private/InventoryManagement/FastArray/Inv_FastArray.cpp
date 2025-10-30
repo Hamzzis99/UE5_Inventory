@@ -37,10 +37,23 @@ void FInv_InventoryFastArray::PostReplicatedAdd(const TArrayView<int32> AddedInd
 	}
 }
 
-UInv_InventoryItem* FInv_InventoryFastArray::AddEntry(UInv_ItemComponent* ItemComponent)
+// FastArray에 항목을 추가해주는 기능들.
+UInv_InventoryItem* FInv_InventoryFastArray::AddEntry(UInv_ItemComponent* ItemComponent) 
 {
 	//TODO : Implement once ItemComponent is more complete 
-	return nullptr;
+	check(OwnerComponent); // 소유자 컴포넌트 확인 (소유재고 확인)
+	AActor* OwningActor = OwnerComponent->GetOwner(); // 소유자 확보
+	check(OwningActor->HasAuthority()); // 권한이 있는지 확인
+	UInv_InventoryComponent* IC = Cast<UInv_InventoryComponent>(OwnerComponent); // 소유자 컴포넌트를 인벤토리 컴포넌트로 캐스팅
+	if (!IsValid(IC)) return nullptr;
+
+	FInv_InventoryEntry& NewEntry = Entries.AddDefaulted_GetRef(); // 새 항목 추가
+	NewEntry.Item = ItemComponent->GetItemManifest().Manifest(OwningActor); // 항목 매니페스트에서 항목 가져오기 (새로 생성된 아이템의 소유자 지정)
+
+	IC->AddRepSubObj(NewEntry.Item); // 복제 하위 객체로 항목 추가
+	MarkItemDirty(NewEntry); // 복제되어야 함을 알려주는 것.
+
+	return NewEntry.Item; // 새로 추가된 항목 반환
 }
 
 UInv_InventoryItem* FInv_InventoryFastArray::AddEntry(UInv_InventoryItem* Item)

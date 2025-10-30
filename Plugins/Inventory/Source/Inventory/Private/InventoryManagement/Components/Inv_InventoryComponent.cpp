@@ -8,6 +8,9 @@
 UInv_InventoryComponent::UInv_InventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true); // 기본적으로 복제 설정
+	bReplicateUsingRegisteredSubObjectList = true; // 등록된 하위 객체 목록을 사용하여 복제 설정
+	bInventoryMenuOpen = false;	// 인벤토리 메뉴가 열려있는지 여부 초기화
 }
 
 void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
@@ -57,6 +60,16 @@ void UInv_InventoryComponent::ToggleInventoryMenu()
 	{
 		OpenInventoryMenu();
 	}
+}
+
+void UInv_InventoryComponent::AddRepSubObj(UObject* SubObj)
+
+{
+	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && IsValid(SubObj)) // 복제 준비가 되었는지 확인
+	{
+		AddReplicatedSubObject(SubObj); // 복제된 하위 객체 추가
+	}
+	AddReplicatedSubObject(SubObj);
 }
 
 
