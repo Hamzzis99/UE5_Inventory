@@ -2,8 +2,9 @@
 
 
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
-#include "Blueprint/UserWidget.h"
 #include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
+
+#include "Net/UnrealNetwork.h"
 
 UInv_InventoryComponent::UInv_InventoryComponent()
 {
@@ -11,6 +12,13 @@ UInv_InventoryComponent::UInv_InventoryComponent()
 	SetIsReplicatedByDefault(true); // 기본적으로 복제 설정
 	bReplicateUsingRegisteredSubObjectList = true; // 등록된 하위 객체 목록을 사용하여 복제 설정
 	bInventoryMenuOpen = false;	// 인벤토리 메뉴가 열려있는지 여부 초기화
+}
+
+void UInv_InventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, InventoryList); // 인벤토리 목록 복제 설정
 }
 
 void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
@@ -42,7 +50,9 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 
 void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount)
 {
-	
+	UInv_InventoryItem* NewItem = InventoryList.AddEntry(ItemComponent);
+
+	// 아이템의 소유자를 없애는 목표를 두는 것.
 }
 
 void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder)

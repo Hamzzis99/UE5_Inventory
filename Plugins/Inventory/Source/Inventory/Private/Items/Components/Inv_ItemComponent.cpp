@@ -10,7 +10,7 @@ UInv_ItemComponent::UInv_ItemComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 
-	PickupMessage = FString("E - 아이템 줍기!"); // 기본 픽업 메시지 설정
+	PickupMessage = FString("E - Pick Up Item"); // 기본 픽업 메시지 설정 이거 한글로 되는지 한 번 나중에 검사 TEXT를 쓰라는데..
 }
 
 void UInv_ItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

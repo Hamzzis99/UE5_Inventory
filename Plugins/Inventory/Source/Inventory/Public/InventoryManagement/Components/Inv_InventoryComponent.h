@@ -7,8 +7,7 @@
 #include "CoreMinimal.h"
 //#include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 #include "Components/ActorComponent.h"
-#pragma once
-
+#include "InventoryManagement/FastArray/Inv_FastArray.h"
 #include "Inv_InventoryComponent.generated.h"
 
 class UInv_InventoryItem;
@@ -26,6 +25,7 @@ class INVENTORY_API UInv_InventoryComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UInv_InventoryComponent();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void TryAddItem(UInv_ItemComponent* ItemComponent);
@@ -54,6 +54,9 @@ private:
 	TWeakObjectPtr<APlayerController> OwningController;
 
 	void ConstructInventory();
+
+	UPROPERTY(Replicated)
+	FInv_InventoryFastArray InventoryList; // 인벤토리 
 
 	UPROPERTY() // 이거는 소유권을 확보하는 것. 소유권을 잃지 않게 해주는 것.
 	TObjectPtr<UInv_InventoryBase> InventoryMenu; //인벤토리 메뉴 위젯 인스턴스

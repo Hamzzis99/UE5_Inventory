@@ -26,7 +26,7 @@ protected:
 
 private:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Inventory")
-	FInv_ItemManifest CompareItems;
+	FInv_ItemManifest ItemManifest;
 
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
