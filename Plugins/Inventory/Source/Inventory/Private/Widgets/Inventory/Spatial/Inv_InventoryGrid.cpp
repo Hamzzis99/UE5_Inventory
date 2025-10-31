@@ -2,7 +2,9 @@
 
 
 
-//#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
+
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
