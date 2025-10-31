@@ -14,7 +14,7 @@ UInv_InventoryComponent::UInv_InventoryComponent()
 	bInventoryMenuOpen = false;	// 인벤토리 메뉴가 열려있는지 여부 초기화
 }
 
-void UInv_InventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UInv_InventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const // 복제 속성 설정 함수
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
@@ -48,11 +48,17 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 	}
 }
 
-void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount)
+void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount) // 서버에서 새로운 아이템 추가 구현
 {
 	UInv_InventoryItem* NewItem = InventoryList.AddEntry(ItemComponent);
 
+	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone) // 이 부분이 복제할 클라이언트가 없기 때문에 배열 복제 안 되는 거 (데디 서버로 변경할 때 참고해라)
+	{
+		OnItemAdded.BroadCast(NewItem);
+	}
+
 	// 아이템의 소유자를 없애는 목표를 두는 것.
+
 }
 
 void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder)

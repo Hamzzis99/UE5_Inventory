@@ -31,6 +31,7 @@ void FInv_InventoryFastArray::PostReplicatedAdd(const TArrayView<int32> AddedInd
 	UInv_InventoryComponent* IC = Cast<UInv_InventoryComponent>(OwnerComponent);
 	if (!IsValid(IC)) return;
 
+	// 인벤토리 컴포넌트에 있는 아이템을 서버에서 클라이언트로 받는 거?
 	for (int32 Index : AddedIndices) // 
 	{
 		IC->OnItemAdded.Broadcast(Entries[Index].Item); // 브로드캐스트가 뭐였지? 까먹었어 ToonTanks 다시 봐야해?

@@ -2,11 +2,13 @@
 
 
 
-#include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
-#include "Widgets/Inventory/GridSlots/Inv_GridSlot.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
+//#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
+#include "InventoryManagement/Components/Inv_InventoryComponent.h"
+#include "InventoryManagement/Utils/Inv_InventoryStatics.h"
+#include "Items/Inv_InventoryItem.h"
+#include "Widgets/Inventory/GridSlots/Inv_GridSlot.h"
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 
 void UInv_InventoryGrid::NativeConstruct()
@@ -14,6 +16,17 @@ void UInv_InventoryGrid::NativeConstruct()
 	Super::NativeOnInitialized();
 
 	ConstructGrid();
+
+	InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer()); // 플레이어의 인벤토리 컴포넌트를 가져온다.
+	InventoryComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem); // 델리게이트 바인딩 
+}
+
+void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
+{
+	//아이템 그리드 체크 부분?
+	if (!MatchesCategory(Item)) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("InventoryGrid::AddItem"));
 }
 
 
@@ -39,4 +52,9 @@ void UInv_InventoryGrid::ConstructGrid()
 			GridSlots.Add(GridSlot);
 		}
 	}
+}
+
+bool UInv_InventoryGrid::MatchesCategory(const UInv_InventoryItem* Item) const
+{
+	return Item->GetItemManifest().GetItemCategory() == ItemCategory; // 아이템 카테고리 비교
 }

@@ -8,7 +8,7 @@
 
 class UInv_GridSlot;
 class UCanvasPanel;
-
+class UInv_InventoryComponent;
 /**
  *
  */
@@ -21,7 +21,12 @@ public:
 
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
 
+	UFUNCTION()
+	void AddItem(UInv_InventoryItem* Item); // 아이템 추가
+
 private:
+
+	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
 
 	void ConstructGrid();
 
@@ -46,5 +51,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float TileSize;
+
+	bool MatchesCategory(const UInv_InventoryItem* Item) const;
 };
 

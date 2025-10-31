@@ -18,6 +18,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; // 이게 복제해주는 것
 	
 	void SetItemManifest(const FInv_ItemManifest& Manifest); // 아이템 매니페스트 설정
+	const FInv_ItemManifest& GetItemManifest() const { return ItemManifest.Get<FInv_ItemManifest>();  }
+	FInv_ItemManifest& GetItemManifestMutable() const { return ItemManifest.GetMutable<FInv_ItemManifest>(); }
+
 
 private: //이 부분 GPT 돌려보자 항목 복제해서 서버에 전달하는 곳. 그게 바로 Replicated
 	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/Inventory.Inv_ItemManifest"), Replicated) //인벤토리 아이템 블루프린트 만드는 곳? 파생?
