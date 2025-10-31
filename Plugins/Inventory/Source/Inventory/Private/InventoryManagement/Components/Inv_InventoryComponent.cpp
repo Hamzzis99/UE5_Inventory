@@ -54,7 +54,7 @@ void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponen
 
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone) // 이 부분이 복제할 클라이언트가 없기 때문에 배열 복제 안 되는 거 (데디 서버로 변경할 때 참고해라)
 	{
-		OnItemAdded.BroadCast(NewItem);
+		OnItemAdded.Broadcast(NewItem);
 	}
 
 	// 아이템의 소유자를 없애는 목표를 두는 것.
