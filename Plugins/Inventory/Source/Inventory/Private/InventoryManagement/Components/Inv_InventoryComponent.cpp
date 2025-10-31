@@ -33,7 +33,7 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 	// TODO : 실제로 인벤토리에 추가하는 부분을 만들 것. (일단 나중에)
 
 	// 아이템 스택 가능 정보를 전달하는 것? 서버 RPC로 해보자.
-	if (Result.Item.IsValid() && Result.bStackable)
+	if (Result.Item.IsValid() && Result.bStackable) // 유효한지 검사하는 작업.
 	{
 		// 이미 존재하는 아이템에 스택을 추가하는 부분. 
 		// Add stacks to an item that already exists in the inventory. We only want to update the stack count,
