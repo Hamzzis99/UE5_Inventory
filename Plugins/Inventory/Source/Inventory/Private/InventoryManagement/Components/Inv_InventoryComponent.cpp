@@ -6,7 +6,7 @@
 
 #include "Net/UnrealNetwork.h"
 
-UInv_InventoryComponent::UInv_InventoryComponent()
+UInv_InventoryComponent::UInv_InventoryComponent() : InventoryList(this)
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true); // 기본적으로 복제 설정
