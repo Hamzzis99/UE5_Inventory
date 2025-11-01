@@ -23,6 +23,7 @@ void UInv_InventoryGrid::NativeConstruct()
 	InventoryComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem); // 델리게이트 바인딩 
 }
 
+// 인벤토리 스택 쌓는 부분.
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 {
 	//아이템 그리드 체크 부분?
