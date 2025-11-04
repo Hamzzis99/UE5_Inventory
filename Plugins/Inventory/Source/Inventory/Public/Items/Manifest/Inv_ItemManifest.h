@@ -11,6 +11,7 @@
 	for creating a new Inventory Item
 */
 class UInv_InventoryItem;
+struct FInv_ItemFragment;
 
 USTRUCT(BlueprintType)
 struct INVENTORY_API FInv_ItemManifest
@@ -22,6 +23,9 @@ struct INVENTORY_API FInv_ItemManifest
 	FGameplayTag GetItemType() const { return ItemType; } // 아이템 타입 얻기
 
 private:
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ExcludeBaseStruct)) 
+	TArray<TInstancedStruct<FInv_ItemFragment>> Fragments; // 인벤토리 아이템 배열 공간들.
+
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	EInv_ItemCategory ItemCategory{ EInv_ItemCategory::None }; // 개별 구성요소?
 	
