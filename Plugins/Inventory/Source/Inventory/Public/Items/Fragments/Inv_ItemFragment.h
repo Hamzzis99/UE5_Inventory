@@ -50,3 +50,17 @@ private:
 	float GridPadding{ 0.f }; //그리드 패딩
 };
 
+USTRUCT(BlueprintType) 
+struct FInv_ImageFragment : public  FInv_ItemFragment
+{
+	GENERATED_BODY()
+
+	UTexture2D* GetIcon() const { return Icon; } //아이콘 텍스처 얻기
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TObjectPtr<UTexture2D> Icon = nullptr; //아이콘 텍스처 {nullptr]도 표현 가능
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FVector2D IconDimensions{ 44.f, 44.f }; //아이콘 크기
+};
