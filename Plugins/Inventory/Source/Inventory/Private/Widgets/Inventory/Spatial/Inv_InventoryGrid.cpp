@@ -36,8 +36,18 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 {
 	FInv_SlotAvailabilityResult Result;
 	Result.TotalRoomToFill = 1;
+
+	// 아이템을 넣어보자!
+	FInv_SlotAvailability SlotAvailability;
+	SlotAvailability.AmountFill = 1; // 아이템으로부터 공간 채우기
+	SlotAvailability.Index = 0; // 인덱스 설정
+
+	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability)); // 슬롯 가능 여부 추가
+
+
 	return Result;
 }
+
 
 // 인벤토리 스택 쌓는 부분.
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
@@ -49,13 +59,24 @@ void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 	FInv_SlotAvailabilityResult Result = HasRoomForItem(Item);
 
 	// Create a widget to show the item icon and add it to the correct spot on the grid.
+	AddItemToIndices(Result, Item);
 
-
-	//UE_LOG(LogTemp, Warning, TEXT("InventoryGrid::AddItem (Inv_InventoryGrid.cpp)"));
-	
-	// 공간 확인 부분 만들기.
 }
 
+void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* NewItem) 
+{
+	//격자의 크기를 얻어오자. 게임플레이 태그로 말야
+	// Get Grid Fragment so we know how many grid spaces the item takes.
+	// 텍스처와 아이콘도 여기서 얻어온다는건가?
+	// Get Image Fragment so we have the icon to display
+
+
+	// Create a widget to add to the grid
+
+	// 삭제 소비 파괴 했을 때 이곳에.
+	// Store the new widget in a container.
+
+}
 
 //2차원 격자 생성 아이템칸 만든다는 뜻.
 void UInv_InventoryGrid::ConstructGrid()
