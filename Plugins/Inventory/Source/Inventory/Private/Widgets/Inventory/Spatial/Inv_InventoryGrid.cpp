@@ -1,7 +1,4 @@
 // Gihyeon's Inventory Project
-
-
-
 #include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
 
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -10,8 +7,10 @@
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Items/Inv_InventoryItem.h"
+#include "Items/Components/Inv_ItemComponent.h"
 #include "Widgets/Inventory/GridSlots/Inv_GridSlot.h"
 #include "Widgets/Utils/Inv_WidgetUtils.h"
+#include "Items/Manifest/Inv_ItemManifest.h"
 
 void UInv_InventoryGrid::NativeConstruct()
 {
@@ -23,13 +22,38 @@ void UInv_InventoryGrid::NativeConstruct()
 	InventoryComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem); // 델리게이트 바인딩 
 }
 
+FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_ItemComponent* ItemComponent)
+{
+	return HasRoomForItem(ItemComponent->GetItemManifest());
+}
+
+FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_InventoryItem* Item)
+{
+	return HasRoomForItem(Item->GetItemManifest());
+}
+
+FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemManifest& Manifest)
+{
+	FInv_SlotAvailabilityResult Result;
+	Result.TotalRoomToFill = 1;
+	return Result;
+}
+
 // 인벤토리 스택 쌓는 부분.
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 {
 	//아이템 그리드 체크 부분?
 	if (!MatchesCategory(Item)) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("InventoryGrid::AddItem"));
+	//공간이 있다고 부르는 부분.
+	FInv_SlotAvailabilityResult Result = HasRoomForItem(Item);
+
+	// Create a widget to show the item icon and add it to the correct spot on the grid.
+
+
+	//UE_LOG(LogTemp, Warning, TEXT("InventoryGrid::AddItem (Inv_InventoryGrid.cpp)"));
+	
+	// 공간 확인 부분 만들기.
 }
 
 

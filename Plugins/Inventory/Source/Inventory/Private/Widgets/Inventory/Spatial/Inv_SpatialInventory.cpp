@@ -3,8 +3,10 @@
 
 #include "Widgets/Inventory/Spatial/Inv_SpatialInventory.h"
 
+#include "Inventory.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
+#include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
 
 void UInv_SpatialInventory::NativeOnInitialized()
@@ -19,11 +21,20 @@ void UInv_SpatialInventory::NativeOnInitialized()
 	ShowEquippables(); // 기본값으로 장비창을 보여주자.
 }
 
-FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemComponent* ItemComponent) const
+FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemComponent* ItemComponent) const // 아이템 컴포넌트가 있는지 확인
 {
-	FInv_SlotAvailabilityResult Result;
-	Result.TotalRoomToFill = 1;
-	return Result;
+	switch (UInv_InventoryStatics::GetItemCategoryFromItemComp(ItemComponent))
+	{
+	case EInv_ItemCategory::Equippable:
+		return Grid_Equippables->HasRoomForItem(ItemComponent);
+	case EInv_ItemCategory::Consumable:
+		return Grid_Consumables->HasRoomForItem(ItemComponent);
+	case EInv_ItemCategory::Craftable:
+		return Grid_Craftables->HasRoomForItem(ItemComponent);
+	default:
+		UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category. (inventory.h)"))
+			return FInv_SlotAvailabilityResult(); // 빈 결과 반환
+	}
 }
 
 void UInv_SpatialInventory::ShowEquippables()
