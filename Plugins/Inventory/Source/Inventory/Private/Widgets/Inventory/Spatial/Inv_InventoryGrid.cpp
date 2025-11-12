@@ -12,6 +12,7 @@
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 #include "Items/Manifest/Inv_ItemManifest.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
+#include "Widgets/Inventory/SlottedItems/Inv_SlottedItem.h"
 
 void UInv_InventoryGrid::NativeConstruct()
 {
@@ -66,15 +67,24 @@ void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Res
 {
 	//격자의 크기를 얻어오자. 게임플레이 태그로 말야
 	// Get Grid Fragment so we know how many grid spaces the item takes.
+		// 텍스처와 아이콘도 여기서 얻어온다는건가?
+	// Get Image Fragment so we have the icon to display
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment);
 	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(NewItem, FragmentTags::IconFragment);
 	if (!GridFragment || !ImageFragment) return; // 둘 중 하나라도 없으면 리턴
 
-	// 텍스처와 아이콘도 여기서 얻어온다는건가?
-	// Get Image Fragment so we have the icon to display
+
 
 
 	// Create a widget to add to the grid
+	UInv_SlottedItem* SlottedItemWidget = CreateWidget<UInv_SlottedItem>(GetOwningPlayer(), SlottedItemClass);
+	SlottedItem->SetInventoryItem(NewItem);
+
+	//슬레이트 브러시?
+	FSlateBrush Brush;
+	Brush.SetResourceObject(ImageFragment->GetIcon()); // 아이콘 설정
+	Brush.DrawAs = ESlateBrushDrawType::Image; // 이미지로 그리기
+
 
 	// 삭제 소비 파괴 했을 때 이곳에.
 	// Store the new widget in a container.

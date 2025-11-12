@@ -51,6 +51,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> CanvasPanel;
 
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_SlottedItem> SlottedItemClass; 
+
 	// ø÷ ±ª¿Ã int32∑Œ?
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	int32 Rows;
