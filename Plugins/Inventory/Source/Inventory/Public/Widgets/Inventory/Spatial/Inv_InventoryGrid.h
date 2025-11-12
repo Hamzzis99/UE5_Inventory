@@ -11,6 +11,8 @@ struct FInv_ItemManifest;
 class UCanvasPanel;
 class UInv_GridSlot;
 class UInv_InventoryComponent;
+class UInv_SlottedItem;
+class FInv_GridFragment;
 
 /**
  *
@@ -19,6 +21,7 @@ UCLASS()
 class INVENTORY_API UInv_InventoryGrid : public UUserWidget
 {
 	GENERATED_BODY()
+
 public:
 	virtual void NativeConstruct() override; // Viewport를 동시에 생성하는 것이 NativeConstruct?
 
@@ -36,7 +39,9 @@ private:
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* Item); // 인벤토리 항목으로 item이 있는 공간이 있을 수 있어서 만드는 것?
 	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest); // 나중에 Builds 만들 때 사용하는 공간인가?
 	void AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* NewItem);
-
+	bool MatchesCategory(const UInv_InventoryItem* Item) const;
+	FVector2D GetDrawSize(const FInv_GridFragment* GridFragment) const;
+	void SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;

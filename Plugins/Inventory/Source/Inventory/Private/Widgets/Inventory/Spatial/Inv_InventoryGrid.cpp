@@ -11,6 +11,7 @@
 #include "Widgets/Inventory/GridSlots/Inv_GridSlot.h"
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 #include "Items/Manifest/Inv_ItemManifest.h"
+#include "Items/Fragments/Inv_FragmentTags.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
 #include "Widgets/Inventory/SlottedItems/Inv_SlottedItem.h"
 
@@ -67,29 +68,40 @@ void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Res
 {
 	//격자의 크기를 얻어오자. 게임플레이 태그로 말야
 	// Get Grid Fragment so we know how many grid spaces the item takes.
-		// 텍스처와 아이콘도 여기서 얻어온다는건가?
+	// 텍스처와 아이콘도 여기서 얻어온다는건가?
 	// Get Image Fragment so we have the icon to display
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment);
 	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(NewItem, FragmentTags::IconFragment);
 	if (!GridFragment || !ImageFragment) return; // 둘 중 하나라도 없으면 리턴
 
-
-
-
 	// Create a widget to add to the grid
-	UInv_SlottedItem* SlottedItemWidget = CreateWidget<UInv_SlottedItem>(GetOwningPlayer(), SlottedItemClass);
+	UInv_SlottedItem* SlottedItem = CreateWidget<UInv_SlottedItem>(GetOwningPlayer(), SlottedItemClass);
 	SlottedItem->SetInventoryItem(NewItem);
 
-	//슬레이트 브러시?
-	FSlateBrush Brush;
-	Brush.SetResourceObject(ImageFragment->GetIcon()); // 아이콘 설정
-	Brush.DrawAs = ESlateBrushDrawType::Image; // 이미지로 그리기
-
+	SetSlottedItemImage(SlottedItem, GridFragment, ImageFragment); 
 
 	// 삭제 소비 파괴 했을 때 이곳에.
 	// Store the new widget in a container.
 
 }
+
+FVector2D UInv_InventoryGrid::GetDrawSize(const FInv_GridFragment* GridFragment) const
+{
+	const float IconTileWidth = TileSize - GridFragment->GetGridPadding() * 2; // 아이콘 타일 너비 계산
+
+	return GridFragment->GetGridSize() * IconTileWidth; // 아이콘 크기 반환
+}
+
+void UInv_InventoryGrid::SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const
+{
+	//슬레이트 브러시?
+	FSlateBrush Brush;
+	Brush.SetResourceObject(ImageFragment->GetIcon()); // 아이콘 설정
+	Brush.DrawAs = ESlateBrushDrawType::Image; // 이미지로 그리기
+	Brush.ImageSize = GetDrawSize(GridFragment); // 아이콘 크기 설정
+	SlottedItem->SetImageBrush(Brush); // 슬로티드 아이템에 브러시 설정
+}
+
 
 //2차원 격자 생성 아이템칸 만든다는 뜻.
 void UInv_InventoryGrid::ConstructGrid()
@@ -119,3 +131,4 @@ bool UInv_InventoryGrid::MatchesCategory(const UInv_InventoryItem* Item) const
 {
 	return Item->GetItemManifest().GetItemCategory() == ItemCategory; // 아이템 카테고리 비교
 }
+
