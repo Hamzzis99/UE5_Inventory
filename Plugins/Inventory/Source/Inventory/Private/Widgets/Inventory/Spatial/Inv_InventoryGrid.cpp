@@ -11,6 +11,7 @@
 #include "Widgets/Inventory/GridSlots/Inv_GridSlot.h"
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 #include "Items/Manifest/Inv_ItemManifest.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
 
 void UInv_InventoryGrid::NativeConstruct()
 {
@@ -39,15 +40,13 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 
 	// 아이템을 넣어보자!
 	FInv_SlotAvailability SlotAvailability;
-	SlotAvailability.AmountFill = 1; // 아이템으로부터 공간 채우기
-	SlotAvailability.Index = 0; // 인덱스 설정
+	SlotAvailability.AmountToFill = 1; // 아이템으로부터 공간 채우기
+	SlotAvailability.Index = 0;	// 슬롯 가능 여부 추가
 
-	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability)); // 슬롯 가능 여부 추가
-
+	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability));
 
 	return Result;
 }
-
 
 // 인벤토리 스택 쌓는 부분.
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
@@ -67,6 +66,10 @@ void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Res
 {
 	//격자의 크기를 얻어오자. 게임플레이 태그로 말야
 	// Get Grid Fragment so we know how many grid spaces the item takes.
+	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment);
+	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(NewItem, FragmentTags::IconFragment);
+	if (!GridFragment || !ImageFragment) return; // 둘 중 하나라도 없으면 리턴
+
 	// 텍스처와 아이콘도 여기서 얻어온다는건가?
 	// Get Image Fragment so we have the icon to display
 
