@@ -66,23 +66,10 @@ void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 
 void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* NewItem) 
 {
-	//격자의 크기를 얻어오자. 게임플레이 태그로 말야
-	// Get Grid Fragment so we know how many grid spaces the item takes.
-	// 텍스처와 아이콘도 여기서 얻어온다는건가?
-	// Get Image Fragment so we have the icon to display
-	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment);
-	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(NewItem, FragmentTags::IconFragment);
-	if (!GridFragment || !ImageFragment) return; // 둘 중 하나라도 없으면 리턴
-
-	// Create a widget to add to the grid
-	UInv_SlottedItem* SlottedItem = CreateWidget<UInv_SlottedItem>(GetOwningPlayer(), SlottedItemClass);
-	SlottedItem->SetInventoryItem(NewItem);
-
-	SetSlottedItemImage(SlottedItem, GridFragment, ImageFragment); 
-
-	// 삭제 소비 파괴 했을 때 이곳에.
-	// Store the new widget in a container.
-
+	for (const auto& Availability : Result.SlotAvailabilities)
+	{
+		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availability.AmountToFill);
+	}
 }
 
 FVector2D UInv_InventoryGrid::GetDrawSize(const FInv_GridFragment* GridFragment) const
@@ -100,6 +87,27 @@ void UInv_InventoryGrid::SetSlottedItemImage(const UInv_SlottedItem* SlottedItem
 	Brush.DrawAs = ESlateBrushDrawType::Image; // 이미지로 그리기
 	Brush.ImageSize = GetDrawSize(GridFragment); // 아이콘 크기 설정
 	SlottedItem->SetImageBrush(Brush); // 슬로티드 아이템에 브러시 설정
+}
+
+void UInv_InventoryGrid::AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, const bool bStackable, const int32 StackAmount)
+{
+	//격자의 크기를 얻어오자. 게임플레이 태그로 말야
+	// Get Grid Fragment so we know how many grid spaces the item takes.
+	// 텍스처와 아이콘도 여기서 얻어온다는건가?
+	// Get Image Fragment so we have the icon to display
+	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(Item, FragmentTags::GridFragment);
+	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(Item, FragmentTags::IconFragment);
+	if (!GridFragment || !ImageFragment) return; // 둘 중 하나라도 없으면 리턴
+
+	// Create a widget to add to the grid
+	UInv_SlottedItem* SlottedItem = CreateWidget<UInv_SlottedItem>(GetOwningPlayer(), SlottedItemClass);
+	SlottedItem->SetInventoryItem(Item);
+	SetSlottedItemImage(SlottedItem, GridFragment, ImageFragment);
+	SlottedItem->SetGridIndex(Index);
+
+
+	// 삭제 소비 파괴 했을 때 이곳에.
+	// Store the new widget in a container.
 }
 
 
