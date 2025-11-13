@@ -99,15 +99,24 @@ void UInv_InventoryGrid::AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, c
 	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(Item, FragmentTags::IconFragment);
 	if (!GridFragment || !ImageFragment) return; // 둘 중 하나라도 없으면 리턴
 
+	UInv_SlottedItem* SlottedItem = CreateSlottedItem(Item, bStackable, StackAmount, GridFragment, ImageFragment, Index);
+
+	// Add the slotted item to the canvas panel.
+	// 슬롯 아이템을 캔버스 패널에 그려주는 곳.
+
+	// 삭제 소비 파괴 했을 때 이곳에.
+	// Store the new widget in a container.
+}
+
+UInv_SlottedItem* UInv_InventoryGrid::CreateSlottedItem(UInv_InventoryItem* Item, const bool bStackable, const int32 StackAmount, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment, const int32 Index)
+{
 	// Create a widget to add to the grid
 	UInv_SlottedItem* SlottedItem = CreateWidget<UInv_SlottedItem>(GetOwningPlayer(), SlottedItemClass);
 	SlottedItem->SetInventoryItem(Item);
 	SetSlottedItemImage(SlottedItem, GridFragment, ImageFragment);
 	SlottedItem->SetGridIndex(Index);
 
-
-	// 삭제 소비 파괴 했을 때 이곳에.
-	// Store the new widget in a container.
+	return SlottedItem;
 }
 
 

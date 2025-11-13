@@ -22,7 +22,7 @@ public:
 	int32 GetGridIndex() const { return GridIndex; } // 그리드 인덱스 가져오기
 	void SetGridDimensions(const FIntPoint& Dimensions) { GridDimensions = Dimensions; } // 그리드 크기 설정
 	FIntPoint GetGridDimensions() const { return GridDimensions; } // 그리드 크기 가져오기
-	void SetInventoryItem(UInv_InventoryItem* Item) { InventoryItem = Item; } // 인벤토리 아이템 설정
+	void SetInventoryItem(UInv_InventoryItem* Item); // 인벤토리 아이템 설정
 	UInv_InventoryItem* GetInventoryItem() const { return InventoryItem.Get(); } // 인벤토리 아이템 가져오기
 	void SetImageBrush(const FSlateBrush& Brush) const; // 이미지 브러시 설정
 

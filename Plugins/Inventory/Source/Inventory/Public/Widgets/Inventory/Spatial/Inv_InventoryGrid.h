@@ -6,13 +6,14 @@
 
 #include "Inv_InventoryGrid.generated.h"
 
+struct FInv_ImageFragment;
+struct FInv_GridFragment;
+class UInv_SlottedItem;
 class UInv_ItemComponent;
 struct FInv_ItemManifest;
 class UCanvasPanel;
 class UInv_GridSlot;
 class UInv_InventoryComponent;
-class UInv_SlottedItem;
-class FInv_GridFragment;
 
 /**
  *
@@ -43,6 +44,13 @@ private:
 	FVector2D GetDrawSize(const FInv_GridFragment* GridFragment) const; // 그리드 조각의 그리기 크기 가져오기
 	void SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const; // 슬로티드 아이템 이미지 설정
 	void AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, const bool bStackable, const int32 StackAmount); // 인덱스에 아이템 추가
+	UInv_SlottedItem* CreateSlottedItem(UInv_InventoryItem* Item, 
+		const bool bStackable, 
+		const int32 StackAmount, 
+		const FInv_GridFragment* GridFragment, 
+		const FInv_ImageFragment* ImageFragment, 
+		const int32 Index
+	); // 슬로티드 아이템 생성
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;
@@ -68,7 +76,5 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float TileSize;
-
-	bool MatchesCategory(const UInv_InventoryItem* Item) const;
 };
 
