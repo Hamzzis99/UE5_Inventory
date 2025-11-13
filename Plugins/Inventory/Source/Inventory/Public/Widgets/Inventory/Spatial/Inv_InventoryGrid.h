@@ -51,6 +51,7 @@ private:
 		const FInv_ImageFragment* ImageFragment, 
 		const int32 Index
 	); // 슬로티드 아이템 생성
+	void AddSlottedItemToCanvas(const int32 Index, const FInv_GridFragment* GridFragment, UInv_SlottedItem* SlottedItem) const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;
@@ -67,6 +68,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_SlottedItem> SlottedItemClass; 
+
+	UPROPERTY()
+	TMap<int32, TObjectPtr<UInv_SlottedItem>> SlottedItems; // 인덱스와 슬로티드 아이템 매핑 아이템을 등록할 때마다 이 것을 사용할 것.
 
 	// 왜 굳이 int32로?
 	UPROPERTY(EditAnywhere, Category = "Inventory")
