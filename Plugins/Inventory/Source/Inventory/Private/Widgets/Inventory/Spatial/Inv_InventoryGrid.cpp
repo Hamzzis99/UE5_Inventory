@@ -106,7 +106,7 @@ void UInv_InventoryGrid::AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, c
 
 	// 삭제 소비 파괴 했을 때 이곳에.
 	// Store the new widget in a container.
-	SlottedItems.Add(Index, SlottedItem); // 인덱스와 슬로티드 아이템 매핑
+	SlottedItems.Add(Index, SlottedItem); // 인덱스와 슬로티드 아 이템 매핑
 }
 
 UInv_SlottedItem* UInv_InventoryGrid::CreateSlottedItem(UInv_InventoryItem* Item, const bool bStackable, const int32 StackAmount, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment, const int32 Index)
