@@ -64,3 +64,18 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FVector2D IconDimensions{ 44.f, 44.f }; //아이콘 크기
 };
+
+USTRUCT(BlueprintType)
+struct FInv_StackableFragment : public  FInv_ItemFragment
+{
+	GENERATED_BODY()
+
+	int32 GetMaxStackSize() const { return MaxStackSize; } //최대 아이템 스택 크기 얻기
+	int32 GetStackCount() const { return MaxStackCount; } //최대 아이템 스택 개수 얻기
+private:
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	int32 MaxStackSize{ 1 }; //최대 아이템 스택 크기
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	int32 MaxStackCount{ 1 }; //최대 아이템 스택 개수
+};
