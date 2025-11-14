@@ -68,7 +68,8 @@ void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Res
 {
 	for (const auto& Availability : Result.SlotAvailabilities)
 	{
-		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availability.AmountToFill);
+		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availability.AmountToFill); // 인덱스에 아이템 추가
+		UpdateGridSlots(NewItem, Availability.Index); //그리드 슬롯 업데이트 부분
 	}
 }
 
@@ -128,6 +129,14 @@ void UInv_InventoryGrid::AddSlottedItemToCanvas(const int32 Index, const FInv_Gr
 	const FVector2D DrawPos = UInv_WidgetUtils::GetPositionFromIndex(Index, Columns)* TileSize; // 정사각형 위치를 의미하는 것?
 	const FVector2D DrawPosWithPadding = DrawPos + FVector2D(GridFragment->GetGridPadding()); // 패딩 적용된 위치
 	CanvasSlot->SetPosition(DrawPosWithPadding);
+}
+
+void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int32 Index)
+{
+	check(GridSlots.IsValidIndex(Index)); // 인덱스 유효성 검사
+
+	UInv_GridSlot* GridSlot = GridSlots[Index]; // 해당 인덱스의 그리드 슬롯 가져오기
+	GridSlot->SetOccupiedTexture(); // 점유된 텍스처로 설정
 }
 
 
