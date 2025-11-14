@@ -58,12 +58,13 @@ const T* FInv_ItemManifest::GetFragmentOfTypeWithTag(const FGameplayTag& Fragmen
 	return nullptr; // 아무것도 찾지 못했을 땐 nullptr 반환
 }
 
-template<typename T> requires std::derived_from<T, FInv_ItemFragment>
-inline const T* FInv_ItemManifest::GetFragmentOfType() const
+template <typename T> requires std::derived_from<T, FInv_ItemFragment>
+const T* FInv_ItemManifest::GetFragmentOfType() const
 {
 	for (const TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments) // 여러개를 찾는 과정
 	{
 		if (const T* FragmentPtr = Fragment.GetPtr<T>())
+		{
 			return FragmentPtr; // 찾았을 땐 하나의 해당 포인터 반환
 		}
 	}

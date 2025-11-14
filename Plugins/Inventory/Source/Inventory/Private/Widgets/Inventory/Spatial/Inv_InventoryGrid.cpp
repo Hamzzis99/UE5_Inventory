@@ -46,11 +46,10 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 
 	// 얼마나 쌓을 수 있는지 판단하는 부분 만들기.
 	// Determine how many stacks to add.
-	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxSize() : 1; // 스택 최대 크기 얻기
+	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1; // 스택 최대 크기 얻기
 	int32 AmountToFill = StackableFragment ? StackableFragment->GetMaxStackSize() : 1; // 널포인트가 아니면 스택을 쌓아준다. 다만 이쪽은 변경 가능하게. 채울 양을 업데이트 해야하니.
 
 	TSet<int32> CheckedIndices; // 이미 확인한 인덱스 집합
-
 	//그리드 슬롯을 반복하여서 확인하기.
 	// For each Grid Slot:
 	for (const auto& GridSlot : GridSlots)
@@ -61,28 +60,17 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 
 		// 이 인덱스가 이미 점유되어있는지 확인하기
 		// Is this Index claimed yet?
-		if (IsIndexClaimed(CheckIndices, GridSlot->GetIndex())) continue; // 이미 점유되어 있다면 다음으로 넘어간다. bool값으로 확인.
+		if (IsIndexClaimed(CheckedIndices, GridSlot->GetIndex())) continue; // 이미 점유되어 있다면 다음으로 넘어간다. bool값으로 확인.
 
 		// ➡️ 아이템이 여기에 들어갈 수 있습니까? (예: 그리드 경계를 벗어나지 않는지?)
 		// Can the item fit here? (i.e. is it out of grid bounds?)
-
-		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest))
+		TSet<int32> TentativelyClaimed; // 임시로 점유된 인덱스 집합
+		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest), CheckedIndices, TentativelyClaimed))
 		{
 			continue; // 공간이 없다면 다음으로 넘어간다.
 		}
 
-
-		// ➡️ 이 인덱스에 공간이 있습니까? (예: 다른 아이템이 길을 막고 있지 않은지?)
-		// Is there room at this index? (i.e are there other items in the way?)
-		// 다른 중요한 조건들도 확인해야 한다. - ForEach2D over a range
-		//Check any other important conditions - ForEach2D over a range
-		.	// Index claimed? 점유되어 있는지 확인한다.
-			// 유효한 항목이 있습니까?
-			// Has valid item?
-			// ➡️ [!] (항목이 있다면) 스택 가능한 아이템입니까?
-			// If so, it this a stackable item?
-			// ➡️ [!] 스택 가능하다면, 이 슬롯은 이미 최대 스택 크기입니까?
-			// Is Stackable, is this slot at the max stack size already?
+		CheckedIndices.Append(TentativelyClaimed); // 확인된 인덱스에 임시로 점유된 인덱스 추가
 		// 얼마나 채워야해?
 		// How much to fill?
 		// ➡️ [!] 채워야 할 남은 양을 업데이트합니다.
@@ -95,16 +83,42 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 	return Result;
 }
 
-bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot, const FIntPoint& Dimensions)
+//2차원 범위 내 각 정사각형의 슬롯 제약 조건을 검사하는 부분들.
+bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot,
+										const FIntPoint& Dimensions,
+										const TSet<int32>& CheckedIndices,
+										TSet<int32>& OutTentativelyClaimed)
 {
-	bool bHasRoomAtIndex = true; // 
-
-	UInv_InventoryStatics::ForEach2D(GridSlots, GridSlot->GetIndex(), Dimensions, Columns, []() 
+	// ➡️ 이 인덱스에 공간이 있습니까? (예: 다른 아이템이 길을 막고 있지 않은지?)
+	// Is there room at this index? (i.e are there other items in the way?)
+	bool bHasRoomAtIndex = true;
+	UInv_InventoryStatics::ForEach2D(GridSlots, GridSlot->GetIndex(), Dimensions, Columns, [&](const UInv_GridSlot* SubGridSlot) 
 	{	
-		
+		if (CheckSlotConstraints(SubGridSlot))
+		{
+			OutTentativelyClaimed.Add(SubGridSlot->GetIndex());
+		}
+		else
+		{
+			bHasRoomAtIndex = false;
+		}
 	});
 
 	return bHasRoomAtIndex; 
+}
+
+bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* SubGridSlot) const
+{		
+	// 다른 중요한 조건들도 확인해야 한다. - ForEach2D over a range
+		//Check any other important conditions - ForEach2D over a range
+		// Index claimed? 점유되어 있는지 확인한다.
+		// 유효한 항목이 있습니까?
+		// Has valid item?
+		// ➡️ [!] (항목이 있다면) 스택 가능한 아이템입니까?
+		// If so, it this a stackable item?
+		// ➡️ [!] 스택 가능하다면, 이 슬롯은 이미 최대 스택 크기입니까?
+		// Is Stackable, is this slot at the max stack size already?
+	return false;
 }
 
 FIntPoint UInv_InventoryGrid::GetItemDimensions(const FInv_ItemManifest& Manifest) const
@@ -131,8 +145,8 @@ void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Res
 {
 	for (const auto& Availability : Result.SlotAvailabilities)
 	{
-		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availabilty.AmountToFill); // 인덱스에 아이템 추가
-		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availabilty.AmountToFill); //그리드 슬롯 업데이트 부분
+		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availability.AmountToFill);// 인덱스에 아이템 추가
+		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availability.AmountToFill);//그리드 슬롯 업데이트 부분
 	}
 }
 

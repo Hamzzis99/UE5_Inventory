@@ -35,9 +35,9 @@ public:
 	void SetIndex(int32 Index) { TileIndex = Index; } // 인덱스 설정
 	//아이템 먹을수록 왼쪽부터 채워주는 함수들 만들기
 	int32 GetUpperLeftIndex() const { return UpperLeftIndex; } // 왼쪽 위 인덱스 반환
-	voidSetUpperLeftIndex(int32 Index) { UpperLeftIndex = Index; } // 왼쪽 위 인덱스 설정
+	void SetUpperLeftIndex(int32 Index) { UpperLeftIndex = Index; } // 왼쪽 위 인덱스 설정
 	bool IsAvailable() const { return bAvailable; } // 사용 가능 여부 반환
-	void SetAvailable(bool bIsAvailable) { bAvailable = bInAvailable; } // 사용 가능 여부 설정
+	void SetAvailable(bool bIsAvailable) { bAvailable = bIsAvailable; } // 사용 가능 여부 설정
 
 	void SetOccupiedTexture();
 	void SetUnoccupiedTexture();
