@@ -49,6 +49,8 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxSize() : 1; // 스택 최대 크기 얻기
 	int32 AmountToFill = StackableFragment ? StackableFragment->GetMaxStackSize() : 1; // 널포인트가 아니면 스택을 쌓아준다. 다만 이쪽은 변경 가능하게. 채울 양을 업데이트 해야하니.
 
+	TSet<int32> CheckedIndices; // 이미 확인한 인덱스 집합
+
 	//그리드 슬롯을 반복하여서 확인하기.
 	// For each Grid Slot:
 	for (const auto& GridSlot : GridSlots)
@@ -59,6 +61,8 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 
 		// 이 인덱스가 이미 점유되어있는지 확인하기
 		// Is this Index claimed yet?
+		if (IsIndexClaimed(CheckIndices, GridSlot->GetIndex())) continue; // 이미 점유되어 있다면 다음으로 넘어간다. bool값으로 확인.
+
 		// ➡️ 아이템이 여기에 들어갈 수 있습니까? (예: 그리드 경계를 벗어나지 않는지?)
 		// Can the item fit here? (i.e. is it out of grid bounds?)
 		// ➡️ 이 인덱스에 공간이 있습니까? (예: 다른 아이템이 길을 막고 있지 않은지?)
@@ -189,6 +193,11 @@ void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int3
 		GridSlot->SetOccupiedTexture(); // 그리드 슬롯을 점유된 텍스처로 설정 (그니까 아이템을 격자칸들 수만큼 공간으로 채운다는 것)
 		GridSlot->SetAvailable(false); // 그리드 슬롯을 사용 불가능으로 설정
 	}); //람다함수 부분들
+}
+
+bool UInv_InventoryGrid::IsIndexClaimed(const TSet<int32>& CheckedIndices, const int32 Index) const
+{
+	return CheckedIndices.Contains(Index);
 }
 
 
