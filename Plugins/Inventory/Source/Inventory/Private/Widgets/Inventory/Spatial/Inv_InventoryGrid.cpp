@@ -46,14 +46,17 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 
 	// 얼마나 쌓을 수 있는지 판단하는 부분 만들기.
 	// Determine how many stacks to add.
-
 	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxSize() : 1; // 스택 최대 크기 얻기
-	int32 AmountToFill = StackableFragment ? StackableFragment->GetMaxStackSize() : 1; // 널포인트가 아니면 스택을 쌓아준다.
+	int32 AmountToFill = StackableFragment ? StackableFragment->GetMaxStackSize() : 1; // 널포인트가 아니면 스택을 쌓아준다. 다만 이쪽은 변경 가능하게. 채울 양을 업데이트 해야하니.
 
 	//그리드 슬롯을 반복하여서 확인하기.
 	// For each Grid Slot:
+	for (const auto& GridSlot : GridSlots)
+	{
 		// ➡️ 더 이상 채울 아이템이 없다면, (루프를) 일찍 빠져나옵니다.
 		// If we don't have anymore to fill, break out of the early
+		if (AmountToFill == 0) break;
+
 		// 이 인덱스가 이미 점유되어있는지 확인하기
 		// Is this Index claimed yet?
 		// ➡️ 아이템이 여기에 들어갈 수 있습니까? (예: 그리드 경계를 벗어나지 않는지?)
@@ -62,7 +65,7 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 		// Is there room at this index? (i.e are there other items in the way?)
 		// 다른 중요한 조건들도 확인해야 한다. - ForEach2D over a range
 		//Check any other important conditions - ForEach2D over a range
-	.		// Index claimed? 점유되어 있는지 확인한다.
+		.	// Index claimed? 점유되어 있는지 확인한다.
 			// 유효한 항목이 있습니까?
 			// Has valid item?
 			// ➡️ [!] (항목이 있다면) 스택 가능한 아이템입니까?
@@ -73,6 +76,8 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 		// How much to fill?
 		// ➡️ [!] 채워야 할 남은 양을 업데이트합니다.
 		// Update the amount left to fill.
+	}
+
 	// 모두 반복한 후 나머지는 얼마나 있나요?
 	// How much is the Remainder?
 
