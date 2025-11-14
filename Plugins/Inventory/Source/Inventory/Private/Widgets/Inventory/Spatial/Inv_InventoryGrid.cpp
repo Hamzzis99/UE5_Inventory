@@ -37,21 +37,39 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_Invent
 
 FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemManifest& Manifest)
 {
-	FInv_SlotAvailabilityResult Result;
-	Result.TotalRoomToFill = 1;
-	Result.bStackable = true;
-
-	// 아이템을 넣어보자! (임시로 2칸 5칸 있다고 가정) 디버깅용도
-	FInv_SlotAvailability SlotAvailability;
-	SlotAvailability.AmountToFill = 2; // 아이템으로부터 공간 채우기
-	SlotAvailability.Index = 0;	// 슬롯 가능 여부 추가
-	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability));
-
-	FInv_SlotAvailability SlotAvailability2;
-	SlotAvailability2.AmountToFill = 5; // 아이템으로부터 공간 채우기
-	SlotAvailability2.Index = 1;	// 슬롯 가능 여부 추가
-	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability2));
+	FInv_SlotAvailabilityResult Result; // GridTypes.h에서 참고해야할 구조체.
 	
+	// 아이템을 쌓을 수 있는지 판단하기.
+	// Determine if the item is stackable.
+
+	// 얼마나 쌓을 수 있는지 판단하는 부분 만들기.
+	// Determine how many stacks to add.
+
+	//그리드 슬롯을 반복하여서 확인하기.
+	// For each Grid Slot:
+		// 더이상 채울 것이 없으면 종료하거나 닫ㄴ순히 빠져나가도록 설정.
+		// If we don't have anymore to fill, break out of the earyly
+		// 이 인덱스가	이미 점유되어있는지 확인하기
+		// Is this Index claimed yet?
+		// 아이템이 여기에 들어갈 수 있는가?
+		// Can the item fit here? (i.e. is it out of grid bounds?)
+		// 인덱스 공간이 있습니까? (다른 방해하는 부분들이 있습니까?)
+		// Is there room at this index? (i.e are there other items in the way?)
+		// 다른 중요한 조건들도 확인해야 한다. - ForEach2D over a range
+		//Check any other important conditions - ForEach2D over a range
+	.		// Index claimed? 점유되어 있는지 확인한다.
+			// 유효한 항목이 있습니까?
+			// Has valid item?
+			// 같은 타임의 아이템이라면 우리가 넣어야할까요?
+			// If so, it this a stackable item?
+			// 스택이 가득 찼는지 확인하기
+			// Is Stackable, is this slot at the max stack size already?
+		// 얼마나 채워야해?
+		// How much to fill?
+		// 채워야 할 부분을 왼쪽부터 순차적으로 하기.
+		// Update the amount left to fill.
+	// 모두 반복한 후 나머지는 얼마나 있나요?
+	// How much is the Remainder?
 
 	return Result;
 }
