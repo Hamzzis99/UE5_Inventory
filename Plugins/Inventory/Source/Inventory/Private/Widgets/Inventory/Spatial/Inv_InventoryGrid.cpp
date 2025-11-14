@@ -135,8 +135,15 @@ void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int3
 {
 	check(GridSlots.IsValidIndex(Index)); // 인덱스 유효성 검사
 
-	UInv_GridSlot* GridSlot = GridSlots[Index]; // 해당 인덱스의 그리드 슬롯 가져오기
-	GridSlot->SetOccupiedTexture(); // 점유된 텍스처로 설정
+	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment); // 그리드 조각 가져오기
+	if (!GridFragment) return;
+	
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1,1); // 그리드 크기 가져오기
+
+	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [](UInv_GridSlot* GridSlot)
+	{
+		GridSlot->SetOccupiedTexture(); // 그리드 슬롯을 점유된 텍스처로 설정
+	}); //람다함수 부분들
 }
 
 
