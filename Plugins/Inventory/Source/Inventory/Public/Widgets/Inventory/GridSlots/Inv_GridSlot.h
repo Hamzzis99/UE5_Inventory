@@ -23,9 +23,21 @@ class INVENTORY_API UInv_GridSlot : public UUserWidget
 {
 	GENERATED_BODY()
 public:
+	// Getter Setter 부분들.
 	void SetTileIndex(int32 Index) { TileIndex = Index; } // 타일 인덱스 설정
 	int32 GetTileIndex() const { return TileIndex; } //	타일 인덱스 반환
 	EInv_GridSlotState GetGridSlotState() const { return GridSlotState; } // 현재 상태 반환
+	TWeakObjectPtr<UInv_InventoryItem> GetInventoryItem() const { return InventoryItem; } // 인벤토리 아이템 반환
+	void SetInventoryItem(UInv_InventoryItem* Item); // 인벤토리 아이템 설정
+	int32 GetStackCount() const { return StackCount; } // 스택 카운트 반환
+	void SetStackCount(int32 Count) { StackCount = Count; } // 스택 카운트 설정
+	int32 GetIndex() const { return TileIndex; } // 인덱스 반환
+	void SetIndex(int32 Index) { TileIndex = Index; } // 인덱스 설정
+	//아이템 먹을수록 왼쪽부터 채워주는 함수들 만들기
+	int32 GetUpperLeftIndex() const { return UpperLeftIndex; } // 왼쪽 위 인덱스 반환
+	voidSetUpperLeftIndex(int32 Index) { UpperLeftIndex = Index; } // 왼쪽 위 인덱스 설정
+	bool IsAvailable() const { return bAvailable; } // 사용 가능 여부 반환
+	void SetAvailable(bool bIsAvailable) { bAvailable = bInAvailable; } // 사용 가능 여부 설정
 
 	void SetOccupiedTexture();
 	void SetUnoccupiedTexture();
@@ -34,6 +46,10 @@ public:
 
 private:
 	int32 TileIndex;
+	int32 StackCount;
+	int32 UpperLeftIndex{ INDEX_NONE };
+	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;
+	bool bAvailable;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GridSlot;

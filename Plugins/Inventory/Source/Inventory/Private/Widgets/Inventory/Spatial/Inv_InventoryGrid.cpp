@@ -74,8 +74,8 @@ void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Res
 {
 	for (const auto& Availability : Result.SlotAvailabilities)
 	{
-		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availability.AmountToFill); // 인덱스에 아이템 추가
-		UpdateGridSlots(NewItem, Availability.Index); //그리드 슬롯 업데이트 부분
+		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availabilty.AmountToFill); // 인덱스에 아이템 추가
+		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availabilty.AmountToFill); //그리드 슬롯 업데이트 부분
 	}
 }
 
@@ -140,18 +140,26 @@ void UInv_InventoryGrid::AddSlottedItemToCanvas(const int32 Index, const FInv_Gr
 	CanvasSlot->SetPosition(DrawPosWithPadding);
 }
 
-void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int32 Index)
+void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int32 Index, bool bStackableItem, const int32 StackAmount)
 {
 	check(GridSlots.IsValidIndex(Index)); // 인덱스 유효성 검사
+	
+	//쌓을 수 있는 아이템인지 확인해볼까? (Stackable이 가능한지)
+	if (bStackableItem)
+	{
+		GridSlots[Index]->SetInventoryItem(NewItem); // 그리드 슬롯에 인벤토리 아이템 설정
+	}
 
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment); // 그리드 조각 가져오기
-	if (!GridFragment) return;
-	
 	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1,1); // 그리드 크기 가져오기
 
-	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [](UInv_GridSlot* GridSlot)
+	//2D 격자 순회하면서 그리드 슬롯 업데이트
+	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot) // [&] 이건 뭔데?
 	{
-		GridSlot->SetOccupiedTexture(); // 그리드 슬롯을 점유된 텍스처로 설정
+		GridSlot->SetInventoryItem(NewItem); // 그리드 슬롯에 인벤토리 아이템 설정
+		GridSlot->SetUpperLeftIndex(Index); // 그리드 슬롯에 왼쪽 위 인덱스 설정
+		GridSlot->SetOccupiedTexture(); // 그리드 슬롯을 점유된 텍스처로 설정 (그니까 아이템을 격자칸들 수만큼 공간으로 채운다는 것)
+		GridSlot->SetAvailable(false); // 그리드 슬롯을 사용 불가능으로 설정
 	}); //람다함수 부분들
 }
 
