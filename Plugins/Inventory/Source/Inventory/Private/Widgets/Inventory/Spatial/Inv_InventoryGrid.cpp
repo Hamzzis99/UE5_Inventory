@@ -47,6 +47,9 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 	// 얼마나 쌓을 수 있는지 판단하는 부분 만들기.
 	// Determine how many stacks to add.
 
+	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxSize() : 1; // 스택 최대 크기 얻기
+	int32 AmountToFill = StackableFragment ? StackableFragment->GetMaxStackSize() : 1; // 널포인트가 아니면 스택을 쌓아준다.
+
 	//그리드 슬롯을 반복하여서 확인하기.
 	// For each Grid Slot:
 		// ➡️ 더 이상 채울 아이템이 없다면, (루프를) 일찍 빠져나옵니다.
