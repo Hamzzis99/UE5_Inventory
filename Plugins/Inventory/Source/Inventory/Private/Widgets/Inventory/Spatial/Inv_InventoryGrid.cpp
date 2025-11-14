@@ -65,6 +65,13 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 
 		// ➡️ 아이템이 여기에 들어갈 수 있습니까? (예: 그리드 경계를 벗어나지 않는지?)
 		// Can the item fit here? (i.e. is it out of grid bounds?)
+
+		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest))
+		{
+			continue; // 공간이 없다면 다음으로 넘어간다.
+		}
+
+
 		// ➡️ 이 인덱스에 공간이 있습니까? (예: 다른 아이템이 길을 막고 있지 않은지?)
 		// Is there room at this index? (i.e are there other items in the way?)
 		// 다른 중요한 조건들도 확인해야 한다. - ForEach2D over a range
@@ -86,6 +93,24 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 	// How much is the Remainder?
 
 	return Result;
+}
+
+bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot, const FIntPoint& Dimensions)
+{
+	bool bHasRoomAtIndex = true; // 
+
+	UInv_InventoryStatics::ForEach2D(GridSlots, GridSlot->GetIndex(), Dimensions, Columns, []() 
+	{	
+		
+	});
+
+	return bHasRoomAtIndex; 
+}
+
+FIntPoint UInv_InventoryGrid::GetItemDimensions(const FInv_ItemManifest& Manifest) const
+{
+	const FInv_GridFragment* GridFragment = Manifest.GetFragmentOfType<FInv_GridFragment>();
+	return GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1); 
 }
 
 // 인벤토리 스택 쌓는 부분.
