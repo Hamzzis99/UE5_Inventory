@@ -1,4 +1,4 @@
-// Gihyeon's Inventory Project
+ï»¿// Gihyeon's Inventory Project
 #include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
 
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -21,8 +21,8 @@ void UInv_InventoryGrid::NativeConstruct()
 
 	ConstructGrid();
 
-	InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer()); // ÇÃ·¹ÀÌ¾îÀÇ ÀÎº¥Åä¸® ÄÄÆ÷³ÍÆ®¸¦ °¡Á®¿Â´Ù.
-	InventoryComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem); // µ¨¸®°ÔÀÌÆ® ¹ÙÀÎµù 
+	InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer()); // í”Œë ˆì´ì–´ì˜ ì¸ë²¤í† ë¦¬ ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
+	InventoryComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem); // ë¸ë¦¬ê²Œì´íŠ¸ ë°”ì¸ë”© 
 }
 
 FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_ItemComponent* ItemComponent)
@@ -37,50 +37,52 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_Invent
 
 FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemManifest& Manifest)
 {
-	FInv_SlotAvailabilityResult Result; // GridTypes.h¿¡¼­ Âü°íÇØ¾ßÇÒ ±¸Á¶Ã¼.
+	FInv_SlotAvailabilityResult Result; // GridTypes.hì—ì„œ ì°¸ê³ í•´ì•¼í•  êµ¬ì¡°ì²´.
 	
-	// ¾ÆÀÌÅÛÀ» ½×À» ¼ö ÀÖ´ÂÁö ÆÇ´ÜÇÏ±â.
+	// ì•„ì´í…œì„ ìŒ“ì„ ìˆ˜ ìˆëŠ”ì§€ íŒë‹¨í•˜ê¸°.
 	// Determine if the item is stackable.
+	const FInv_StackableFragment* StackableFragment = Manifest.GetFragmentOfType<FInv_StackableFragment>();
+	Result.bStackable = StackableFragment != nullptr; // nullptrê°€ ì•„ë‹ˆë¼ë©´ ìŒ“ì„ ìˆ˜ ìˆë‹¤!
 
-	// ¾ó¸¶³ª ½×À» ¼ö ÀÖ´ÂÁö ÆÇ´ÜÇÏ´Â ºÎºĞ ¸¸µé±â.
+	// ì–¼ë§ˆë‚˜ ìŒ“ì„ ìˆ˜ ìˆëŠ”ì§€ íŒë‹¨í•˜ëŠ” ë¶€ë¶„ ë§Œë“¤ê¸°.
 	// Determine how many stacks to add.
 
-	//±×¸®µå ½½·ÔÀ» ¹İº¹ÇÏ¿©¼­ È®ÀÎÇÏ±â.
+	//ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì„ ë°˜ë³µí•˜ì—¬ì„œ í™•ì¸í•˜ê¸°.
 	// For each Grid Slot:
-		// ´õÀÌ»ó Ã¤¿ï °ÍÀÌ ¾øÀ¸¸é Á¾·áÇÏ°Å³ª ´İ¤¤¼øÈ÷ ºüÁ®³ª°¡µµ·Ï ¼³Á¤.
-		// If we don't have anymore to fill, break out of the earyly
-		// ÀÌ ÀÎµ¦½º°¡	ÀÌ¹Ì Á¡À¯µÇ¾îÀÖ´ÂÁö È®ÀÎÇÏ±â
+		// â¡ï¸ ë” ì´ìƒ ì±„ìš¸ ì•„ì´í…œì´ ì—†ë‹¤ë©´, (ë£¨í”„ë¥¼) ì¼ì° ë¹ ì ¸ë‚˜ì˜µë‹ˆë‹¤.
+		// If we don't have anymore to fill, break out of the early
+		// ì´ ì¸ë±ìŠ¤ê°€ ì´ë¯¸ ì ìœ ë˜ì–´ìˆëŠ”ì§€ í™•ì¸í•˜ê¸°
 		// Is this Index claimed yet?
-		// ¾ÆÀÌÅÛÀÌ ¿©±â¿¡ µé¾î°¥ ¼ö ÀÖ´Â°¡?
+		// â¡ï¸ ì•„ì´í…œì´ ì—¬ê¸°ì— ë“¤ì–´ê°ˆ ìˆ˜ ìˆìŠµë‹ˆê¹Œ? (ì˜ˆ: ê·¸ë¦¬ë“œ ê²½ê³„ë¥¼ ë²—ì–´ë‚˜ì§€ ì•ŠëŠ”ì§€?)
 		// Can the item fit here? (i.e. is it out of grid bounds?)
-		// ÀÎµ¦½º °ø°£ÀÌ ÀÖ½À´Ï±î? (´Ù¸¥ ¹æÇØÇÏ´Â ºÎºĞµéÀÌ ÀÖ½À´Ï±î?)
+		// â¡ï¸ ì´ ì¸ë±ìŠ¤ì— ê³µê°„ì´ ìˆìŠµë‹ˆê¹Œ? (ì˜ˆ: ë‹¤ë¥¸ ì•„ì´í…œì´ ê¸¸ì„ ë§‰ê³  ìˆì§€ ì•Šì€ì§€?)
 		// Is there room at this index? (i.e are there other items in the way?)
-		// ´Ù¸¥ Áß¿äÇÑ Á¶°Çµéµµ È®ÀÎÇØ¾ß ÇÑ´Ù. - ForEach2D over a range
+		// ë‹¤ë¥¸ ì¤‘ìš”í•œ ì¡°ê±´ë“¤ë„ í™•ì¸í•´ì•¼ í•œë‹¤. - ForEach2D over a range
 		//Check any other important conditions - ForEach2D over a range
-	.		// Index claimed? Á¡À¯µÇ¾î ÀÖ´ÂÁö È®ÀÎÇÑ´Ù.
-			// À¯È¿ÇÑ Ç×¸ñÀÌ ÀÖ½À´Ï±î?
+	.		// Index claimed? ì ìœ ë˜ì–´ ìˆëŠ”ì§€ í™•ì¸í•œë‹¤.
+			// ìœ íš¨í•œ í•­ëª©ì´ ìˆìŠµë‹ˆê¹Œ?
 			// Has valid item?
-			// °°Àº Å¸ÀÓÀÇ ¾ÆÀÌÅÛÀÌ¶ó¸é ¿ì¸®°¡ ³Ö¾î¾ßÇÒ±î¿ä?
+			// â¡ï¸ [!] (í•­ëª©ì´ ìˆë‹¤ë©´) ìŠ¤íƒ ê°€ëŠ¥í•œ ì•„ì´í…œì…ë‹ˆê¹Œ?
 			// If so, it this a stackable item?
-			// ½ºÅÃÀÌ °¡µæ Ã¡´ÂÁö È®ÀÎÇÏ±â
+			// â¡ï¸ [!] ìŠ¤íƒ ê°€ëŠ¥í•˜ë‹¤ë©´, ì´ ìŠ¬ë¡¯ì€ ì´ë¯¸ ìµœëŒ€ ìŠ¤íƒ í¬ê¸°ì…ë‹ˆê¹Œ?
 			// Is Stackable, is this slot at the max stack size already?
-		// ¾ó¸¶³ª Ã¤¿ö¾ßÇØ?
+		// ì–¼ë§ˆë‚˜ ì±„ì›Œì•¼í•´?
 		// How much to fill?
-		// Ã¤¿ö¾ß ÇÒ ºÎºĞÀ» ¿ŞÂÊºÎÅÍ ¼øÂ÷ÀûÀ¸·Î ÇÏ±â.
+		// â¡ï¸ [!] ì±„ì›Œì•¼ í•  ë‚¨ì€ ì–‘ì„ ì—…ë°ì´íŠ¸í•©ë‹ˆë‹¤.
 		// Update the amount left to fill.
-	// ¸ğµÎ ¹İº¹ÇÑ ÈÄ ³ª¸ÓÁö´Â ¾ó¸¶³ª ÀÖ³ª¿ä?
+	// ëª¨ë‘ ë°˜ë³µí•œ í›„ ë‚˜ë¨¸ì§€ëŠ” ì–¼ë§ˆë‚˜ ìˆë‚˜ìš”?
 	// How much is the Remainder?
 
 	return Result;
 }
 
-// ÀÎº¥Åä¸® ½ºÅÃ ½×´Â ºÎºĞ.
+// ì¸ë²¤í† ë¦¬ ìŠ¤íƒ ìŒ“ëŠ” ë¶€ë¶„.
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 {
-	//¾ÆÀÌÅÛ ±×¸®µå Ã¼Å© ºÎºĞ?
+	//ì•„ì´í…œ ê·¸ë¦¬ë“œ ì²´í¬ ë¶€ë¶„?
 	if (!MatchesCategory(Item)) return;
 
-	//°ø°£ÀÌ ÀÖ´Ù°í ºÎ¸£´Â ºÎºĞ.
+	//ê³µê°„ì´ ìˆë‹¤ê³  ë¶€ë¥´ëŠ” ë¶€ë¶„.
 	FInv_SlotAvailabilityResult Result = HasRoomForItem(Item);
 
 	// Create a widget to show the item icon and add it to the correct spot on the grid.
@@ -92,46 +94,46 @@ void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Res
 {
 	for (const auto& Availability : Result.SlotAvailabilities)
 	{
-		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availabilty.AmountToFill); // ÀÎµ¦½º¿¡ ¾ÆÀÌÅÛ Ãß°¡
-		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availabilty.AmountToFill); //±×¸®µå ½½·Ô ¾÷µ¥ÀÌÆ® ºÎºĞ
+		AddItemAtIndex(NewItem, Availability.Index, Result.bStackable, Availabilty.AmountToFill); // ì¸ë±ìŠ¤ì— ì•„ì´í…œ ì¶”ê°€
+		UpdateGridSlots(NewItem, Availability.Index, Result.bStackable, Availabilty.AmountToFill); //ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ ì—…ë°ì´íŠ¸ ë¶€ë¶„
 	}
 }
 
 FVector2D UInv_InventoryGrid::GetDrawSize(const FInv_GridFragment* GridFragment) const
 {
-	const float IconTileWidth = TileSize - GridFragment->GetGridPadding() * 2; // ¾ÆÀÌÄÜ Å¸ÀÏ ³Êºñ °è»ê
+	const float IconTileWidth = TileSize - GridFragment->GetGridPadding() * 2; // ì•„ì´ì½˜ íƒ€ì¼ ë„ˆë¹„ ê³„ì‚°
 
-	return GridFragment->GetGridSize() * IconTileWidth; // ¾ÆÀÌÄÜ Å©±â ¹İÈ¯
+	return GridFragment->GetGridSize() * IconTileWidth; // ì•„ì´ì½˜ í¬ê¸° ë°˜í™˜
 }
 
 void UInv_InventoryGrid::SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const
 {
-	//½½·¹ÀÌÆ® ºê·¯½Ã?
+	//ìŠ¬ë ˆì´íŠ¸ ë¸ŒëŸ¬ì‹œ?
 	FSlateBrush Brush;
-	Brush.SetResourceObject(ImageFragment->GetIcon()); // ¾ÆÀÌÄÜ ¼³Á¤
-	Brush.DrawAs = ESlateBrushDrawType::Image; // ÀÌ¹ÌÁö·Î ±×¸®±â
-	Brush.ImageSize = GetDrawSize(GridFragment); // ¾ÆÀÌÄÜ Å©±â ¼³Á¤
-	SlottedItem->SetImageBrush(Brush); // ½½·ÎÆ¼µå ¾ÆÀÌÅÛ¿¡ ºê·¯½Ã ¼³Á¤
+	Brush.SetResourceObject(ImageFragment->GetIcon()); // ì•„ì´ì½˜ ì„¤ì •
+	Brush.DrawAs = ESlateBrushDrawType::Image; // ì´ë¯¸ì§€ë¡œ ê·¸ë¦¬ê¸°
+	Brush.ImageSize = GetDrawSize(GridFragment); // ì•„ì´ì½˜ í¬ê¸° ì„¤ì •
+	SlottedItem->SetImageBrush(Brush); // ìŠ¬ë¡œí‹°ë“œ ì•„ì´í…œì— ë¸ŒëŸ¬ì‹œ ì„¤ì •
 }
 
 void UInv_InventoryGrid::AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, const bool bStackable, const int32 StackAmount)
 {
-	//°İÀÚÀÇ Å©±â¸¦ ¾ò¾î¿ÀÀÚ. °ÔÀÓÇÃ·¹ÀÌ ÅÂ±×·Î ¸»¾ß
+	//ê²©ìì˜ í¬ê¸°ë¥¼ ì–»ì–´ì˜¤ì. ê²Œì„í”Œë ˆì´ íƒœê·¸ë¡œ ë§ì•¼
 	// Get Grid Fragment so we know how many grid spaces the item takes.
-	// ÅØ½ºÃ³¿Í ¾ÆÀÌÄÜµµ ¿©±â¼­ ¾ò¾î¿Â´Ù´Â°Ç°¡?
+	// í…ìŠ¤ì²˜ì™€ ì•„ì´ì½˜ë„ ì—¬ê¸°ì„œ ì–»ì–´ì˜¨ë‹¤ëŠ”ê±´ê°€?
 	// Get Image Fragment so we have the icon to display
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(Item, FragmentTags::GridFragment);
 	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(Item, FragmentTags::IconFragment);
-	if (!GridFragment || !ImageFragment) return; // µÑ Áß ÇÏ³ª¶óµµ ¾øÀ¸¸é ¸®ÅÏ
+	if (!GridFragment || !ImageFragment) return; // ë‘˜ ì¤‘ í•˜ë‚˜ë¼ë„ ì—†ìœ¼ë©´ ë¦¬í„´
 
 	// Add the slotted item to the canvas panel.
-	// ½½·Ô ¾ÆÀÌÅÛÀ» Äµ¹ö½º ÆĞ³Î¿¡ ±×·ÁÁÖ´Â °÷. ¶ÇÇÑ ±×¸®µå ½½·ÔÀ» °ü¸®ÇØÁÖ´Â °÷.
+	// ìŠ¬ë¡¯ ì•„ì´í…œì„ ìº”ë²„ìŠ¤ íŒ¨ë„ì— ê·¸ë ¤ì£¼ëŠ” ê³³. ë˜í•œ ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì„ ê´€ë¦¬í•´ì£¼ëŠ” ê³³.
 	UInv_SlottedItem* SlottedItem = CreateSlottedItem(Item, bStackable, StackAmount, GridFragment, ImageFragment, Index);
 	AddSlottedItemToCanvas(Index, GridFragment, SlottedItem);
 
-	// »èÁ¦ ¼Òºñ ÆÄ±« ÇßÀ» ¶§ ÀÌ°÷¿¡.
+	// ì‚­ì œ ì†Œë¹„ íŒŒê´´ í–ˆì„ ë•Œ ì´ê³³ì—.
 	// Store the new widget in a container.
-	SlottedItems.Add(Index, SlottedItem); // ÀÎµ¦½º¿Í ½½·ÎÆ¼µå ¾Æ ÀÌÅÛ ¸ÅÇÎ
+	SlottedItems.Add(Index, SlottedItem); // ì¸ë±ìŠ¤ì™€ ìŠ¬ë¡œí‹°ë“œ ì•„ ì´í…œ ë§¤í•‘
 }
 
 UInv_SlottedItem* UInv_InventoryGrid::CreateSlottedItem(UInv_InventoryItem* Item, const bool bStackable, const int32 StackAmount, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment, const int32 Index)
@@ -153,39 +155,39 @@ void UInv_InventoryGrid::AddSlottedItemToCanvas(const int32 Index, const FInv_Gr
 	CanvasPanel->AddChild(SlottedItem);
 	UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(SlottedItem);
 	CanvasSlot->SetSize(GetDrawSize(GridFragment));
-	const FVector2D DrawPos = UInv_WidgetUtils::GetPositionFromIndex(Index, Columns)* TileSize; // Á¤»ç°¢Çü À§Ä¡¸¦ ÀÇ¹ÌÇÏ´Â °Í?
-	const FVector2D DrawPosWithPadding = DrawPos + FVector2D(GridFragment->GetGridPadding()); // ÆĞµù Àû¿ëµÈ À§Ä¡
+	const FVector2D DrawPos = UInv_WidgetUtils::GetPositionFromIndex(Index, Columns)* TileSize; // ì •ì‚¬ê°í˜• ìœ„ì¹˜ë¥¼ ì˜ë¯¸í•˜ëŠ” ê²ƒ?
+	const FVector2D DrawPosWithPadding = DrawPos + FVector2D(GridFragment->GetGridPadding()); // íŒ¨ë”© ì ìš©ëœ ìœ„ì¹˜
 	CanvasSlot->SetPosition(DrawPosWithPadding);
 }
 
 void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int32 Index, bool bStackableItem, const int32 StackAmount)
 {
-	check(GridSlots.IsValidIndex(Index)); // ÀÎµ¦½º À¯È¿¼º °Ë»ç
+	check(GridSlots.IsValidIndex(Index)); // ì¸ë±ìŠ¤ ìœ íš¨ì„± ê²€ì‚¬
 	
-	//½×À» ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎÁö È®ÀÎÇØº¼±î? (StackableÀÌ °¡´ÉÇÑÁö)
+	//ìŒ“ì„ ìˆ˜ ìˆëŠ” ì•„ì´í…œì¸ì§€ í™•ì¸í•´ë³¼ê¹Œ? (Stackableì´ ê°€ëŠ¥í•œì§€)
 	if (bStackableItem)
 	{
-		GridSlots[Index]->SetInventoryItem(NewItem); // ±×¸®µå ½½·Ô¿¡ ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ¼³Á¤
+		GridSlots[Index]->SetInventoryItem(NewItem); // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì— ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ì„¤ì •
 	}
 
-	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment); // ±×¸®µå Á¶°¢ °¡Á®¿À±â
-	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1,1); // ±×¸®µå Å©±â °¡Á®¿À±â
+	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment); // ê·¸ë¦¬ë“œ ì¡°ê° ê°€ì ¸ì˜¤ê¸°
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1,1); // ê·¸ë¦¬ë“œ í¬ê¸° ê°€ì ¸ì˜¤ê¸°
 
-	//2D °İÀÚ ¼øÈ¸ÇÏ¸é¼­ ±×¸®µå ½½·Ô ¾÷µ¥ÀÌÆ®
-	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot) // [&] ÀÌ°Ç ¹ºµ¥?
+	//2D ê²©ì ìˆœíšŒí•˜ë©´ì„œ ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ ì—…ë°ì´íŠ¸
+	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot) // [&] ì´ê±´ ë­”ë°?
 	{
-		GridSlot->SetInventoryItem(NewItem); // ±×¸®µå ½½·Ô¿¡ ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ¼³Á¤
-		GridSlot->SetUpperLeftIndex(Index); // ±×¸®µå ½½·Ô¿¡ ¿ŞÂÊ À§ ÀÎµ¦½º ¼³Á¤
-		GridSlot->SetOccupiedTexture(); // ±×¸®µå ½½·ÔÀ» Á¡À¯µÈ ÅØ½ºÃ³·Î ¼³Á¤ (±×´Ï±î ¾ÆÀÌÅÛÀ» °İÀÚÄ­µé ¼ö¸¸Å­ °ø°£À¸·Î Ã¤¿î´Ù´Â °Í)
-		GridSlot->SetAvailable(false); // ±×¸®µå ½½·ÔÀ» »ç¿ë ºÒ°¡´ÉÀ¸·Î ¼³Á¤
-	}); //¶÷´ÙÇÔ¼ö ºÎºĞµé
+		GridSlot->SetInventoryItem(NewItem); // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì— ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ì„¤ì •
+		GridSlot->SetUpperLeftIndex(Index); // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì— ì™¼ìª½ ìœ„ ì¸ë±ìŠ¤ ì„¤ì •
+		GridSlot->SetOccupiedTexture(); // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì„ ì ìœ ëœ í…ìŠ¤ì²˜ë¡œ ì„¤ì • (ê·¸ë‹ˆê¹Œ ì•„ì´í…œì„ ê²©ìì¹¸ë“¤ ìˆ˜ë§Œí¼ ê³µê°„ìœ¼ë¡œ ì±„ìš´ë‹¤ëŠ” ê²ƒ)
+		GridSlot->SetAvailable(false); // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì„ ì‚¬ìš© ë¶ˆê°€ëŠ¥ìœ¼ë¡œ ì„¤ì •
+	}); //ëŒë‹¤í•¨ìˆ˜ ë¶€ë¶„ë“¤
 }
 
 
-//2Â÷¿ø °İÀÚ »ı¼º ¾ÆÀÌÅÛÄ­ ¸¸µç´Ù´Â ¶æ.
+//2ì°¨ì› ê²©ì ìƒì„± ì•„ì´í…œì¹¸ ë§Œë“ ë‹¤ëŠ” ëœ».
 void UInv_InventoryGrid::ConstructGrid()
 {
-	GridSlots.Reserve(Rows * Columns); // Tarray ÁöÁ¤ ÇÏ´Â °Ç ¾Ë°Ú´Âµ¥ GridSlotÀÌ°Å ¾îµğ¼­?
+	GridSlots.Reserve(Rows * Columns); // Tarray ì§€ì • í•˜ëŠ” ê±´ ì•Œê² ëŠ”ë° GridSlotì´ê±° ì–´ë””ì„œ?
 
 	for (int32 j = 0; j < Rows; ++j)
 	{
@@ -197,9 +199,9 @@ void UInv_InventoryGrid::ConstructGrid()
 			const FIntPoint TilePosition(i, j);
 			GridSlot->SetTileIndex(UInv_WidgetUtils::GetIndexFromPosition(TilePosition, Columns));
 
-			UCanvasPanelSlot* GridCPS = UWidgetLayoutLibrary::SlotAsCanvasSlot(GridSlot); // ½½·Ô »ç¿ëÇÑ´Ù´Â °Ç°¡?
-			GridCPS->SetSize(FVector2D(TileSize, TileSize)); // »çÀÌÁî Á¶Á¤
-			GridCPS->SetPosition(TilePosition * TileSize); // À§Ä¡ Á¶Á¤
+			UCanvasPanelSlot* GridCPS = UWidgetLayoutLibrary::SlotAsCanvasSlot(GridSlot); // ìŠ¬ë¡¯ ì‚¬ìš©í•œë‹¤ëŠ” ê±´ê°€?
+			GridCPS->SetSize(FVector2D(TileSize, TileSize)); // ì‚¬ì´ì¦ˆ ì¡°ì •
+			GridCPS->SetPosition(TilePosition * TileSize); // ìœ„ì¹˜ ì¡°ì •
 			
 			GridSlots.Add(GridSlot);
 		}
@@ -208,6 +210,6 @@ void UInv_InventoryGrid::ConstructGrid()
 
 bool UInv_InventoryGrid::MatchesCategory(const UInv_InventoryItem* Item) const
 {
-	return Item->GetItemManifest().GetItemCategory() == ItemCategory; // ¾ÆÀÌÅÛ Ä«Å×°í¸® ºñ±³
+	return Item->GetItemManifest().GetItemCategory() == ItemCategory; // ì•„ì´í…œ ì¹´í…Œê³ ë¦¬ ë¹„êµ
 }
 
