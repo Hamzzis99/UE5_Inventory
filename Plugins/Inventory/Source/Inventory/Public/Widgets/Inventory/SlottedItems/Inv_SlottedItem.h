@@ -8,6 +8,7 @@
 
 class UInv_InventoryItem;
 class UImage;
+class UTextBlock;
 
 UCLASS()
 class INVENTORY_API UInv_SlottedItem : public UUserWidget
@@ -25,10 +26,14 @@ public:
 	void SetInventoryItem(UInv_InventoryItem* Item); // 인벤토리 아이템 설정
 	UInv_InventoryItem* GetInventoryItem() const { return InventoryItem.Get(); } // 인벤토리 아이템 가져오기
 	void SetImageBrush(const FSlateBrush& Brush) const; // 이미지 브러시 설정
+	void UpdateStackCount(int32 StackCount); // 아이템 스택 수량 업데이트
 
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_Icon;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Text_StackCount;
 
 	int32 GridIndex;
 	FIntPoint GridDimensions;

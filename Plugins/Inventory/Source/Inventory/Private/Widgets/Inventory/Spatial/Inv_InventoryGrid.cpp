@@ -39,13 +39,19 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 {
 	FInv_SlotAvailabilityResult Result;
 	Result.TotalRoomToFill = 1;
+	Result.bStackable = true;
 
-	// 아이템을 넣어보자!
+	// 아이템을 넣어보자! (임시로 2칸 5칸 있다고 가정) 디버깅용도
 	FInv_SlotAvailability SlotAvailability;
-	SlotAvailability.AmountToFill = 1; // 아이템으로부터 공간 채우기
+	SlotAvailability.AmountToFill = 2; // 아이템으로부터 공간 채우기
 	SlotAvailability.Index = 0;	// 슬롯 가능 여부 추가
-
 	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability));
+
+	FInv_SlotAvailability SlotAvailability2;
+	SlotAvailability2.AmountToFill = 5; // 아이템으로부터 공간 채우기
+	SlotAvailability2.Index = 1;	// 슬롯 가능 여부 추가
+	Result.SlotAvailabilities.Add(MoveTemp(SlotAvailability2));
+	
 
 	return Result;
 }
@@ -117,6 +123,9 @@ UInv_SlottedItem* UInv_InventoryGrid::CreateSlottedItem(UInv_InventoryItem* Item
 	SlottedItem->SetInventoryItem(Item);
 	SetSlottedItemImage(SlottedItem, GridFragment, ImageFragment);
 	SlottedItem->SetGridIndex(Index);
+	SlottedItem->SetIsStackable(bStackable);
+	const int32 StackUpdateAmount = bStackable ? StackAmount : 0;
+	SlottedItem->UpdateStackCount(StackUpdateAmount);
 
 	return SlottedItem;
 }
