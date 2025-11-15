@@ -65,7 +65,7 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 		// ➡️ 아이템이 여기에 들어갈 수 있습니까? (예: 그리드 경계를 벗어나지 않는지?)
 		// Can the item fit here? (i.e. is it out of grid bounds?)
 		TSet<int32> TentativelyClaimed; // 임시로 점유된 인덱스 집합
-		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest), CheckedIndices, TentativelyClaimed, Manifest.GetItemType()))
+		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest), CheckedIndices, TentativelyClaimed, Manifest.GetItemType(), MaxStackSize))
 		{
 			continue; // 공간이 없다면 다음으로 넘어간다.
 		}
@@ -111,12 +111,13 @@ bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot,
 	return bHasRoomAtIndex; 
 }
 
-bool UInv_InventoryGrid::CheckSlotConstraints	(	const UInv_GridSlot* GridSlot, 
-													const UInv_GridSlot* SubGridSlot, 
-													const TSet<int32>& CheckedIndices, 
-													TSet<int32>& OutTentativelyClaimed,
-													const FGameplayTag& ItemType
-												) const
+//이 제약조건을 다 확인해야 인벤토리에 공간이 있는지 확인해주는 것이다.
+bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot,
+	const UInv_GridSlot* SubGridSlot,
+	const TSet<int32>& CheckedIndices,
+	TSet<int32>& OutTentativelyClaimed,
+	const FGameplayTag& ItemType,
+	const int32 MaxStackSize) const
 {		
 	// Index claimed? 
 	// 점유되어 있는지 확인한다.
@@ -143,8 +144,10 @@ bool UInv_InventoryGrid::CheckSlotConstraints	(	const UInv_GridSlot* GridSlot,
 	if (!DoesItemTypeMatch(SubItem, ItemType)) return false;
 
 	// ➡️ [!] 스택 가능하다면, 이 슬롯은 이미 최대 스택 크기입니까?
-	// Is Stackable, is this slot at the max stack size already?
-	return false;
+	// If Stackable, is this slot at the max stack size already?
+	if (GridSlot->GetStackCount() >= MaxStackSize) return false;
+	 
+	return true;
 }
 
 FIntPoint UInv_InventoryGrid::GetItemDimensions(const FInv_ItemManifest& Manifest) const

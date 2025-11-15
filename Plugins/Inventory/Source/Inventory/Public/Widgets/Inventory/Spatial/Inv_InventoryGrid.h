@@ -54,18 +54,18 @@ private:
 	void AddSlottedItemToCanvas(const int32 Index, const FInv_GridFragment* GridFragment, UInv_SlottedItem* SlottedItem) const;
 	void UpdateGridSlots(UInv_InventoryItem* NewItem, const int32 Index, bool bStackableItem, const int32 StackAmount); // 그리드 슬롯 업데이트
 	bool IsIndexClaimed(const TSet<int32>& CheckedIndices, const int32 Index) const; // 인덱스가 이미 점유되었는지 확인
-	bool CheckSlotConstraints(const UInv_GridSlot* GridSlot,
-		const UInv_GridSlot* SubGridSlot,
+	bool HasRoomAtIndex(const UInv_GridSlot* GridSlot,
+		const FIntPoint& Dimensions,
 		const TSet<int32>& CheckedIndices,
 		TSet<int32>& OutTentativelyClaimed,
-		const FGameplayTag& ItemType) const;
+		const FGameplayTag& ItemType);
 
 	bool CheckSlotConstraints(const UInv_GridSlot* GridSlot,
 		const UInv_GridSlot* SubGridSlot,
 		const TSet<int32>& CheckedIndices,
 		TSet<int32>& OutTentativelyClaimed,
-		const FGameplayTag& ItemType
-	) const;
+		const FGameplayTag& ItemType,
+		const int32 MaxStackSize) const;
 
 	FIntPoint GetItemDimensions(const FInv_ItemManifest& Manifest) const; // 아이템 치수 가져오기
 	bool HasValidItem(const UInv_GridSlot* GridSlot) const; // 그리드 슬롯에 유효한 아이템이 있는지 확인
