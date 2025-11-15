@@ -8,11 +8,11 @@
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Components/Inv_ItemComponent.h"
+#include "Items/Fragments/Inv_FragmentTags.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
 #include "Widgets/Inventory/GridSlots/Inv_GridSlot.h"
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 #include "Items/Manifest/Inv_ItemManifest.h"
-#include "Items/Fragments/Inv_FragmentTags.h"
-#include "Items/Fragments/Inv_ItemFragment.h"
 #include "Widgets/Inventory/SlottedItems/Inv_SlottedItem.h"
 
 void UInv_InventoryGrid::NativeConstruct()
@@ -71,6 +71,8 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 		}
 
 		CheckedIndices.Append(TentativelyClaimed); // 확인된 인덱스에 임시로 점유된 인덱스 추가
+		
+		
 		// 얼마나 채워야해?
 		// How much to fill?
 		// ➡️ [!] 채워야 할 남은 양을 업데이트합니다.
@@ -94,7 +96,7 @@ bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot,
 	bool bHasRoomAtIndex = true;
 	UInv_InventoryStatics::ForEach2D(GridSlots, GridSlot->GetIndex(), Dimensions, Columns, [&](const UInv_GridSlot* SubGridSlot) 
 	{	
-		if (CheckSlotConstraints(SubGridSlot))
+		if (CheckSlotConstraints(SubGridSlot, CheckedIndices, OutTentativelyClaimed))
 		{
 			OutTentativelyClaimed.Add(SubGridSlot->GetIndex());
 		}
@@ -107,17 +109,30 @@ bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot,
 	return bHasRoomAtIndex; 
 }
 
-bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* SubGridSlot) const
+bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot, const TSet<int32>& CheckedIndices, TSet<int32>& OutTentativelyClaimed) const
 {		
-	// 다른 중요한 조건들도 확인해야 한다. - ForEach2D over a range
-		//Check any other important conditions - ForEach2D over a range
-		// Index claimed? 점유되어 있는지 확인한다.
-		// 유효한 항목이 있습니까?
-		// Has valid item?
-		// ➡️ [!] (항목이 있다면) 스택 가능한 아이템입니까?
-		// If so, it this a stackable item?
-		// ➡️ [!] 스택 가능하다면, 이 슬롯은 이미 최대 스택 크기입니까?
-		// Is Stackable, is this slot at the max stack size already?
+	// Index claimed? 
+	// 점유되어 있는지 확인한다.
+	if (IsIndexClaimed(CheckedIndices, SubGridSlot->GetIndex())) return false; // 인덱스가 이미 사용하면 false를 반환하는 부분.
+
+	// 유효한 항목이 있습니까?
+	// Has valid item? 
+	if (!HasValidItem(SubGridSlot))
+	{
+		OutTentativelyClaimed.Add(SubGridSlot->GetIndex());
+		return true;
+	}
+
+	// 이 격자가 왼쪽으로 가는 것이 맞을까요?
+	// Is this Grid Slot an upper left slot?
+	if (!IsUpperLeftSlot(GridSlot, SubGridSlot)) return false; // 왼쪽 위 슬롯이 아니라면 false 반환.
+
+	// ➡️ [!] (항목이 있다면) 스택 가능한 아이템입니까?
+	// If so, it this a stackable item?
+	
+	
+	// ➡️ [!] 스택 가능하다면, 이 슬롯은 이미 최대 스택 크기입니까?
+	// Is Stackable, is this slot at the max stack size already?
 	return false;
 }
 
@@ -125,6 +140,16 @@ FIntPoint UInv_InventoryGrid::GetItemDimensions(const FInv_ItemManifest& Manifes
 {
 	const FInv_GridFragment* GridFragment = Manifest.GetFragmentOfType<FInv_GridFragment>();
 	return GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1); 
+}
+
+bool UInv_InventoryGrid::HasValidItem(const UInv_GridSlot* GridSlot) const
+{
+	return GridSlot->GetInventoryItem().IsValid();
+}
+
+bool UInv_InventoryGrid::IsUpperLeftSlot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const
+{
+	return SubGridSlot->GetUpperLeftIndex() == GridSlot->GetIndex();
 }
 
 // 인벤토리 스택 쌓는 부분.

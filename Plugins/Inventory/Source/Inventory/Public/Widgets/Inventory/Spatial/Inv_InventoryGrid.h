@@ -58,8 +58,15 @@ private:
 		const FIntPoint& Dimensions,
 		const TSet<int32>& CheckedIndices,
 		TSet<int32>& OutTentativelyClaimed);
-	bool CheckSlotConstraints(const UInv_GridSlot* SubGridSlot) const;
-	FIntPoint GetItemDimensions(const FInv_ItemManifest& Manifest) const;
+	bool CheckSlotConstraints	(	const UInv_GridSlot* GridSlot,
+									const UInv_GridSlot* SubGridSlot, 
+									const TSet<int32>& CheckedIndices, 
+									TSet<int32>& OutTentativelyClaimed
+								) const;
+
+	FIntPoint GetItemDimensions(const FInv_ItemManifest& Manifest) const; // 아이템 치수 가져오기
+	bool HasValidItem(const UInv_GridSlot* GridSlot) const; // 그리드 슬롯에 유효한 아이템이 있는지 확인
+	bool IsUpperLeftSlot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const; // 그리드 슬롯이 왼쪽 위 슬롯인지 확인
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
