@@ -21,7 +21,7 @@ public:
 	void SetItemManifest(const FInv_ItemManifest& Manifest); // 아이템 매니페스트 설정
 	const FInv_ItemManifest& GetItemManifest() const { return ItemManifest.Get<FInv_ItemManifest>();  }
 	FInv_ItemManifest& GetItemManifestMutable() { return ItemManifest.GetMutable<FInv_ItemManifest>(); }
-
+	bool IsStackable() const; // 아이템이 쌓을 수 있는지 여부 확인
 
 private: //이 부분 GPT 돌려보자 항목 복제해서 서버에 전달하는 곳. 그게 바로 Replicated
 	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/Inventory.Inv_ItemManifest"), Replicated) //인벤토리 아이템 블루프린트 만드는 곳? 파생?

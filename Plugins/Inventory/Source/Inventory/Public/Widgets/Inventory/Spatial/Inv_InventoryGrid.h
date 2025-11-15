@@ -44,30 +44,33 @@ private:
 	FVector2D GetDrawSize(const FInv_GridFragment* GridFragment) const; // 그리드 조각의 그리기 크기 가져오기
 	void SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const; // 슬로티드 아이템 이미지 설정
 	void AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, const bool bStackable, const int32 StackAmount); // 인덱스에 아이템 추가
-	UInv_SlottedItem* CreateSlottedItem(UInv_InventoryItem* Item, 
-		const bool bStackable, 
-		const int32 StackAmount, 
-		const FInv_GridFragment* GridFragment, 
-		const FInv_ImageFragment* ImageFragment, 
+	UInv_SlottedItem* CreateSlottedItem(UInv_InventoryItem* Item,
+		const bool bStackable,
+		const int32 StackAmount,
+		const FInv_GridFragment* GridFragment,
+		const FInv_ImageFragment* ImageFragment,
 		const int32 Index
 	); // 슬로티드 아이템 생성
 	void AddSlottedItemToCanvas(const int32 Index, const FInv_GridFragment* GridFragment, UInv_SlottedItem* SlottedItem) const;
 	void UpdateGridSlots(UInv_InventoryItem* NewItem, const int32 Index, bool bStackableItem, const int32 StackAmount); // 그리드 슬롯 업데이트
 	bool IsIndexClaimed(const TSet<int32>& CheckedIndices, const int32 Index) const; // 인덱스가 이미 점유되었는지 확인
-	bool HasRoomAtIndex(const UInv_GridSlot* GridSlot, 
-		const FIntPoint& Dimensions,
+	bool CheckSlotConstraints(const UInv_GridSlot* GridSlot,
+		const UInv_GridSlot* SubGridSlot,
 		const TSet<int32>& CheckedIndices,
-		TSet<int32>& OutTentativelyClaimed);
-	bool CheckSlotConstraints	(	const UInv_GridSlot* GridSlot,
-									const UInv_GridSlot* SubGridSlot, 
-									const TSet<int32>& CheckedIndices, 
-									TSet<int32>& OutTentativelyClaimed
-								) const;
+		TSet<int32>& OutTentativelyClaimed,
+		const FGameplayTag& ItemType) const;
+
+	bool CheckSlotConstraints(const UInv_GridSlot* GridSlot,
+		const UInv_GridSlot* SubGridSlot,
+		const TSet<int32>& CheckedIndices,
+		TSet<int32>& OutTentativelyClaimed,
+		const FGameplayTag& ItemType
+	) const;
 
 	FIntPoint GetItemDimensions(const FInv_ItemManifest& Manifest) const; // 아이템 치수 가져오기
 	bool HasValidItem(const UInv_GridSlot* GridSlot) const; // 그리드 슬롯에 유효한 아이템이 있는지 확인
 	bool IsUpperLeftSlot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const; // 그리드 슬롯이 왼쪽 위 슬롯인지 확인
-
+	bool DoesItemTypeMatch(const UInv_InventoryItem* SubItem, const FGameplayTag& ItemType) const; // 아이템 유형이 일치하는지 확인
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;

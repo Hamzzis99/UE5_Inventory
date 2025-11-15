@@ -65,7 +65,7 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 		// ➡️ 아이템이 여기에 들어갈 수 있습니까? (예: 그리드 경계를 벗어나지 않는지?)
 		// Can the item fit here? (i.e. is it out of grid bounds?)
 		TSet<int32> TentativelyClaimed; // 임시로 점유된 인덱스 집합
-		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest), CheckedIndices, TentativelyClaimed))
+		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest), CheckedIndices, TentativelyClaimed, Manifest.GetItemType()))
 		{
 			continue; // 공간이 없다면 다음으로 넘어간다.
 		}
@@ -86,17 +86,19 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 }
 
 //2차원 범위 내 각 정사각형의 슬롯 제약 조건을 검사하는 부분들.
+//게임 플레이 태그로 구분할 것이다.
 bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot,
 										const FIntPoint& Dimensions,
 										const TSet<int32>& CheckedIndices,
-										TSet<int32>& OutTentativelyClaimed)
+										TSet<int32>& OutTentativelyClaimed,
+										const FGameplayTag& ItemType)
 {
 	// ➡️ 이 인덱스에 공간이 있습니까? (예: 다른 아이템이 길을 막고 있지 않은지?)
 	// Is there room at this index? (i.e are there other items in the way?)
 	bool bHasRoomAtIndex = true;
 	UInv_InventoryStatics::ForEach2D(GridSlots, GridSlot->GetIndex(), Dimensions, Columns, [&](const UInv_GridSlot* SubGridSlot) 
 	{	
-		if (CheckSlotConstraints(SubGridSlot, CheckedIndices, OutTentativelyClaimed))
+		if (CheckSlotConstraints(GridSlot, SubGridSlot, CheckedIndices, OutTentativelyClaimed, ItemType))
 		{
 			OutTentativelyClaimed.Add(SubGridSlot->GetIndex());
 		}
@@ -109,7 +111,12 @@ bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot,
 	return bHasRoomAtIndex; 
 }
 
-bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot, const TSet<int32>& CheckedIndices, TSet<int32>& OutTentativelyClaimed) const
+bool UInv_InventoryGrid::CheckSlotConstraints	(	const UInv_GridSlot* GridSlot, 
+													const UInv_GridSlot* SubGridSlot, 
+													const TSet<int32>& CheckedIndices, 
+													TSet<int32>& OutTentativelyClaimed,
+													const FGameplayTag& ItemType
+												) const
 {		
 	// Index claimed? 
 	// 점유되어 있는지 확인한다.
@@ -129,8 +136,12 @@ bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot, con
 
 	// ➡️ [!] (항목이 있다면) 스택 가능한 아이템입니까?
 	// If so, it this a stackable item?
-	
-	
+	const UInv_InventoryItem* SubItem = SubGridSlot->GetInventoryItem().Get();
+
+	// 이 아이템이 우리가 추가하려는 아이템과 동일한 유형인가?
+	// Is this item the same type as item we're trying to add?
+	if (!DoesItemTypeMatch(SubItem, ItemType)) return false;
+
 	// ➡️ [!] 스택 가능하다면, 이 슬롯은 이미 최대 스택 크기입니까?
 	// Is Stackable, is this slot at the max stack size already?
 	return false;
@@ -150,6 +161,11 @@ bool UInv_InventoryGrid::HasValidItem(const UInv_GridSlot* GridSlot) const
 bool UInv_InventoryGrid::IsUpperLeftSlot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const
 {
 	return SubGridSlot->GetUpperLeftIndex() == GridSlot->GetIndex();
+}
+
+bool UInv_InventoryGrid::DoesItemTypeMatch(const UInv_InventoryItem* SubItem, const FGameplayTag& ItemType) const
+{
+	return SubItem->GetItemManifest().GetItemType().MatchesTagExact(ItemType);
 }
 
 // 인벤토리 스택 쌓는 부분.
