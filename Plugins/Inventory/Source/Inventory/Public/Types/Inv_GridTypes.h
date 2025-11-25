@@ -5,7 +5,7 @@
 class UInv_InventoryItem;
 
 UENUM(BlueprintType)
-enum class EInv_ItemCategory : uint8 // 위젯 만들 때 정확한 이름을 작성해야해 enum으로 알겠지. 기억해.
+enum class EInv_ItemCategory : uint8 // 위젯 만들 때 정확한 이름을 작성해야해 enum으로 알겠지. 기억해. 다만 Build는 빼고 컴포넌트로 할까 고민중
 {
 	Equippable,
 	Consumable,
