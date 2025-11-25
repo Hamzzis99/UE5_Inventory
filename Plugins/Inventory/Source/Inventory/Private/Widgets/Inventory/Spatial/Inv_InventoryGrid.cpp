@@ -78,8 +78,12 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 		
 		// 얼마나 채워야해?
 		// How much to fill?
-		// ➡️ [!] 채워야 할 남은 양을 업데이트합니다.
+		const int32 AmountToFillInSlot = DetermineFillAmountForSlot(Result.bStackable, MaxStackSize, AmountToFill, GridSlot); // 슬롯에 채워야 할 양 결정
+		if (AmountToFillInSlot == 0) continue; // 채울 양이 0이라면 다음으로 넘어간다.
+
+		// 채워야 할 남은 양을 업데이트합니다.
 		// Update the amount left to fill.
+		
 	}
 
 	// 모두 반복한 후 나머지는 얼마나 있나요?
@@ -181,6 +185,30 @@ bool UInv_InventoryGrid::IsInGridBounds(const int32 StartIndex, const FIntPoint&
 	const int32 EndColumn = (StartIndex % Columns) + ItemDimensions.X;
 	const int32 EndRow = (StartIndex / Columns) + ItemDimensions.Y;
 	return EndColumn <= Columns && EndRow <= Rows;
+}
+
+int32 UInv_InventoryGrid::DetermineFillAmountForSlot(const bool bStackable, const int32 MaxStackSize, const int32 AmountToFill, const UInv_GrildSlot* GridSlot) const
+{
+	// calculate room in the slot
+	// 슬롯에 남은 공간 계산
+	const int 32 RoomInSlot = MaxStackSize - GetStackAmount(GridSlot); 
+
+	// if stackable, need the minium between AmountToFill and RommInSlot.
+	// 스택 가능하다면, 채워야 할 양과 슬롯의 남은 공간 중 최소값을 반환. 아니라면 1 반환
+	return bStackable ? FMath::Min(AmountToFill, RoomInSlot) : 1; 
+}
+
+int32 UInv_InventoryGrid::GetStackAmount(const UInv_GrildSlot* GridSlot) const
+{
+	int32 CurrentSlotStackCount = GridSlot->GetStackCount();
+	// 스택이 없을 경우 개수를 세어 실제 스택 개수를 파악하는 함수
+	// If we are at a slot that dosen't hold the stack count. we must get the actual stack count.
+	if (const int32 UpperLeftIndex = GridSlot->GetUpperLeftIndex(); UpperLeftIndex != INDEX_NONE)
+	{
+		UInv_GridSlot* UpperLeftGridSlot = GridSlots[UpperLeftIndex];
+		CurrentSlotStackCount = UpperLeftGridSlot->GetStackCount();
+	}
+	return CurrentSlotStackCount;
 }
 
 // 인벤토리 스택 쌓는 부분.
