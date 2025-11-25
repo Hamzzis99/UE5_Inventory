@@ -9,6 +9,7 @@
 class UInv_InventoryComponent;
 class UInv_InventoryItem;
 class UInv_ItemComponent;
+struct FGameplayTag;
 
 /* A Single entry in an Inventory*/
 
@@ -60,6 +61,7 @@ struct FInv_InventoryFastArray : public FFastArraySerializer
 	UInv_InventoryItem* AddEntry(UInv_ItemComponent* ItemComponent); // 인벤토리 항목 추가
 	UInv_InventoryItem* AddEntry(UInv_InventoryItem* Item);
 	void RemoveEntry(UInv_InventoryItem* Item); // 인벤토리 항목 제거
+	UInv_InventoryItem* FindFirstItemByType(const FGameplayTag& ItemType); // 
 
 private:
 	//아니 구조체인데 왜 friend를 선언하냐고!!! 야!!

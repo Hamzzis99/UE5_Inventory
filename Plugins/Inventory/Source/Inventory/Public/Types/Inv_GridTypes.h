@@ -29,7 +29,7 @@ struct FInv_SlotAvailability
 };
 
 USTRUCT()
-//어떤 항목인기 결정해주게 하는 부분들.
+//어떤 항목인지 결정해주게 하는 부분들.
 struct FInv_SlotAvailabilityResult
 {
 	GENERATED_BODY()
@@ -37,7 +37,7 @@ struct FInv_SlotAvailabilityResult
 	FInv_SlotAvailabilityResult() {} //엥 왜 재귀적인 방법을 쓰지?
 
 	
-	TWeakObjectPtr<UInv_InventoryItem> Item;
+	TWeakObjectPtr<UInv_InventoryItem> Item; // 아이템이 유효한지 확인하는 부분.
 	int32 TotalRoomToFill{ 0 }; // 채울 수 있는 공간 (0개면 불가능)
 	int32 Remainder{ 0 };
 	bool bStackable = {false }; // 쌓을 수 있는지

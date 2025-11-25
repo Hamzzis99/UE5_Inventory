@@ -83,3 +83,14 @@ void FInv_InventoryFastArray::RemoveEntry(UInv_InventoryItem* Item)
 		}
 	}
 }
+
+UInv_InventoryItem* FInv_InventoryFastArray::FindFirstItemByType(const FGameplayTag& ItemType)
+{
+	auto* FoundItem = Entries.FindByPredicate([ItemType = ItemType](const FInv_InventoryEntry& Entry) // 프레디케이트는 부를 수 있는지 확인하는 거라고?
+	{
+		// 람다함수 코딩
+		//게임 플레이 태그만 확인하는 부분
+		return IsValid(Entry.Item) && Entry.Item->GetItemManifest().GetItemType().MatchesTagExact(ItemType);
+	});
+	return FoundItem ? FoundItem->Item : nullptr;
+}

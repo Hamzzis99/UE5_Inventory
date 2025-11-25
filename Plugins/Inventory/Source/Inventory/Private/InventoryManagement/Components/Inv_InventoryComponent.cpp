@@ -2,9 +2,11 @@
 
 
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
-#include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 
+#include "Items/Components/Inv_ItemComponent.h"
+#include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 #include "Net/UnrealNetwork.h"
+#include "Items/Inv_InventoryItem.h"
 
 UInv_InventoryComponent::UInv_InventoryComponent() : InventoryList(this)
 {
@@ -25,22 +27,25 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 {
 	FInv_SlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent); // 인벤토리에 아이템을 추가할 수 있는지 확인하는 부분.
 
+	UInv_InventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemComponent->GetItemManifest().GetItemType()); // 동일한 유형의 아이템이 이미 있는지 확인하는 부분.
+	Result.Item = FoundItem; // 찾은 아이템을 결과에 설정.
+
 	if (Result.TotalRoomToFill == 0)
 	{
 		NoRoomInInventory.Broadcast(); // 나 인벤토리 꽉찼어! 이걸 알려주는거야! 방송 삐용삐용 모두 알아둬라!
-		
+		return;
 	}
 	// TODO : 실제로 인벤토리에 추가하는 부분을 만들 것. (일단 나중에)
 
 	// 아이템 스택 가능 정보를 전달하는 것? 서버 RPC로 해보자.
-	if (Result.Item.IsValid() && Result.bStackable) // 유효한지 검사하는 작업.
+	if (Result.Item.IsValid() && Result.bStackable) // 유효한지 검사하는 작업. 쌓을 수 있다면 다음 부분들을 진행.
 	{
 		// 이미 존재하는 아이템에 스택을 추가하는 부분. 
 		// Add stacks to an item that already exists in the inventory. We only want to update the stack count,
 		// not create a new item of this type.
-		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder);
+		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder); // 아이템을 추가하는 부분.
 	}
-	// 서버에서 아이템 등록 우와.... 죽을까
+	// 서버에서 아이템 등록 우와.... 자살하고 싶어진다.
 	else if (Result.TotalRoomToFill > 0)
 	{
 		// This item type dosen't exist in the inventory. Create a new one and update all partient slots.
