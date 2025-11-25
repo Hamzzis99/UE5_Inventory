@@ -2,7 +2,8 @@
 
 
 #include "Items/Inv_InventoryItem.h"
-#include "Items/Fragments/Inv_StackableFragment.h"
+
+#include "Items/Fragments/Inv_ItemFragment.h"
 #include "Net/UnrealNetwork.h"
 
 void UInv_InventoryItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

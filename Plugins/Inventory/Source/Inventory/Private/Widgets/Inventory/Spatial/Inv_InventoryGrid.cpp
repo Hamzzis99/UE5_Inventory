@@ -63,14 +63,14 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 		if (IsIndexClaimed(CheckedIndices, GridSlot->GetIndex())) continue; // 이미 점유되어 있다면 다음으로 넘어간다. bool값으로 확인.
 
 		// Is the item in grid bounds?
-		if (!IsInGridBounds(GridSlot->GetIndex(), GetItemDimensions(Manifest))) continue // 그리드 경계 내에 있는지 확인 (넣어도 되거나 안 되는 항목 체크 부분)
+		if (!IsInGridBounds(GridSlot->GetIndex(), GetItemDimensions(Manifest))) continue; // 그리드 경계 내에 있는지 확인 (넣어도 되거나 안 되는 항목 체크 부분)
 
 		// ➡️ 아이템이 여기에 들어갈 수 있습니까? (예: 그리드 경계를 벗어나지 않는지?)
 		// Can the item fit here? (i.e. is it out of grid bounds?)
-		TSet<int32> TentativelyClaimed; // 임시로 점유된 인덱스 집합
+		TSet<int32> TentativelyClaimed;
 		if (!HasRoomAtIndex(GridSlot, GetItemDimensions(Manifest), CheckedIndices, TentativelyClaimed, Manifest.GetItemType(), MaxStackSize))
 		{
-			continue; // 공간이 없다면 다음으로 넘어간다.
+			continue;// 공간이 없다면 다음으로 넘어간다.
 		}
 
 		CheckedIndices.Append(TentativelyClaimed); // 확인된 인덱스에 임시로 점유된 인덱스 추가
@@ -94,14 +94,15 @@ bool UInv_InventoryGrid::HasRoomAtIndex(const UInv_GridSlot* GridSlot,
 										const FIntPoint& Dimensions,
 										const TSet<int32>& CheckedIndices,
 										TSet<int32>& OutTentativelyClaimed,
-										const FGameplayTag& ItemType)
+										const FGameplayTag& ItemType,
+										const int32 MaxStackSize)
 {
 	// ➡️ 이 인덱스에 공간이 있습니까? (예: 다른 아이템이 길을 막고 있지 않은지?)
 	// Is there room at this index? (i.e are there other items in the way?)
 	bool bHasRoomAtIndex = true;
 	UInv_InventoryStatics::ForEach2D(GridSlots, GridSlot->GetIndex(), Dimensions, Columns, [&](const UInv_GridSlot* SubGridSlot) 
 	{	
-		if (CheckSlotConstraints(GridSlot, SubGridSlot, CheckedIndices, OutTentativelyClaimed, ItemType))
+		if (CheckSlotConstraints(GridSlot, SubGridSlot, CheckedIndices, OutTentativelyClaimed, ItemType, MaxStackSize))
 		{
 			OutTentativelyClaimed.Add(SubGridSlot->GetIndex());
 		}
