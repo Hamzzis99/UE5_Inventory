@@ -15,7 +15,7 @@
 #include "Items/Manifest/Inv_ItemManifest.h"
 #include "Widgets/Inventory/SlottedItems/Inv_SlottedItem.h"
 
-void UInv_InventoryGrid::NativeConstruct()
+void UInv_InventoryGrid::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
@@ -47,7 +47,7 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 	// 얼마나 쌓을 수 있는지 판단하는 부분 만들기.
 	// Determine how many stacks to add.
 	const int32 MaxStackSize = StackableFragment ? StackableFragment->GetMaxStackSize() : 1; // 스택 최대 크기 얻기
-	int32 AmountToFill = StackableFragment ? StackableFragment->GetMaxStackSize() : 1; // 널포인트가 아니면 스택을 쌓아준다. 다만 이쪽은 변경 가능하게. 채울 양을 업데이트 해야하니.
+	int32 AmountToFill = StackableFragment ? StackableFragment->GetStackCount() : 1; // 널포인트가 아니면 스택을 쌓아준다. 다만 이쪽은 변경 가능하게. 채울 양을 업데이트 해야하니.
 
 	TSet<int32> CheckedIndices; // 이미 확인한 인덱스 집합
 	//그리드 슬롯을 반복하여서 확인하기.
@@ -55,7 +55,7 @@ FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const FInv_ItemMa
 	for (const auto& GridSlot : GridSlots)
 	{
 		// ➡️ 더 이상 채울 아이템이 없다면, (루프를) 일찍 빠져나옵니다.
-		// If we don't have anymore to fill, break out of the early
+		// If we don't have anymore to fill, break int32 AmountToFill = Stackut of the early
 		if (AmountToFill == 0) break;
 
 		// 이 인덱스가 이미 점유되어있는지 확인하기
@@ -158,6 +158,7 @@ bool UInv_InventoryGrid::CheckSlotConstraints(const UInv_GridSlot* GridSlot,
 	// ➡️ [!] (항목이 있다면) 스택 가능한 아이템입니까?
 	// If so, it this a stackable item?
 	const UInv_InventoryItem* SubItem = SubGridSlot->GetInventoryItem().Get();
+	if (!SubItem->IsStackable()) return false;
 
 	// 이 아이템이 우리가 추가하려는 아이템과 동일한 유형인가?
 	// Is this item the same type as item we're trying to add?
@@ -315,7 +316,7 @@ void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int3
 	//쌓을 수 있는 아이템인지 확인해볼까? (Stackable이 가능한지)
 	if (bStackableItem)
 	{
-		GridSlots[Index]->SetInventoryItem(NewItem); // 그리드 슬롯에 인벤토리 아이템 설정
+		GridSlots[Index]->SetStackCount(StackAmount); // 그리드 슬롯에 인벤토리 아이템 설정
 	}
 
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment); // 그리드 조각 가져오기
@@ -353,7 +354,7 @@ void UInv_InventoryGrid::ConstructGrid()
 			GridSlot->SetTileIndex(UInv_WidgetUtils::GetIndexFromPosition(TilePosition, Columns));
 
 			UCanvasPanelSlot* GridCPS = UWidgetLayoutLibrary::SlotAsCanvasSlot(GridSlot); // 슬롯 사용한다는 건가?
-			GridCPS->SetSize(FVector2D(TileSize, TileSize)); // 사이즈 조정
+			GridCPS->SetSize(FVector2D(TileSize)); // 사이즈 조정
 			GridCPS->SetPosition(TilePosition * TileSize); // 위치 조정
 			
 			GridSlots.Add(GridSlot);

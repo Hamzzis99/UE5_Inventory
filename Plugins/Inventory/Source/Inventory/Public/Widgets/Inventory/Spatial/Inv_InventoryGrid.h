@@ -25,7 +25,7 @@ class INVENTORY_API UInv_InventoryGrid : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	virtual void NativeConstruct() override; // Viewport를 동시에 생성하는 것이 NativeConstruct?
+	virtual void NativeOnInitialized() override; // Viewport를 동시에 생성하는 것이 NativeConstruct?
 
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent); // 아이템을 위한 공간이 있는지 확인
