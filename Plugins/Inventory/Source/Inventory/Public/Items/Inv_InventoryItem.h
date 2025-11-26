@@ -26,6 +26,9 @@ public:
 private: //이 부분 GPT 돌려보자 항목 복제해서 서버에 전달하는 곳. 그게 바로 Replicated
 	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/Inventory.Inv_ItemManifest"), Replicated) //인벤토리 아이템 블루프린트 만드는 곳? 파생?
 	FInstancedStruct ItemManifest; // instance struct? 이게 뭔데?
+
+	UPROPERTY(Replicated)
+	int32 TotalStackCount{ 0 };
 };
 
 template <typename FragmentType>
