@@ -71,11 +71,13 @@ struct FInv_StackableFragment : public  FInv_ItemFragment
 	GENERATED_BODY()
 
 	int32 GetMaxStackSize() const { return MaxStackSize; } //최대 아이템 스택 크기 얻기
-	int32 GetStackCount() const { return MaxStackCount; } //최대 아이템 스택 개수 얻기
+	int32 GetStackCount() const { return StackCount; } //최대 아이템 스택 개수 얻기
+	void SetStackCount(int32 Count) { StackCount = Count; } //최대 아이템 스택 개수 설정
+
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	int32 MaxStackSize{ 1 }; //최대 아이템 스택 크기
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	int32 MaxStackCount{ 1 }; //최대 아이템 스택 개수
+	int32 StackCount{ 1 }; //최대 아이템 스택 개수
 };

@@ -55,7 +55,7 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 
 void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount) // 서버에서 새로운 아이템 추가 구현
 {
-	UInv_InventoryItem* NewItem = InventoryList.AddEntry(ItemComponent);
+	UInv_InventoryItem* NewItem = InventoryList.AddEntry(ItemComponent); // 여기서 아이템을정상적으로 줍게 된다면? 추가를 한다.
 	NewItem->SetTotalStackCount(StackCount);
 
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone) // 이 부분이 복제할 클라이언트가 없기 때문에 배열 복제 안 되는 거 (데디 서버로 변경할 때 참고해라)
@@ -63,11 +63,11 @@ void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponen
 		OnItemAdded.Broadcast(NewItem);
 	}
 
-	// 아이템을 줍게 되면 남아있는 떨어져있는 흔적을 지우게 만드는 것.
-
+	// 아이템을 정상적으로 줍게 되면 남아있는 바깥에있는 물건은 지워주기!
+	ItemComponent->PickedUp();
 }
 
-void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder) // 서버에서 아이템 스택 구현
+void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder) // 서버에서 아이템 스택 개수를 세어주는 역할.
 {
 	const FGameplayTag& ItemType = IsValid(ItemComponent) ? ItemComponent->GetItemManifest().GetItemType() : FGameplayTag::EmptyTag; // 아이템 유형 가져오기
 	UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(ItemType); // 동일한 유형의 아이템 찾기
@@ -79,6 +79,15 @@ void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemCom
 	//0가 되면 아이템 파괴하는 부분
 	//TODO : Destroy the item if the Remainder is zero.
 	// Otherwise, update the stack count for the item pickup.
+
+	if (Remainder == 0)
+	{
+		ItemComponent->PickedUp();
+	}
+	else if (FInv_StackableFragment* StackableFragment = ItemComponent->GetItemManifest().GetFragmentOfTypeMutable<FInv_StackableFragment>())
+	{
+		StackableFragment->SetStackCount(Remainder);
+	}
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()

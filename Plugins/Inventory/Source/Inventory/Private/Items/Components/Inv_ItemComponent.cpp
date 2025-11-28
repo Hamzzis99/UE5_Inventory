@@ -19,3 +19,9 @@ void UInv_ItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	
 	DOREPLIFETIME(ThisClass, ItemManifest); // 아이템 매니페스트 복제 설정
 }
+
+void UInv_ItemComponent::PickedUp()
+{
+	OnPickedUp(); // 픽업 이벤트 호출 중단점 설정 시 물건이 사라지지가 않네? 분기점을 나중에 시간나면 걸어보자 (디버깅)
+	GetOwner()->Destroy(); // 아이템을 줍게 되면 남아있는 떨어져있는 흔적을 지우게 만드는 것.
+}

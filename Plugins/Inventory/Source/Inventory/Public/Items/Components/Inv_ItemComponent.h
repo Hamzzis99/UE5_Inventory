@@ -19,10 +19,13 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	FInv_ItemManifest GetItemManifest() const { return ItemManifest; } // 아이템 매니페스트 반환 함수
-
 	FString GetPickupMessage() const { return PickupMessage;  }
+	void PickedUp(); // 아이템이 줍혔을 때 호출되는 함수
 
 protected:
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
+	void OnPickedUp(); // 아이템이 줍혔을 때 호출되는 보호된 함수
 
 private:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Inventory")
