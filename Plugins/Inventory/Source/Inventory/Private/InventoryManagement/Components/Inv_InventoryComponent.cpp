@@ -63,7 +63,7 @@ void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponen
 		OnItemAdded.Broadcast(NewItem);
 	}
 
-	// 아이템을 줍게 되면 남아있는 아이템을 지우게 만드는 코드.
+	// 아이템을 줍게 되면 남아있는 떨어져있는 흔적을 지우게 만드는 것.
 
 }
 
