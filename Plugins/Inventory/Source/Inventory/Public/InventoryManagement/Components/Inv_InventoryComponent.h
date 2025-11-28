@@ -10,6 +10,7 @@
 #include "InventoryManagement/FastArray/Inv_FastArray.h"
 #include "Inv_InventoryComponent.generated.h"
 
+class UInv_ItemComponent;
 class UInv_InventoryItem;
 class UInv_InventoryBase;
 

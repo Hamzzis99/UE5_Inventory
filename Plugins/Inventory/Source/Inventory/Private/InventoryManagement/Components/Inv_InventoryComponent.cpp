@@ -44,7 +44,7 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 		// 슬롯 가능 여부 결과를 방송할 위임자를 만들기 (Broadcast)
 		// Add stacks to an item that already exists in the inventory. We only want to update the stack count,
 		// not create a new item of this type.
-		OnStackChange.BroaadCast(Result); // 스택 변경 사항 방송
+		OnStackChange.Broadcast(Result); // 스택 변경 사항 방송
 		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder); // 아이템을 추가하는 부분.
 	}
 	// 서버에서 아이템 등록 우와.... 자살하고 싶어진다.

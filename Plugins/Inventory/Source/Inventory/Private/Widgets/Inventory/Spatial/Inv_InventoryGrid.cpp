@@ -226,9 +226,26 @@ int32 UInv_InventoryGrid::GetStackAmount(const UInv_GridSlot* GridSlot) const
 	return CurrentSlotStackCount;
 }
 
-void UInv_InventoryGrid::AddStacks(const FInv_SlotAvailabilityResult& Result)
+// 같은 아이템이면 수량 쌓기
+void UInv_InventoryGrid::AddStacks(const FInv_SlotAvailabilityResult& Result) 
 {
+	if (!MatchesCategory(Result.Item.Get())) return;
 
+	for (const auto& Availability : Result.SlotAvailabilities)
+	{
+		if (Availability.bItemAtIndex) // 해당 인덱스에 아이템이 있는 경우
+		{
+			const auto& GridSlot = GridSlots[Availability.Index];
+			const auto& SlottedItem = SlottedItems.FindChecked(Availability.Index);
+			SlottedItem->UpdateStackCount(GridSlot->GetStackCount() + Availability.AmountToFill); // 스택 수 업데이트
+			GridSlot->SetStackCount(GridSlot->GetStackCount() + Availability.AmountToFill); // 그리드 슬롯에도 스택 수 업데이트
+		}
+		else // 해당 인덱스에 아이템이 없는 경우
+		{
+			AddItemAtIndex(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.AmountToFill); // 인덱스에 아이템 추가
+			UpdateGridSlots(Result.Item.Get(), Availability.Index, Result.bStackable, Availability.AmountToFill); // 그리드 슬롯 업데이트
+		}
+	}
 }
 
 // 인벤토리 스택 쌓는 부분.
