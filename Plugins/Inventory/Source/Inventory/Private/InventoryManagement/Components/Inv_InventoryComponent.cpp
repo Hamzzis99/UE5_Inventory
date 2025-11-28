@@ -56,19 +56,29 @@ void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount) // 서버에서 새로운 아이템 추가 구현
 {
 	UInv_InventoryItem* NewItem = InventoryList.AddEntry(ItemComponent);
+	NewItem->SetTotalStackCount(StackCount);
 
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone) // 이 부분이 복제할 클라이언트가 없기 때문에 배열 복제 안 되는 거 (데디 서버로 변경할 때 참고해라)
 	{
 		OnItemAdded.Broadcast(NewItem);
 	}
 
-	// 아이템의 소유자를 없애는 목표를 두는 것.
+	// 아이템을 줍게 되면 남아있는 아이템을 지우게 만드는 코드.
 
 }
 
-void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder)
+void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder) // 서버에서 아이템 스택 구현
 {
+	const FGameplayTag& ItemType = IsValid(ItemComponent) ? ItemComponent->GetItemManifest().GetItemType() : FGameplayTag::EmptyTag; // 아이템 유형 가져오기
+	UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(ItemType); // 동일한 유형의 아이템 찾기
+	if (!IsValid(Item)) return;
 
+	//아이템 스택수 불러오기 (이미 있는 항목에 추가로 등록)
+	Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
+
+	//0가 되면 아이템 파괴하는 부분
+	//TODO : Destroy the item if the Remainder is zero.
+	// Otherwise, update the stack count for the item pickup.
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()

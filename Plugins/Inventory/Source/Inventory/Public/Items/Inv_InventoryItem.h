@@ -22,10 +22,15 @@ public:
 	const FInv_ItemManifest& GetItemManifest() const { return ItemManifest.Get<FInv_ItemManifest>();  }
 	FInv_ItemManifest& GetItemManifestMutable() { return ItemManifest.GetMutable<FInv_ItemManifest>(); }
 	bool IsStackable() const; // 아이템이 쌓을 수 있는지 여부 확인
+	int32 GetTotalStackCount() const { return TotalStackCount; } // 총 스택 수 가져오기
+	void SetTotalStackCount(int32 Count) { TotalStackCount = Count; } // 총 스택 수 설정
 
 private: //이 부분 GPT 돌려보자 항목 복제해서 서버에 전달하는 곳. 그게 바로 Replicated
 	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/Inventory.Inv_ItemManifest"), Replicated) //인벤토리 아이템 블루프린트 만드는 곳? 파생?
 	FInstancedStruct ItemManifest; // instance struct? 이게 뭔데?
+	
+	UPROPERTY(Replicated) // 이 아이템의 총 스택 수 Replicated 뜻이 뭘까?
+	int32 TotalStackCount{ 0 };
 };
 
 template <typename FragmentType>
