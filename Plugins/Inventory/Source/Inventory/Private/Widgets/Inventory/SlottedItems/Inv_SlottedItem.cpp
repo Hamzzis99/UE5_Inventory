@@ -7,6 +7,12 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 
+FReply UInv_SlottedItem::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	OnSlottedItemClicked.Broadcast(GridIndex, MouseEvent); // 슬롯 아이템 클릭 델리게이트 브로드캐스트
+	return FReply::Handled(); // 이벤트가 처리되었음을 나타내는 FReply 반환
+}
+
 void UInv_SlottedItem::SetInventoryItem(UInv_InventoryItem* Item)
 {
 	InventoryItem = Item;

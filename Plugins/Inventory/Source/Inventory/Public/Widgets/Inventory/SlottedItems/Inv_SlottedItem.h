@@ -10,12 +10,16 @@ class UInv_InventoryItem;
 class UImage;
 class UTextBlock;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSlottedItemClicked, int32, GridIndex, const FPointerEvent&, MouseEvent); // 슬롯 아이템 클릭 델리게이트 선언
+
 UCLASS()
 class INVENTORY_API UInv_SlottedItem : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; //마우스 클릭 상호작용 만들기
+		
 	bool IsStackable() const { return bIsStackable; } // 스택 가능 여부 가져오기
 	void SetIsStackable(bool bStackable) { bIsStackable = bStackable; } // 스택 가능 여부 설정
 	UImage* GetImageIcon() const {return Image_Icon;} // 아이콘 이미지 가져오기
@@ -27,6 +31,8 @@ public:
 	UInv_InventoryItem* GetInventoryItem() const { return InventoryItem.Get(); } // 인벤토리 아이템 가져오기
 	void SetImageBrush(const FSlateBrush& Brush) const; // 이미지 브러시 설정
 	void UpdateStackCount(int32 StackCount); // 아이템 스택 수량 업데이트
+
+	FSlottedItemClicked OnSlottedItemClicked; // 마우스로 슬롯 아이템 클릭 델리게이트
 
 private:
 	UPROPERTY(meta = (BindWidget))
