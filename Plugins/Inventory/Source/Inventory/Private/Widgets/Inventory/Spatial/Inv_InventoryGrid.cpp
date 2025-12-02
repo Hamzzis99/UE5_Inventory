@@ -237,11 +237,22 @@ bool UInv_InventoryGrid::IsLeftClick(const FPointerEvent& MouseEvent) const // �
 	return MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton;
 }
 
-void UInv_InventoryGrid::PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex)
+void UInv_InventoryGrid::PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex) //집었을 때 개수까지 알아와주기
 {
 	// Assign the hover item
-	AssignHoverItem(ClickedInventoryItem); // 호버 아이템 할당
+	// 아이템을 집었을 때 호버 아이템으로 할당하는 부분
+	AssignHoverItem(ClickedInventoryItem, GridIndex, GridIndex);
+
 	// Remove Clicked Item from the grid
+	
+}
+
+void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex)
+{
+	AssignHoverItem(InventoryItem);
+
+	HoverItem->SetPreviousGridIndex(PreviousGridIndex);
+	HoverItem->UpdateStackCount(InventoryItem->IsStackable() ? GridSlots[GridIndex]->GetStackCount() : 0);
 }
 
 void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem) // 이걸 참조하면 나중에 그걸 만들 수 있겠지? 창고
@@ -270,6 +281,8 @@ void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem) // �
 
 	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem); // 마우스 커서 위젯 설정
 }
+
+
 
 // 같은 아이템이면 수량 쌓기
 void UInv_InventoryGrid::AddStacks(const FInv_SlotAvailabilityResult& Result) 

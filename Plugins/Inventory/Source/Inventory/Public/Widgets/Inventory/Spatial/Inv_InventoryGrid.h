@@ -80,9 +80,11 @@ private:
 	/* 아이템 마우스 클릭 판단*/
 	bool IsRightClick(const FPointerEvent& MouseEvent) const;
 	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
-
 	void PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex); // 이 픽업은 마우스로 아이템을 잡을 때
-	void AssignHoverItem(UInv_InventoryItem* InventoryItem);
+	void AssignHoverItem(UInv_InventoryItem* InventoryItem); // 아이템 기반 호버 아이템 할당
+	void AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex); // 인덱스 기반 호버 아이템 할당
+
+
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
