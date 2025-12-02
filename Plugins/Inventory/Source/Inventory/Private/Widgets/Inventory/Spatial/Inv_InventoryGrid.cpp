@@ -13,6 +13,7 @@
 #include "Widgets/Inventory/GridSlots/Inv_GridSlot.h"
 #include "Widgets/Utils/Inv_WidgetUtils.h"
 #include "Items/Manifest/Inv_ItemManifest.h"
+#include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
 #include "Widgets/Inventory/SlottedItems/Inv_SlottedItem.h"
 
 void UInv_InventoryGrid::NativeOnInitialized()
@@ -236,6 +237,40 @@ bool UInv_InventoryGrid::IsLeftClick(const FPointerEvent& MouseEvent) const // �
 	return MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton;
 }
 
+void UInv_InventoryGrid::PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex)
+{
+	// Assign the hover item
+	AssignHoverItem(ClickedInventoryItem); // 호버 아이템 할당
+	// Remove Clicked Item from the grid
+}
+
+void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem) // 이걸 참조하면 나중에 그걸 만들 수 있겠지? 창고
+{
+	if (!IsValid(HoverItem))
+	{
+		HoverItem = CreateWidget<UInv_HoverItem>(GetOwningPlayer(), HoverItemClass);
+	}
+
+	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(InventoryItem, FragmentTags::GridFragment);
+	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(InventoryItem, FragmentTags::IconFragment);
+	if (!GridFragment || !ImageFragment) return;
+
+	// 이미지 불러오는 것들.
+	const FVector2D DrawSize = GetDrawSize(GridFragment);
+
+	FSlateBrush IconBrush;
+	IconBrush.SetResourceObject(ImageFragment->GetIcon());
+	IconBrush.DrawAs = ESlateBrushDrawType::Image;
+	IconBrush.ImageSize = DrawSize * UWidgetLayoutLibrary::GetViewportScale(this); // 뷰포트 스케일로 곱해주기. (왜 뷰포트로 곱해줄까?)
+
+	HoverItem->SetImageBrush(IconBrush);
+	HoverItem->SetGridDimensions(GridFragment->GetGridSize());
+	HoverItem->SetInventoryItem(InventoryItem);
+	HoverItem->SetIsStackable(InventoryItem->IsStackable());
+
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, HoverItem); // 마우스 커서 위젯 설정
+}
+
 // 같은 아이템이면 수량 쌓기
 void UInv_InventoryGrid::AddStacks(const FInv_SlotAvailabilityResult& Result) 
 {
@@ -270,6 +305,7 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 	{
 		// TODO : Pickup - 호버 항목을 지정하고 그리드에서 슬롯이 있는 항목을 제거하는 부분을 구현하자.
 		// TODO: PickUp - Assign the hover item, and remove the slotted item from the grid.
+		PickUp(ClickedInventoryItem, GridIndex);
 	}
 }
 

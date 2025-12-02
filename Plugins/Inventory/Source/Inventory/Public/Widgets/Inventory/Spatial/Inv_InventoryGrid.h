@@ -81,6 +81,8 @@ private:
 	bool IsRightClick(const FPointerEvent& MouseEvent) const;
 	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
 
+	void PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex); // 이 픽업은 마우스로 아이템을 잡을 때
+	void AssignHoverItem(UInv_InventoryItem* InventoryItem);
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
@@ -119,8 +121,9 @@ private:
 
 	//포인터를 생성하기 위한 보조 클래스
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TSubclassOf<UInv_HoverItem> HoverItem;
+	TSubclassOf<UInv_HoverItem> HoverItemClass;
 
-
+	UPROPERTY()
+	TObjectPtr<UInv_HoverItem> HoverItem;
 };
 
