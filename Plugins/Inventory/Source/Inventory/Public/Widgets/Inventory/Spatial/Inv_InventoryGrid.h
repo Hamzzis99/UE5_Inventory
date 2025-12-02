@@ -15,6 +15,7 @@ class UCanvasPanel;
 class UInv_GridSlot;
 class UInv_InventoryComponent;
 struct FGameplayTag;
+class UInv_HoverItem;
 
 /**
  *
@@ -75,6 +76,11 @@ private:
 	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& ItemDimensions) const; // 그리드 경계 내에 있는지 확인
 	int32 DetermineFillAmountForSlot(const bool bStackable, const int32 MaxStackSize, const int32 AmountToFill, const UInv_GridSlot* GridSlot) const;
 	int32 GetStackAmount(const UInv_GridSlot* GridSlot) const;
+	
+	/* 아이템 마우스 클릭 판단*/
+	bool IsRightClick(const FPointerEvent& MouseEvent) const;
+	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
+
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
@@ -110,5 +116,11 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float TileSize;
+
+	//포인터를 생성하기 위한 보조 클래스
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_HoverItem> HoverItem;
+
+
 };
 

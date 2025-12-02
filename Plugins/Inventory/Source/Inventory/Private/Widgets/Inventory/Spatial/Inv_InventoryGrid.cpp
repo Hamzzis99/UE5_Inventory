@@ -226,6 +226,16 @@ int32 UInv_InventoryGrid::GetStackAmount(const UInv_GridSlot* GridSlot) const
 	return CurrentSlotStackCount;
 }
 
+bool UInv_InventoryGrid::IsRightClick(const FPointerEvent& MouseEvent) const // 마우스 오른쪽 클릭인지 확인
+{
+	return MouseEvent.GetEffectingButton() == EKeys::RightMouseButton;
+}
+
+bool UInv_InventoryGrid::IsLeftClick(const FPointerEvent& MouseEvent) const // 마우스 왼쪽 클릭인지 확인
+{
+	return MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton;
+}
+
 // 같은 아이템이면 수량 쌓기
 void UInv_InventoryGrid::AddStacks(const FInv_SlotAvailabilityResult& Result) 
 {
@@ -251,7 +261,16 @@ void UInv_InventoryGrid::AddStacks(const FInv_SlotAvailabilityResult& Result)
 // 슬롯에 있는 아이템 클릭했을 때
 void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Clicked on item at index %d"), GridIndex); // 아이템 클릭 디버깅입니다.
+	//UE_LOG(LogTemp, Warning, TEXT("Clicked on item at index %d"), GridIndex); // 아이템 클릭 디버깅입니다.
+	check(GridSlots.IsValidIndex(GridIndex)); // 유효한 인덱스인지 확인
+	UInv_InventoryItem* ClickedInventoryItem = GridSlots[GridIndex]->GetInventoryItem().Get(); // 클릭한 아이템 가져오기
+
+	//호버 항목으로 설정한다. 좌클릭으로.
+	if (!IsValid(HoverItem) && IsLeftClick(MouseEvent))
+	{
+		// TODO : Pickup - 호버 항목을 지정하고 그리드에서 슬롯이 있는 항목을 제거하는 부분을 구현하자.
+		// TODO: PickUp - Assign the hover item, and remove the slotted item from the grid.
+	}
 }
 
 // 인벤토리 스택 쌓는 부분.
