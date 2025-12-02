@@ -83,7 +83,7 @@ private:
 	void PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex); // 이 픽업은 마우스로 아이템을 잡을 때
 	void AssignHoverItem(UInv_InventoryItem* InventoryItem); // 아이템 기반 호버 아이템 할당
 	void AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex); // 인덱스 기반 호버 아이템 할당
-
+	void RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, const int32 GridIndex); // 그리드에서 아이템 제거
 
 
 	UFUNCTION()
