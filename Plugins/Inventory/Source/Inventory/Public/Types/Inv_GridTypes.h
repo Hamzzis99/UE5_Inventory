@@ -44,7 +44,7 @@ struct FInv_SlotAvailabilityResult
 	TArray<FInv_SlotAvailability> SlotAvailabilities; //슬롯 가능 여부를 만드는 것.
 };
 
-//마우스 호버 부분 
+//타일에 대한 마우스 호버 부분 
 UENUM(BlueprintType)
 enum class EInv_TileQuadrant : uint8
 {
