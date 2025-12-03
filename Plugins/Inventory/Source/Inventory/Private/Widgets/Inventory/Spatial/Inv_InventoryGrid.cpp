@@ -42,12 +42,28 @@ void UInv_InventoryGrid::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 // 마우스 위치에 따라 타일 매개변수를 업데이트하는 함수
 void UInv_InventoryGrid::UpdateTileParameters(const FVector2D CanvasPosition, const FVector2D MousePosition)
 {
-	// 타일 사분면을 계산하기
-	// Calculate the tile quadrant
+	//마우스가 캔버스 패널에 없으면 아무것도 전달하지 않는다.
+	//if mouse not in canvas panel, return.
+	const FIntPoint HoveredTileCoordinates = CalculateHoveredCoordinates(CanvasPosition, MousePosition);
+
+	LastTileParameters = TileParameters;// 이전 타일 매개변수를 저장
+	TileParameters.TileCoordinats = HoveredTileCoordinates; // 현재 타일 좌표 설정
+	TileParameters.TileIndex = UInv_WidgetUtils::GetIndexFromPosition(HoveredTileCoordinates, Columns); // 타일 인덱스 계산
 	
-	// 그리드 슬롯 하이라이트를 처리하거나 해제하는 것.
+	// 그리드 슬롯 하이라이트를 처리하거나 해제하는 것. <- 마우스 위치에 따라 계산하는 함수를 만들 예정.
 	// Handle highlight/unhighlight of the grid slots
 
+}
+
+FIntPoint UInv_InventoryGrid::CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const
+{
+	// 타일 사분면, 타일 인덱스와 좌표를 계산하기
+	// Calculate the tile quadrant, tile index, and coordinates
+	return FIntPoint // 와 이런 것도 가능하다고? ㅋㅋ 근데 왜 굳이 이렇게 짜지?
+	{
+		static_cast<int32>(FMath::FloorToInt((MousePosition.X - CanvasPosition.X) / TileSize)),
+		static_cast<int32>(FMath::FloorToInt((MousePosition.Y - CanvasPosition.Y) / TileSize))
+	};
 }
 
 FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_ItemComponent* ItemComponent)
