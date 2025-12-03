@@ -55,7 +55,7 @@ enum class EInv_TileQuadrant : uint8
 	None
 };
 
-//마우스 호버 부분이면서 매 프레임마다 격자(Grid) 어디에 위치하는지 추적해주는 함수들이다.
+//마우스 커서 위치가 어디인지에 대한 변수들. TileCoordinats, TileIndex, TileQuadrant
 USTRUCT(BlueprintType)
 struct FInv_TileParameters
 {

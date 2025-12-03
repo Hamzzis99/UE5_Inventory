@@ -27,6 +27,29 @@ void UInv_InventoryGrid::NativeOnInitialized()
 	InventoryComponent->OnStackChange.AddDynamic(this, &ThisClass::AddStacks); // 스택 변경 델리게이트 바인딩
 }
 
+// 매 프레임마다 호출되는 틱 함수 (마우스 Hover에 사용)
+void UInv_InventoryGrid::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	//캔버스가 시작하는 왼쪽 모서리 점을 알아보자.
+	const FVector2D CanvasPosition = UInv_WidgetUtils::GetWidgetPosition(CanvasPanel); // 캔버스 패널의 위치 가져오기
+	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer()); // 뷰포트에서 마우스 위치 가져오기
+
+	UpdateTileParameters(CanvasPosition, MousePosition); // 타일 매개변수 업데이트
+}
+
+// 마우스 위치에 따라 타일 매개변수를 업데이트하는 함수
+void UInv_InventoryGrid::UpdateTileParameters(const FVector2D CanvasPosition, const FVector2D MousePosition)
+{
+	// 타일 사분면을 계산하기
+	// Calculate the tile quadrant
+	
+	// 그리드 슬롯 하이라이트를 처리하거나 해제하는 것.
+	// Handle highlight/unhighlight of the grid slots
+
+}
+
 FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_ItemComponent* ItemComponent)
 {
 	return HasRoomForItem(ItemComponent->GetItemManifest());
@@ -278,6 +301,7 @@ void UInv_InventoryGrid::RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, c
 		FoundSlottedItem->RemoveFromParent();
 	}
 }
+
 
 void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem) // 이걸 참조하면 나중에 그걸 만들 수 있겠지? 창고
 {
