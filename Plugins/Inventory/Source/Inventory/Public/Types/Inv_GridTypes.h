@@ -43,3 +43,37 @@ struct FInv_SlotAvailabilityResult
 	bool bStackable = {false }; // 쌓을 수 있는지
 	TArray<FInv_SlotAvailability> SlotAvailabilities; //슬롯 가능 여부를 만드는 것.
 };
+
+//마우스 호버 부분 
+UENUM(BlueprintType)
+enum class EInv_TileQuadrant : uint8
+{
+	TopLeft,
+	TopRight,
+	BottomLeft,
+	BottomRight,
+	None
+};
+
+//마우스 호버 부분이면서 매 프레임마다 격자(Grid) 어디에 위치하는지 추적해주는 함수들이다.
+USTRUCT(BlueprintType)
+struct FInv_TileParameters
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory")
+	FIntPoint TileCoordinats{};
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory")
+	int32 TileIndex{ INDEX_NONE };
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory")
+	EInv_TileQuadrant TileQuadrant{ EInv_TileQuadrant::None };
+};
+
+inline bool operator==(const FInv_TileParameters& A, const FInv_TileParameters& B) // 타일 비교
+{
+	return A.TileCoordinats == B.TileCoordinats && 
+		A.TileIndex == B.TileIndex && 
+			A.TileQuadrant == B.TileQuadrant; // 모두 동일해야 참.
+}

@@ -127,5 +127,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UInv_HoverItem> HoverItem;
+
+	//아이템이 프레임마다 매개변수를 어떻게 받을지 계산.
+	FInv_TileParameters TileParameters;
+	FInv_TileParameters LastTileParameters;
 };
 

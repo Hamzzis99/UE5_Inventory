@@ -247,6 +247,7 @@ void UInv_InventoryGrid::PickUp(UInv_InventoryItem* ClickedInventoryItem, const 
 	RemoveItemFromGrid(ClickedInventoryItem, GridIndex);
 }
 
+// 호버 아이템 할당 부분
 void UInv_InventoryGrid::AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex)
 {
 	AssignHoverItem(InventoryItem);
