@@ -49,7 +49,8 @@ void UInv_InventoryGrid::UpdateTileParameters(const FVector2D CanvasPosition, co
 	LastTileParameters = TileParameters;// 이전 타일 매개변수를 저장
 	TileParameters.TileCoordinats = HoveredTileCoordinates; // 현재 타일 좌표 설정
 	TileParameters.TileIndex = UInv_WidgetUtils::GetIndexFromPosition(HoveredTileCoordinates, Columns); // 타일 인덱스 계산
-	
+	TileParameters.TileQuadrant = CalculateTileQuadrant(CanvasPosition, MousePosition); // 타일 사분면 계산
+
 	// 그리드 슬롯 하이라이트를 처리하거나 해제하는 것. <- 마우스 위치에 따라 계산하는 함수를 만들 예정.
 	// Handle highlight/unhighlight of the grid slots
 
@@ -64,6 +65,40 @@ FIntPoint UInv_InventoryGrid::CalculateHoveredCoordinates(const FVector2D Canvas
 		static_cast<int32>(FMath::FloorToInt((MousePosition.X - CanvasPosition.X) / TileSize)),
 		static_cast<int32>(FMath::FloorToInt((MousePosition.Y - CanvasPosition.Y) / TileSize))
 	};
+}
+
+// 타일 사분면 계산
+EInv_TileQuadrant UInv_InventoryGrid::CalculateTileQuadrant(const FVector2D CanvasPosition, const FVector2D MousePosition) const
+{
+	//현재 타일 내에서의 상대 위치를 계산하는 곳.
+	//Calculate the relative position within the current tile.
+	const float TileLocalX = FMath::Fmod(MousePosition.X - CanvasPosition.X, TileSize); // Fmod가 뭐지?
+	const float TileLocalY = FMath::Fmod(MousePosition.Y - CanvasPosition.Y, TileSize); // 
+
+	// 마우스가 어느 사분면에 있는지 결정하는 부분.
+	// Determine which quadrant the mouse is in.
+	const bool bIsTop = TileLocalY < TileSize / 2.f; // Top if Y is in the upper half
+	const bool bIsLeft = TileLocalX < TileSize / 2.f; // Left if X is in the left half
+
+	// 사분면이 어디에 위치했는지 bool값을 정해주는 것.
+	EInv_TileQuadrant HoveredTileQuadrant{ EInv_TileQuadrant::None }; // 사분면 변수 선언
+	if (bIsTop && bIsLeft) 	{
+		HoveredTileQuadrant = EInv_TileQuadrant::TopLeft;
+	}
+	else if (bIsTop && !bIsLeft)
+	{
+		HoveredTileQuadrant = EInv_TileQuadrant::TopRight;
+	}
+	else if (!bIsTop && bIsLeft)
+	{
+		HoveredTileQuadrant = EInv_TileQuadrant::BottomLeft;
+	}
+	else // if (!bIsTop && !bIsLeft)
+	{
+		HoveredTileQuadrant = EInv_TileQuadrant::BottomRight;
+	}
+
+	return HoveredTileQuadrant;
 }
 
 FInv_SlotAvailabilityResult UInv_InventoryGrid::HasRoomForItem(const UInv_ItemComponent* ItemComponent)

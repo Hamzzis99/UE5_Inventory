@@ -86,7 +86,8 @@ private:
 	void AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex); // 인덱스 기반 호버 아이템 할당
 	void RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, const int32 GridIndex); // 그리드에서 아이템 제거
 	void UpdateTileParameters(const FVector2D CanvasPosition, const FVector2D MousePosition); // 타일 매개변수 업데이트
-	FIntPoint CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const;
+	FIntPoint CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 호버된 좌표 계산
+	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 타일 사분면 계산
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
