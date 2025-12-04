@@ -88,6 +88,7 @@ private:
 	void UpdateTileParameters(const FVector2D CanvasPosition, const FVector2D MousePosition); // 타일 매개변수 업데이트
 	FIntPoint CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 호버된 좌표 계산
 	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 타일 사분면 계산
+	void OnTileParametersUpdate(const FInv_TileParameters& Parameters); // 타일 매개변수 업데이트시 호출되는 함수
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);

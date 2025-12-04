@@ -53,7 +53,26 @@ void UInv_InventoryGrid::UpdateTileParameters(const FVector2D CanvasPosition, co
 
 	// 그리드 슬롯 하이라이트를 처리하거나 해제하는 것. <- 마우스 위치에 따라 계산하는 함수를 만들 예정.
 	// Handle highlight/unhighlight of the grid slots
+	OnTileParametersUpdate(TileParameters);
 
+}
+
+void UInv_InventoryGrid::OnTileParametersUpdate(const FInv_TileParameters& Parameters)
+{
+	if (!IsValid(HoverItem)) return;
+
+	// Get Hover Item's dimensions
+	// 호버 아이템의 치수 가져오기
+	// Calculate the starting coordinate for highlighting
+	// 하이라이팅을 시작하는 좌표를 검색한다
+	// check hover position
+	// 호버 위치 확인
+		// in the grid bounds?
+		// 그리드 경계 내에 있는지?
+		// any items in the way?
+		// 아이템이 있는지? (장애물 판단)
+		// if so, is there only one item in the way?
+		// 그렇다면, 장애물이 하나뿐인가? (바꿀 수 있을까?)
 }
 
 FIntPoint UInv_InventoryGrid::CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const
