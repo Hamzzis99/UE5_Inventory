@@ -89,6 +89,8 @@ private:
 	FIntPoint CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 호버된 좌표 계산
 	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 타일 사분면 계산
 	void OnTileParametersUpdate(const FInv_TileParameters& Parameters); // 타일 매개변수 업데이트시 호출되는 함수
+	FIntPoint CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const; // 문턱을 얼마나 넘을 수 있는지.
+
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);

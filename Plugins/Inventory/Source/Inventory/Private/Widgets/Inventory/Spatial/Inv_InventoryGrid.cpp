@@ -1,6 +1,7 @@
 ﻿// Gihyeon's Inventory Project
 #include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
 
+#include "Inventory.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
@@ -15,6 +16,7 @@
 #include "Items/Manifest/Inv_ItemManifest.h"
 #include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
 #include "Widgets/Inventory/SlottedItems/Inv_SlottedItem.h"
+
 
 void UInv_InventoryGrid::NativeOnInitialized()
 {
@@ -66,6 +68,8 @@ void UInv_InventoryGrid::OnTileParametersUpdate(const FInv_TileParameters& Param
 	const FIntPoint Dimensions = HoverItem->GetGridDimensions();
 	// Calculate the starting coordinate for highlighting
 	// 하이라이팅을 시작하는 좌표를 검색한다
+	const FIntPoint StartingCoordinate = CalculateStartingCoordinate(Parameters.TileCoordinats, Dimensions, Parameters.TileQuadrant);
+	
 	// check hover position
 	// 호버 위치 확인
 		// in the grid bounds?
@@ -74,6 +78,43 @@ void UInv_InventoryGrid::OnTileParametersUpdate(const FInv_TileParameters& Param
 		// 아이템이 있는지? (장애물 판단)
 		// if so, is there only one item in the way?
 		// 그렇다면, 장애물이 하나뿐인가? (바꿀 수 있을까?)
+}
+
+// 수평 및 수직 너비와 관련하여 그것이 있는지 보는 것 (격자가 어느정도 넘어가야 할지 계산해야 하는 것을 만들자.)
+FIntPoint UInv_InventoryGrid::CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const
+{
+	const int32 HasEvenWidth = Dimensions.X % 2 == 0 ? 1 : 0; // 짝수 너비인지 확인
+	const int32 HasEvenHeight = Dimensions.Y % 2 == 0 ? 1 : 0; // 짝수 높이인지 확인
+
+	// 이동할 때 사각 좌표 계산을 해보자. -> 당연히 반칸씩 만크 ㅁ움직여야겠지?
+	FIntPoint StartingCoord;
+	switch (Quadrant)
+	{
+		case EInv_TileQuadrant::TopLeft:
+			StartingCoord.X = Coordinate.X - FMath::FloorToInt(0.5f * Dimensions.X); // 격자 차원의 절반만 뺴는 것.
+			StartingCoord.Y = Coordinate.Y - FMath::FloorToInt(0.5f * Dimensions.Y); // 격자 차원의 절반만 뺴는 것.
+			break;
+
+		case EInv_TileQuadrant::TopRight:
+			StartingCoord.X = Coordinate.X - FMath::FloorToInt(0.5f * Dimensions.X) + HasEvenWidth; // 격자 차원의 절반만 뺴는 것.
+			StartingCoord.Y = Coordinate.Y - FMath::FloorToInt(0.5f * Dimensions.Y); // 격자 차원의 절반만 뺴는 것.
+			break;
+
+		case EInv_TileQuadrant::BottomLeft:
+			StartingCoord.X = Coordinate.X - FMath::FloorToInt(0.5f * Dimensions.X); // 격자 차원의 절반만 뺴는 것.
+			StartingCoord.Y = Coordinate.Y - FMath::FloorToInt(0.5f * Dimensions.Y) + HasEvenHeight; // 격자 차원의 절반만 뺴는 것.
+			break;
+
+		case EInv_TileQuadrant::BottomRight:
+			StartingCoord.X = Coordinate.X - FMath::FloorToInt(0.5f * Dimensions.X) + HasEvenWidth; // 격자 차원의 절반만 뺴는 것.
+			StartingCoord.Y = Coordinate.Y - FMath::FloorToInt(0.5f * Dimensions.Y) + HasEvenHeight; // 격자 차원의 절반만 뺴는 것.
+			break;
+
+		default: // 아무것도 선택하지 않았을 때
+			UE_LOG(LogInventory, Error, TEXT("Invalid Quadrant."))
+			return FIntPoint(-1, -1);
+	}
+	return StartingCoord; // 시작 좌표 반환
 }
 
 FIntPoint UInv_InventoryGrid::CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const
