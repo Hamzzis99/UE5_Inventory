@@ -137,5 +137,9 @@ private:
 	//아이템이 프레임마다 매개변수를 어떻게 받을지 계산.
 	FInv_TileParameters TileParameters;
 	FInv_TileParameters LastTileParameters;
+
+	// Index where an item would be placed if we click on the grid at a valid location
+	// 아이템이 유효한 위치에 그리드를 클릭하면 배치될 인덱스
+	int32 ItemDropIndex{ INDEX_NONE };
 };
 
