@@ -63,6 +63,7 @@ void UInv_InventoryGrid::OnTileParametersUpdate(const FInv_TileParameters& Param
 
 	// Get Hover Item's dimensions
 	// 호버 아이템의 치수 가져오기
+	const FIntPoint Dimensions = HoverItem->GetGridDimensions();
 	// Calculate the starting coordinate for highlighting
 	// 하이라이팅을 시작하는 좌표를 검색한다
 	// check hover position
