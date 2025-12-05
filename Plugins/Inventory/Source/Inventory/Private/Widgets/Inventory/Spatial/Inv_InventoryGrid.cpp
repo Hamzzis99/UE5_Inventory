@@ -38,7 +38,7 @@ void UInv_InventoryGrid::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	const FVector2D CanvasPosition = UInv_WidgetUtils::GetWidgetPosition(CanvasPanel); // 캔버스 패널의 위치 가져오기
 	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer()); // 뷰포트에서 마우스 위치 가져오기
 
-	//캔버스 패널 바깥으로 벗어났는지 여부 확인
+	//캔버스 패널 바깥으로 벗어났는지 여부 확인 (매 틱마다 확인해줌)
 	if (CursorExitedCanvas(CanvasPosition, UInv_WidgetUtils::GetWidgetSize(CanvasPanel), MousePosition))
 	{
 		return; // 캔버스 패널을 벗어났다면 반환
@@ -52,6 +52,9 @@ void UInv_InventoryGrid::UpdateTileParameters(const FVector2D CanvasPosition, co
 {
 	//마우스가 캔버스 패널에 없으면 아무것도 전달하지 않는다.
 	//if mouse not in canvas panel, return.
+	if (!bMouseWithinCanvas) return;
+
+	// Calculate the tile quadrant, tile index, and coordinates
 	const FIntPoint HoveredTileCoordinates = CalculateHoveredCoordinates(CanvasPosition, MousePosition);
 
 	LastTileParameters = TileParameters;// 이전 타일 매개변수를 저장
@@ -61,11 +64,11 @@ void UInv_InventoryGrid::UpdateTileParameters(const FVector2D CanvasPosition, co
 
 	// 그리드 슬롯 하이라이트를 처리하거나 해제하는 것. <- 마우스 위치에 따라 계산하는 함수를 만들 예정.
 	// Handle highlight/unhighlight of the grid slots
-	OnTileParametersUpdate(TileParameters);
+	OnTileParametersUpdated(TileParameters);
 
 }
 
-void UInv_InventoryGrid::OnTileParametersUpdate(const FInv_TileParameters& Parameters)
+void UInv_InventoryGrid::OnTileParametersUpdated(const FInv_TileParameters& Parameters)
 {
 	if (!IsValid(HoverItem)) return;
 
@@ -78,11 +81,22 @@ void UInv_InventoryGrid::OnTileParametersUpdate(const FInv_TileParameters& Param
 	ItemDropIndex = UInv_WidgetUtils::GetIndexFromPosition(StartingCoordinate, Columns); // 아이템 드롭 인덱스 계산
 	
 	CurrentQueryResult = CheckHoverPosition(StartingCoordinate, Dimensions); // 호버 위치 확인
+
+	if (CurrentQueryResult.bHasSpace)
+	{
+		HighlightSlots(ItemDropIndex, Dimensions); // 슬롯 강조 표시
+		return;
+	}
+	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions); // 마지막 강조 표시된 슬롯 강조 해제
+
+	if (CurrentQueryResult.ValidItem.IsValid())
+	{
+		// TODO: There's a single item in this space. We can sap or add stacks.
+	}
 }
 
-FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const
+FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions)
 {
-	
 	// check hover position
 	// 호버 위치 확인
 	FInv_SpaceQueryResult Result;
@@ -95,19 +109,20 @@ FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Po
 
 	// If more than one of the indices is occupied with the same item, we nneed to see if they all have the same upper left index.
 	// 여러 인덱스가 동일한 항목으로 점유된 경우, 모두 동일한 왼쪽 위 인덱스를 가지고 있는지 확인해야 합니다.
-	TSet<int32> OccupiedUpperLeftIndices; 
+	TSet<int32> OccupiedUpperLeftIndices;
 	UInv_InventoryStatics::ForEach2D(GridSlots, UInv_WidgetUtils::GetIndexFromPosition(Position, Columns), Dimensions, Columns, [&](const UInv_GridSlot* GridSlot)
-	{
-		if (GridSlot->GetInventoryItem().IsValid())
 		{
-			//서로 다른 항목이 몇 개 있는지 알고 싶음.
-			OccupiedUpperLeftIndices.Add(GridSlot->GetUpperLeftIndex());
-			Result.bHasSpace = false; // 공간이 없다고 설정
-		}
-	});
+			if (GridSlot->GetInventoryItem().IsValid())
+			{
+				//서로 다른 항목이 몇 개 있는지 알고 싶음.
+				OccupiedUpperLeftIndices.Add(GridSlot->GetUpperLeftIndex());
+				Result.bHasSpace = false; // 공간이 없다고 설정
+			}
+		});
 	
 	// if so, is there only one item in the way?
 	// 그렇다면, 장애물이 하나뿐인가? (바꿀 수 있을까?)
+	if (OccupiedUpperLeftIndices.Num() == 1) // single item at position - it's valid for swapping/combining
 	{
 		const int32 Index = *OccupiedUpperLeftIndices.CreateIterator();
 		Result.ValidItem = GridSlots[Index]->GetInventoryItem().Get(); // 격자 슬롯에 배치
@@ -120,12 +135,44 @@ bool UInv_InventoryGrid::CursorExitedCanvas(const FVector2D& BoundaryPos, const 
 {
 	bLastMouseWithinCanvas = bMouseWithinCanvas;
 	bMouseWithinCanvas = UInv_WidgetUtils::IsWithinBounds(BoundaryPos, BoundarySize, Location);
+	
+	// 마우스가 캔버스 패널에 벗어나게 되면?
 	if (!bMouseWithinCanvas && bLastMouseWithinCanvas)
 	{
-		// TODO : UnhighlightSlots() // 슬롯 해제 함수 만들기
+		UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions); // 마지막 강조 표시된 슬롯 강조 해제
 		return true;
 	}
 	return false;
+}
+
+// 슬롯 강조 표시 함수
+void UInv_InventoryGrid::HighlightSlots(const int32 Index, const FIntPoint& Dimensions)
+{
+	if (!bMouseWithinCanvas) return;
+	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot)
+		{
+			GridSlot->SetOccupiedTexture();
+		});
+	LastHighlightedDimensions = Dimensions;
+	LastHighlightedIndex = Index;
+}
+
+// 슬롯 강조 해제 함수
+void UInv_InventoryGrid::UnHighlightSlots(const int32 Index, const FIntPoint& Dimensions)
+{
+	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot)
+		{
+			// 점유된 텍스처에 맞게 설정
+			if (GridSlot->IsAvailable())
+			{
+				GridSlot->SetUnoccupiedTexture(); // 비점유 텍스처 설정
+			}
+			else
+			{
+				GridSlot->SetOccupiedTexture(); // 점유 텍스처 설정
+			}
+		});
 }
 
 // 수평 및 수직 너비와 관련하여 그것이 있는지 보는 것 (격자가 어느정도 넘어가야 할지 계산해야 하는 것을 만들자.)
