@@ -739,7 +739,38 @@ void UInv_InventoryGrid::ConstructGrid()
 			GridCPS->SetPosition(TilePosition * TileSize); // 위치 조정
 			
 			GridSlots.Add(GridSlot);
+			GridSlot->GridSlotClicked.AddDynamic(this, &ThisClass::OnGridSlotClicked); // 그리드 슬롯 클릭 델리게이트 바인딩
+			GridSlot->GridSlotHovered.AddDynamic(this, &ThisClass::OnGridSlotHovered); // 그리드 슬롯 호버 델리게이트 바인딩
+			GridSlot->GridSlotUnhovered.AddDynamic(this, &ThisClass::OnGridSlotUnhovered); // 그리드 슬롯 언호버 델리게이트 바인딩
 		}
+	}
+}
+
+// 그리드 클릭되었을 때 작동하게 만드려는 델리게이트 대비 함수.
+void UInv_InventoryGrid::OnGridSlotClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+
+}
+
+void UInv_InventoryGrid::OnGridSlotHovered(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+	if (IsValid(HoverItem)) return; // 호버 아이템이 유효하다면 리턴
+
+	UInv_GridSlot* GridSlot = GridSlots[GridIndex]; // 그리드 슬롯 가져오기
+	if (GridSlot->IsAvailable()) // 그리드 슬롯이 사용 가능하다면
+	{
+		GridSlot->SetOccupiedTexture(); // 점유된 텍스처로 설정
+	}
+}
+
+void UInv_InventoryGrid::OnGridSlotUnhovered(int32 GridIndex, const FPointerEvent& MouseEvent)
+{
+	if (IsValid(HoverItem)) return; // 호버 아이템이 유효하다면 리턴
+
+	UInv_GridSlot* GridSlot = GridSlots[GridIndex]; // 그리드 슬롯 가져오기
+	if (GridSlot->IsAvailable()) // 그리드 슬롯이 사용 가능하다면
+	{
+		GridSlot->SetUnoccupiedTexture(); // 비점유된 텍스처로 설정
 	}
 }
 

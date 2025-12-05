@@ -7,7 +7,10 @@
 #include "Blueprint/UserWidget.h"
 #include "Inv_GridSlot.generated.h"
 
+class UInv_InventoryItem;
 class UImage;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGridSlotEvent, int32, GridIndex, const FPointerEvent&, MouseEvent); // 마우스 클릭 했을 경우 관한 정보 델리게이트
 
 UENUM(BlueprintType)
 enum class EInv_GridSlotState : uint8
@@ -23,6 +26,10 @@ class INVENTORY_API UInv_GridSlot : public UUserWidget
 {
 	GENERATED_BODY()
 public:
+	virtual void NativeOnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; // 마우스 엔터 이벤트
+	virtual void NativeOnMouseLeave(const FPointerEvent& MouseEvent) override; // 마우스를 벗어났을 때의 이벤트
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; // 마우스 버튼 다운 이벤트
+
 	// Getter Setter 부분들.
 	void SetTileIndex(int32 Index) { TileIndex = Index; } // 타일 인덱스 설정
 	int32 GetTileIndex() const { return TileIndex; } //	타일 인덱스 반환
@@ -44,6 +51,10 @@ public:
 	void SetUnoccupiedTexture();
 	void SetSelectedTexture();
 	void SetGrayedOutTexture();
+
+	FGridSlotEvent GridSlotClicked; // 그리드 슬롯 클릭 이벤트 델리게이트
+	FGridSlotEvent GridSlotHovered; // 그리드 슬롯 호버 이벤트 델리게이트
+	FGridSlotEvent GridSlotUnhovered; // 그리드 슬롯 언호버 이벤트 델리게이트
 
 private:
 	int32 TileIndex{ INDEX_NONE };
