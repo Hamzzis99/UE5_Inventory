@@ -755,8 +755,15 @@ void UInv_InventoryGrid::OnGridSlotClicked(int32 GridIndex, const FPointerEvent&
 	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex)) // 이미 있는 아이템의 슬롯도 참조를 해주는 함수.
 	{
 		OnSlottedItemClicked(CurrentQueryResult.UpperLeftIndex, MouseEvent); // 슬롯 아이템 클릭 함수 호출
+		return;
 	}
 
+	auto GridSlot = GridSlots[ItemDropIndex];
+	if (!GridSlot->GetInventoryItem().IsValid())
+	{
+		// TODO: Put item down at this index.
+		// 아이템을 내려놓을 시 일어나는 이벤트.
+	}
 }
 
 void UInv_InventoryGrid::OnGridSlotHovered(int32 GridIndex, const FPointerEvent& MouseEvent)
