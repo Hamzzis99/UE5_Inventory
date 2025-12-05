@@ -87,12 +87,26 @@ FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Po
 
 	Result.bHasSpace = true; // 공간이 있다고 설정
 
-	// any items in the way?
-	// 아이템이 있는지? (장애물 판단)
+	// If more than one of the indices is occupied with the same item, we nneed to see if they all have the same upper left index.
+	// 여러 인덱스가 동일한 항목으로 점유된 경우, 모두 동일한 왼쪽 위 인덱스를 가지고 있는지 확인해야 합니다.
+	TSet<int32> OccupiedUpperLeftIndices; 
+	UInv_InventoryStatics::ForEach2D(GridSlots, UInv_WidgetUtils::GetIndexFromPosition(Position, Columns), Dimensions, Columns, [&](const UInv_GridSlot* GridSlot)
+	{
+		if (GridSlot->GetInventoryItem().IsValid())
+		{
+			//서로 다른 항목이 몇 개 있는지 알고 싶음.
+			OccupiedUpperLeftIndices.Add(GridSlot->GetUpperLeftIndex());
+			Result.bHasSpace = false; // 공간이 없다고 설정
+		}
+	});
 	
 	// if so, is there only one item in the way?
 	// 그렇다면, 장애물이 하나뿐인가? (바꿀 수 있을까?)
-	
+	{
+		const int32 Index = *OccupiedUpperLeftIndices.CreateIterator();
+		Result.ValidItem = GridSlots[Index]->GetInventoryItem().Get(); // 격자 슬롯에 배치
+		Result.UpperLeftIndex = GridSlots[Index]->GetUpperLeftIndex(); // 왼쪽 위 인덱스 설정
+	}
 	return Result;
 }
 

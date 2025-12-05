@@ -83,9 +83,11 @@ struct FInv_SpaceQueryResult
 {
 	GENERATED_BODY()
 
+	// 결국 교체가 가능한지에 대해서 작성한 변수들.
+
 	// True if the space queried has no items in it
 	// 해당 공간에 항목이 없으면 true라고 설정
-	bool bHasPace{ false }; // 공간이 있는지
+	bool bHasSpace{ false }; // 공간이 있는지 확인
 
 	// Valid if there's a single item we can swap with
 	// 교환할 수 있는 항목인지?
