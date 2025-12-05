@@ -85,6 +85,8 @@ FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Po
 	// 그리드 경계 내에 있는지?
 	if (!IsInGridBounds(UInv_WidgetUtils::GetIndexFromPosition(Position, Columns), Dimensions)) return Result; // 그리드 경계 내에 없으면 빈 결과 반환
 
+	Result.bHasSpace = true; // 공간이 있다고 설정
+
 	// any items in the way?
 	// 아이템이 있는지? (장애물 판단)
 	
