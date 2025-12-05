@@ -16,6 +16,7 @@ class UInv_GridSlot;
 class UInv_InventoryComponent;
 struct FGameplayTag;
 class UInv_HoverItem;
+enum class EInv_GridSlotState : uint8;
 
 /**
  *
@@ -94,6 +95,7 @@ private:
 	bool CursorExitedCanvas(const FVector2D& BoundaryPos, const FVector2D& BoundarySize, const FVector2D& Location); // Ä¿¼­°¡ Äµ¹ö½º¸¦ ¹þ¾î³µ´ÂÁö È®ÀÎ
 	void HighlightSlots(const int32 Index, const FIntPoint& Dimensions); // ½½·Ô º¸ÀÌ±â
 	void UnHighlightSlots(const int32 Index, const FIntPoint& Dimensions); // ½½·Ô ¼û±â±â
+	void ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState);
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);

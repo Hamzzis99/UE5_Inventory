@@ -89,9 +89,12 @@ void UInv_InventoryGrid::OnTileParametersUpdated(const FInv_TileParameters& Para
 	}
 	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions); // 마지막 강조 표시된 슬롯 강조 해제
 
-	if (CurrentQueryResult.ValidItem.IsValid())
+	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex)) // 검색결과에 유효할 경우
 	{
-		// TODO: There's a single item in this space. We can sap or add stacks.
+		const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(CurrentQueryResult.ValidItem.Get(), FragmentTags::GridFragment);
+		if (!GridFragment) return;
+
+		ChangeHoverType(CurrentQueryResult.UpperLeftIndex, GridFragment->GetGridSize(), EInv_GridSlotState::GrayedOut); // 호버 타입 변경
 	}
 }
 
@@ -173,6 +176,31 @@ void UInv_InventoryGrid::UnHighlightSlots(const int32 Index, const FIntPoint& Di
 				GridSlot->SetOccupiedTexture(); // 점유 텍스처 설정
 			}
 		});
+}
+
+void UInv_InventoryGrid::ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState) // 호버 타입 변경
+{
+	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions);
+	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [State = GridSlotState](UInv_GridSlot* GridSlot)
+		{
+			switch (State)
+			{
+			case EInv_GridSlotState::Occupied:
+				GridSlot->SetOccupiedTexture();
+				break;
+			case EInv_GridSlotState::Unoccupied:
+				GridSlot->SetUnoccupiedTexture();
+				break;
+			case EInv_GridSlotState::GrayedOut:
+				GridSlot->SetGrayedOutTexture();
+				break;
+			case EInv_GridSlotState::Selected:
+				GridSlot->SetSelectedTexture();
+				break;
+			}
+		});
+	LastHighlightedIndex = Index;
+	LastHighlightedDimensions = Dimensions;
 }
 
 // 수평 및 수직 너비와 관련하여 그것이 있는지 보는 것 (격자가 어느정도 넘어가야 할지 계산해야 하는 것을 만들자.)
