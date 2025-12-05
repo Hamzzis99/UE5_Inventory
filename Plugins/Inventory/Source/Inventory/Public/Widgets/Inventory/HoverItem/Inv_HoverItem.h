@@ -20,7 +20,7 @@ class INVENTORY_API UInv_HoverItem : public UUserWidget
 	GENERATED_BODY()
 public:
 	void SetImageBrush(const FSlateBrush& Brush) const; //슬레이트 브러시 설정 함수
-	void UpdateStackCount(const int32 Count) const;
+	void UpdateStackCount(const int32 Count);
 
 	//참조를 하기 위한 그리드에서 기존 얻던 것들. (오로지 이동하기 위해)
 	FGameplayTag GetItemType() const;
