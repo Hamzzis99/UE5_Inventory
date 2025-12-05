@@ -83,7 +83,8 @@ FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Po
 
 	// in the grid bounds?
 	// 그리드 경계 내에 있는지?
-	
+	if (!IsInGridBounds(UInv_WidgetUtils::GetIndexFromPosition(Position, Columns), Dimensions)) return Result; // 그리드 경계 내에 없으면 빈 결과 반환
+
 	// any items in the way?
 	// 아이템이 있는지? (장애물 판단)
 	
@@ -99,7 +100,7 @@ FIntPoint UInv_InventoryGrid::CalculateStartingCoordinate(const FIntPoint& Coord
 	const int32 HasEvenWidth = Dimensions.X % 2 == 0 ? 1 : 0; // 짝수 너비인지 확인
 	const int32 HasEvenHeight = Dimensions.Y % 2 == 0 ? 1 : 0; // 짝수 높이인지 확인
 
-	// 이동할 때 사각 좌표 계산을 해보자. -> 당연히 반칸씩 만크 ㅁ움직여야겠지?
+	// 이동할 때 사각 좌표 계산을 해보자. -> 당연히 반칸씩 만큼 움직여야겠지?
 	FIntPoint StartingCoord;
 	switch (Quadrant)
 	{
