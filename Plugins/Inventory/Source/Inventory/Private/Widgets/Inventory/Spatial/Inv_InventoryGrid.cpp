@@ -69,7 +69,8 @@ void UInv_InventoryGrid::OnTileParametersUpdate(const FInv_TileParameters& Param
 	// Calculate the starting coordinate for highlighting
 	// 하이라이팅을 시작하는 좌표를 검색한다
 	const FIntPoint StartingCoordinate = CalculateStartingCoordinate(Parameters.TileCoordinats, Dimensions, Parameters.TileQuadrant);
-	
+	ItemDropIndex = UInv_WidgetUtils::GetIndexFromPosition(StartingCoordinate, Columns); // 아이템 드롭 인덱스 계산
+
 	// check hover position
 	// 호버 위치 확인
 		// in the grid bounds?

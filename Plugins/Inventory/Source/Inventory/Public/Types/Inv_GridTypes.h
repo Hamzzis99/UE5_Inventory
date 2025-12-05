@@ -77,3 +77,11 @@ inline bool operator==(const FInv_TileParameters& A, const FInv_TileParameters& 
 		A.TileIndex == B.TileIndex && 
 			A.TileQuadrant == B.TileQuadrant; // 모두 동일해야 참.
 }
+
+USTRUCT()
+struct FInv_SpaceQueryResult 
+{
+	GENERATED_BODY()
+
+	bool bHasPace{ false }; // 공간이 있는지
+};
