@@ -749,6 +749,13 @@ void UInv_InventoryGrid::ConstructGrid()
 // 그리드 클릭되었을 때 작동하게 만드려는 델리게이트 대비 함수.
 void UInv_InventoryGrid::OnGridSlotClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
 {
+	if (IsValid(HoverItem)) return; // 호버 아이템이 유효하다면 리턴
+	if (!GridSlots.IsValidIndex(ItemDropIndex)) return; // 아이템 드롭 인덱스가 유효하지 않다면 리턴
+
+	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex)) // 이미 있는 아이템의 슬롯도 참조를 해주는 함수.
+	{
+		OnSlottedItemClicked(CurrentQueryResult.UpperLeftIndex, MouseEvent); // 슬롯 아이템 클릭 함수 호출
+	}
 
 }
 
