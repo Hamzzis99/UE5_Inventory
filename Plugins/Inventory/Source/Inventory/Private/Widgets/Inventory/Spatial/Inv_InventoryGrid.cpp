@@ -70,15 +70,27 @@ void UInv_InventoryGrid::OnTileParametersUpdate(const FInv_TileParameters& Param
 	// 하이라이팅을 시작하는 좌표를 검색한다
 	const FIntPoint StartingCoordinate = CalculateStartingCoordinate(Parameters.TileCoordinats, Dimensions, Parameters.TileQuadrant);
 	ItemDropIndex = UInv_WidgetUtils::GetIndexFromPosition(StartingCoordinate, Columns); // 아이템 드롭 인덱스 계산
+	
+	CurrentQueryResult = CheckHoverPosition(StartingCoordinate, Dimensions); // 호버 위치 확인
+}
 
+FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const
+{
+	
 	// check hover position
 	// 호버 위치 확인
-		// in the grid bounds?
-		// 그리드 경계 내에 있는지?
-		// any items in the way?
-		// 아이템이 있는지? (장애물 판단)
-		// if so, is there only one item in the way?
-		// 그렇다면, 장애물이 하나뿐인가? (바꿀 수 있을까?)
+	FInv_SpaceQueryResult Result;
+
+	// in the grid bounds?
+	// 그리드 경계 내에 있는지?
+	
+	// any items in the way?
+	// 아이템이 있는지? (장애물 판단)
+	
+	// if so, is there only one item in the way?
+	// 그렇다면, 장애물이 하나뿐인가? (바꿀 수 있을까?)
+	
+	return Result;
 }
 
 // 수평 및 수직 너비와 관련하여 그것이 있는지 보는 것 (격자가 어느정도 넘어가야 할지 계산해야 하는 것을 만들자.)

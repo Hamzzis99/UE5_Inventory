@@ -79,9 +79,19 @@ inline bool operator==(const FInv_TileParameters& A, const FInv_TileParameters& 
 }
 
 USTRUCT()
-struct FInv_SpaceQueryResult 
+struct FInv_SpaceQueryResult
 {
 	GENERATED_BODY()
 
+	// True if the space queried has no items in it
+	// 해당 공간에 항목이 없으면 true라고 설정
 	bool bHasPace{ false }; // 공간이 있는지
+
+	// Valid if there's a single item we can swap with
+	// 교환할 수 있는 항목인지?
+	TWeakObjectPtr<UInv_InventoryItem> ValidItem = nullptr; // 유효한 아이템 포인터
+
+	// Upper left index of the valid item, if there is one.
+	// 유효한 항목이 있는 경우 왼쪽 위 인덱스.
+	int32 UpperLeftIndex{ INDEX_NONE }; // 왼쪽 위 인덱스
 };

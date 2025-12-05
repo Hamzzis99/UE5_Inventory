@@ -90,7 +90,7 @@ private:
 	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 타일 사분면 계산
 	void OnTileParametersUpdate(const FInv_TileParameters& Parameters); // 타일 매개변수 업데이트시 호출되는 함수
 	FIntPoint CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const; // 문턱을 얼마나 넘을 수 있는지.
-
+	FInv_SpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const; // 호버 위치 확인
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
@@ -141,5 +141,6 @@ private:
 	// Index where an item would be placed if we click on the grid at a valid location
 	// 아이템이 유효한 위치에 그리드를 클릭하면 배치될 인덱스
 	int32 ItemDropIndex{ INDEX_NONE };
+	FInv_SpaceQueryResult CurrentQueryResult; // 현재 쿼리 결과
 };
 
