@@ -14,6 +14,18 @@ FVector2D UInv_WidgetUtils::GetWidgetPosition(UWidget* Widget) // 위젯의 뷰포트 
 	return ViewportPosition;
 }
 
+FVector2D UInv_WidgetUtils::GetWidgetSize(UWidget* Widget) // 위젯의 크기를 알려주는 함수
+{
+	const FGeometry Geometry = Widget->GetCachedGeometry();
+	return Geometry.GetLocalSize();
+}
+
+bool UInv_WidgetUtils::IsWithinBounds(const FVector2D& BoundaryPos, const FVector2D& WidgetSize, const FVector2D& MousePos) // 주어진 경계 내에 마우스 위치가 있는지 확인하는 함수
+{
+	return MousePos.X >= BoundaryPos.X && MousePos.X <= (BoundaryPos.X + WidgetSize.X) &&
+		MousePos.Y >= BoundaryPos.Y && MousePos.Y <= (BoundaryPos.Y + WidgetSize.Y);
+}
+
 int32 UInv_WidgetUtils::GetIndexFromPosition(const FIntPoint& Position, const int32 Columns)
 {
 	return Position.X + Position.Y * Columns; // X + Y * Columns

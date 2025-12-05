@@ -38,6 +38,12 @@ void UInv_InventoryGrid::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	const FVector2D CanvasPosition = UInv_WidgetUtils::GetWidgetPosition(CanvasPanel); // 캔버스 패널의 위치 가져오기
 	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer()); // 뷰포트에서 마우스 위치 가져오기
 
+	//캔버스 패널 바깥으로 벗어났는지 여부 확인
+	if (CursorExitedCanvas(CanvasPosition, UInv_WidgetUtils::GetWidgetSize(CanvasPanel), MousePosition))
+	{
+		return; // 캔버스 패널을 벗어났다면 반환
+	}
+
 	UpdateTileParameters(CanvasPosition, MousePosition); // 타일 매개변수 업데이트
 }
 
@@ -108,6 +114,18 @@ FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Po
 		Result.UpperLeftIndex = GridSlots[Index]->GetUpperLeftIndex(); // 왼쪽 위 인덱스 설정
 	}
 	return Result;
+}
+
+bool UInv_InventoryGrid::CursorExitedCanvas(const FVector2D& BoundaryPos, const FVector2D& BoundarySize, const FVector2D& Location) // 커서가 캔버스를 벗어났는지 확인
+{
+	bLastMouseWithinCanvas = bMouseWithinCanvas;
+	bMouseWithinCanvas = UInv_WidgetUtils::IsWithinBounds(BoundaryPos, BoundarySize, Location);
+	if (!bMouseWithinCanvas && bLastMouseWithinCanvas)
+	{
+		// TODO : UnhighlightSlots() // 슬롯 해제 함수 만들기
+		return true;
+	}
+	return false;
 }
 
 // 수평 및 수직 너비와 관련하여 그것이 있는지 보는 것 (격자가 어느정도 넘어가야 할지 계산해야 하는 것을 만들자.)

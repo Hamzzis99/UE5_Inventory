@@ -91,6 +91,7 @@ private:
 	void OnTileParametersUpdate(const FInv_TileParameters& Parameters); // 타일 매개변수 업데이트시 호출되는 함수
 	FIntPoint CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const; // 문턱을 얼마나 넘을 수 있는지.
 	FInv_SpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions) const; // 호버 위치 확인
+	bool CursorExitedCanvas(const FVector2D& BoundaryPos, const FVector2D& BoundarySize, const FVector2D& Location); // 커서가 캔버스를 벗어났는지 확인
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
@@ -142,5 +143,7 @@ private:
 	// 아이템이 유효한 위치에 그리드를 클릭하면 배치될 인덱스
 	int32 ItemDropIndex{ INDEX_NONE };
 	FInv_SpaceQueryResult CurrentQueryResult; // 현재 쿼리 결과
+	bool bMouseWithinCanvas;
+	bool bLastMouseWithinCanvas;
 };
 
