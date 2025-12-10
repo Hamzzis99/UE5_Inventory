@@ -35,7 +35,7 @@ void UInv_InventoryGrid::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
 	//캔버스가 시작하는 왼쪽 모서리 점을 알아보자.
-	const FVector2D CanvasPosition = UInv_WidgetUtils::GetWidgetPosition(CanvasPanel); // 캔버스 패널의 위치 가져오기
+	const FVector2D CanvasPosition = UInv_WidgetUtils::GetWidgetPosition(CanvasPanel); // 캔2버스 패널의 위치 가져오기
 	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer()); // 뷰포트에서 마우스 위치 가져오기
 
 	//캔버스 패널 바깥으로 벗어났는지 여부 확인 (매 틱마다 확인해줌)
@@ -48,7 +48,7 @@ void UInv_InventoryGrid::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 }
 
 // 마우스 위치에 따라 타일 매개변수를 업데이트하는 함수
-void UInv_InventoryGrid::UpdateTileParameters(const FVector2D CanvasPosition, const FVector2D MousePosition)
+void UInv_InventoryGrid::UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition)
 {
 	//마우스가 캔버스 패널에 없으면 아무것도 전달하지 않는다.
 	//if mouse not in canvas panel, return.
@@ -127,8 +127,8 @@ FInv_SpaceQueryResult UInv_InventoryGrid::CheckHoverPosition(const FIntPoint& Po
 	// 그렇다면, 장애물이 하나뿐인가? (바꿀 수 있을까?)
 	if (OccupiedUpperLeftIndices.Num() == 1) // single item at position - it's valid for swapping/combining
 	{
-		const int32 Index = *OccupiedUpperLeftIndices.CreateIterator();
-		Result.ValidItem = GridSlots[Index]->GetInventoryItem().Get(); // 격자 슬롯에 배치
+		const int32 Index = *OccupiedUpperLeftIndices.CreateConstIterator();
+		Result.ValidItem = GridSlots[Index]->GetInventoryItem(); // 격자 슬롯에 배치
 		Result.UpperLeftIndex = GridSlots[Index]->GetUpperLeftIndex(); // 왼쪽 위 인덱스 설정
 	}
 	return Result;
@@ -240,7 +240,7 @@ FIntPoint UInv_InventoryGrid::CalculateStartingCoordinate(const FIntPoint& Coord
 	return StartingCoord; // 시작 좌표 반환
 }
 
-FIntPoint UInv_InventoryGrid::CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const
+FIntPoint UInv_InventoryGrid::CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const
 {
 	// 타일 사분면, 타일 인덱스와 좌표를 계산하기
 	// Calculate the tile quadrant, tile index, and coordinates
@@ -252,7 +252,7 @@ FIntPoint UInv_InventoryGrid::CalculateHoveredCoordinates(const FVector2D Canvas
 }
 
 // 타일 사분면 계산
-EInv_TileQuadrant UInv_InventoryGrid::CalculateTileQuadrant(const FVector2D CanvasPosition, const FVector2D MousePosition) const
+EInv_TileQuadrant UInv_InventoryGrid::CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const
 {
 	//현재 타일 내에서의 상대 위치를 계산하는 곳.
 	//Calculate the relative position within the current tile.
@@ -658,7 +658,7 @@ void UInv_InventoryGrid::AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, c
 	// Add the slotted item to the canvas panel.
 	// 슬롯 아이템을 캔버스 패널에 그려주는 곳. 또한 그리드 슬롯을 관리해주는 곳.
 	UInv_SlottedItem* SlottedItem = CreateSlottedItem(Item, bStackable, StackAmount, GridFragment, ImageFragment, Index);
-	AddSlottedItemToCanvas(Index, GridFragment, SlottedItem);
+	AddSlottedItemToCanvas(Index, GridFragment, SlottedItem); // 캔버스에 슬로티드 아이템 추가하는 부분
 
 	// 삭제 소비 파괴 했을 때 이곳에.
 	// Store the new widget in a container.
@@ -749,42 +749,51 @@ void UInv_InventoryGrid::ConstructGrid()
 // 그리드 클릭되었을 때 작동하게 만드려는 델리게이트 대비 함수.
 void UInv_InventoryGrid::OnGridSlotClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
 {
-	if (IsValid(HoverItem)) return; // 호버 아이템이 유효하다면 리턴
+	if (!IsValid(HoverItem)) return; // 호버 아이템이 유효하다면 리턴
 	if (!GridSlots.IsValidIndex(ItemDropIndex)) return; // 아이템 드롭 인덱스가 유효하지 않다면 리턴
+
 
 	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex)) // 이미 있는 아이템의 슬롯도 참조를 해주는 함수.
 	{
-		OnSlottedItemClicked(CurrentQueryResult.UpperLeftIndex, MouseEvent); // 슬롯 아이템 클릭 함수 호출
+		OnSlottedItemClicked(CurrentQueryResult.UpperLeftIndex, MouseEvent); // 유효한 인덱스를 확인한 후 픽업 실행.
 		return;
 	}
 
+
+
 	auto GridSlot = GridSlots[ItemDropIndex];
-	if (!GridSlot->GetInventoryItem().IsValid())
+
+	if (!GridSlot->GetInventoryItem().IsValid()) // 그리드 슬롯에 아이템이 없다면
 	{
 		// TODO: Put item down at this index.
 		// 아이템을 내려놓을 시 일어나는 이벤트.
+		PutDownOnIndex(ItemDropIndex);
 	}
 }
 
-void UInv_InventoryGrid::PutDownOnIndex(const int32 Index)
+
+
+void UInv_InventoryGrid::PutDownOnIndex(const int32 Index) // 집은 아이템을 다시 내려놓을 때 사용되는 함수.
 {
-	AddItemAtIndex(HoverItem->GetInventoryItem(), Index, HoverItem->IsStackable(), HoverItem->GetStackCount());
-	UpdateGridSlots(HoverItem->GetInventoryItem(), Index, HoverItem->IsStackable(), HoverItem->GetStackCount());
+	AddItemAtIndex(HoverItem->GetInventoryItem(), Index, HoverItem->IsStackable(), HoverItem->GetStackCount()); // 인덱스에 아이템 추가
+	UpdateGridSlots(HoverItem->GetInventoryItem(), Index, HoverItem->IsStackable(), HoverItem->GetStackCount()); // 그리드 슬롯 업데이트
 	ClearHoverItem();
 }
 
-void UInv_InventoryGrid::ClearHoverItem()
+void UInv_InventoryGrid::ClearHoverItem() // 호버(잡는모션) 아이템 초기화
 {
 	if (!IsValid(HoverItem)) return;
 
-	HoverItem->SetInventoryItem(nullptr);
-	HoverItem->SetIsStackable(false);
-	HoverItem->SetPreviousGridIndex(INDEX_NONE);
-	HoverItem->UpdateStackCount(0);
-	HoverItem->SetImageBrush(FSlateNoResource());
+	HoverItem->SetInventoryItem(nullptr); // 호버 아이템의 인벤토리 아이템 초기화
+	HoverItem->SetIsStackable(false); // 호버 아이템의 스택 가능 여부 초기화
+	HoverItem->SetPreviousGridIndex(INDEX_NONE); // 이전 그리드 인덱스 초기화
+	HoverItem->UpdateStackCount(0); // 스택 수 초기화
+	HoverItem->SetImageBrush(FSlateNoResource()); // 이미지 브러시 초기화 FSlateNoResource <- 모든 것을 지운다고 하네
 
-	HoverItem->RemoveFromParent();
-	HoverItem = nullptr;
+	HoverItem->RemoveFromParent(); // 호버 아이템을 부모에서 제거
+	HoverItem = nullptr; // 호버 아이템 포인터 초기화
+
+	// TODO : Show Mouse Cursor (마우스 커서 보이게 하기)
 }
 
 void UInv_InventoryGrid::OnGridSlotHovered(int32 GridIndex, const FPointerEvent& MouseEvent)

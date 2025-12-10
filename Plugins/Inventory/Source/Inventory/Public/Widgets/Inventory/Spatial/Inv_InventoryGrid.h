@@ -86,9 +86,9 @@ private:
 	void AssignHoverItem(UInv_InventoryItem* InventoryItem); // 아이템 기반 호버 아이템 할당
 	void AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex); // 인덱스 기반 호버 아이템 할당
 	void RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, const int32 GridIndex); // 그리드에서 아이템 제거
-	void UpdateTileParameters(const FVector2D CanvasPosition, const FVector2D MousePosition); // 타일 매개변수 업데이트
-	FIntPoint CalculateHoveredCoordinates(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 호버된 좌표 계산
-	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D CanvasPosition, const FVector2D MousePosition) const; // 타일 사분면 계산
+	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition); // 타일 매개변수 업데이트
+	FIntPoint CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const; // 호버된 좌표 계산
+	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const; // 타일 사분면 계산
 	void OnTileParametersUpdated(const FInv_TileParameters& Parameters); // 타일 매개변수 업데이트시 호출되는 함수
 	FIntPoint CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const; // 문턱을 얼마나 넘을 수 있는지.
 	FInv_SpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions); // 호버 위치 확인
@@ -96,8 +96,8 @@ private:
 	void HighlightSlots(const int32 Index, const FIntPoint& Dimensions); // 슬롯 보이기
 	void UnHighlightSlots(const int32 Index, const FIntPoint& Dimensions); // 슬롯 숨기기
 	void ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState);
-	void PutDownOnIndex(const int32 Index);
-	void ClearHoverItem();
+	void PutDownOnIndex(const int32 Index); // 인덱스에 내려놓기
+	void ClearHoverItem(); // 호버 아이템 지우기
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);

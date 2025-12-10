@@ -30,7 +30,7 @@ public:
 	int32 GetPreviousGridIndex() const { return PreviousGridIndex; }
 	void SetPreviousGridIndex(int32 Index) { PreviousGridIndex = Index; }
 	FIntPoint GetGridDimensions() const { return GridDimensions; }
-	void SetGridDimensions(const FIntPoint Dimensions) { GridDimensions = Dimensions; }
+	void SetGridDimensions(const FIntPoint& Dimensions) { GridDimensions = Dimensions; }
 	UInv_InventoryItem* GetInventoryItem() const;
 	void SetInventoryItem(UInv_InventoryItem* Item);
 
