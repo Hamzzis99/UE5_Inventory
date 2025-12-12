@@ -3,6 +3,9 @@
 *.VC.db
 *.VC.opendb
 
+# Jetstream?
+.idea
+
 # Unreal Engine build artifacts
 Binaries/
 DerivedDataCache/
