@@ -8,7 +8,7 @@
 #include "Inv_ItemComponent.generated.h"
 
 
-//Blueprintable: ºí·çÇÁ¸°Æ® Å¬·¡½º·Î ¸¸µé ¼ö ÀÖ°Ô ÇÏ´Â °Í.
+//Blueprintable: ë¸”ë£¨í”„ë¦°íŠ¸ í´ë˜ìŠ¤ë¡œ ë§Œë“¤ ìˆ˜ ìˆê²Œ í•˜ëŠ” ê²ƒ.
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable )
 class INVENTORY_API UInv_ItemComponent : public UActorComponent
 {
@@ -18,14 +18,14 @@ public:
 	UInv_ItemComponent();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	FInv_ItemManifest GetItemManifest() const { return ItemManifest; } // ¾ÆÀÌÅÛ ¸Å´ÏÆä½ºÆ® ¹İÈ¯ ÇÔ¼ö
+	FInv_ItemManifest GetItemManifest() const { return ItemManifest; } // ì•„ì´í…œ ë§¤ë‹ˆí˜ìŠ¤íŠ¸ ë°˜í™˜ í•¨ìˆ˜
 	FString GetPickupMessage() const { return PickupMessage;  }
-	void PickedUp(); // ¾ÆÀÌÅÛÀÌ ÁİÇûÀ» ¶§ È£ÃâµÇ´Â ÇÔ¼ö
+	void PickedUp(); // ì•„ì´í…œì´ ì¤í˜”ì„ ë•Œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜
 
 protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
-	void OnPickedUp(); // ¾ÆÀÌÅÛÀÌ ÁİÇûÀ» ¶§ È£ÃâµÇ´Â º¸È£µÈ ÇÔ¼ö
+	void OnPickedUp(); // ì•„ì´í…œì´ ì¤í˜”ì„ ë•Œ í˜¸ì¶œë˜ëŠ” ë³´í˜¸ëœ í•¨ìˆ˜
 
 private:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Inventory")

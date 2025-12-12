@@ -10,7 +10,7 @@
 class UInv_InventoryItem;
 class UImage;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGridSlotEvent, int32, GridIndex, const FPointerEvent&, MouseEvent); // ¸¶¿ì½º Å¬¸¯ ÇßÀ» °æ¿ì °üÇÑ Á¤º¸ µ¨¸®°ÔÀÌÆ®
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGridSlotEvent, int32, GridIndex, const FPointerEvent&, MouseEvent); // ë§ˆìš°ìŠ¤ í´ë¦­ í–ˆì„ ê²½ìš° ê´€í•œ ì •ë³´ ë¸ë¦¬ê²Œì´íŠ¸
 
 UENUM(BlueprintType)
 enum class EInv_GridSlotState : uint8
@@ -19,47 +19,47 @@ enum class EInv_GridSlotState : uint8
 	Occupied,
 	Selected,
 	GrayedOut
-}; // 4°¡ÁöÀÇ ÀÌ¹ÌÁö
+}; // 4ê°€ì§€ì˜ ì´ë¯¸ì§€
 
 UCLASS()
 class INVENTORY_API UInv_GridSlot : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	virtual void NativeOnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; // ¸¶¿ì½º ¿£ÅÍ ÀÌº¥Æ®
-	virtual void NativeOnMouseLeave(const FPointerEvent& MouseEvent) override; // ¸¶¿ì½º¸¦ ¹ş¾î³µÀ» ¶§ÀÇ ÀÌº¥Æ®
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; // ¸¶¿ì½º ¹öÆ° ´Ù¿î ÀÌº¥Æ®
+	virtual void NativeOnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; // ë§ˆìš°ìŠ¤ ì—”í„° ì´ë²¤íŠ¸
+	virtual void NativeOnMouseLeave(const FPointerEvent& MouseEvent) override; // ë§ˆìš°ìŠ¤ë¥¼ ë²—ì–´ë‚¬ì„ ë•Œì˜ ì´ë²¤íŠ¸
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; // ë§ˆìš°ìŠ¤ ë²„íŠ¼ ë‹¤ìš´ ì´ë²¤íŠ¸
 
-	// Getter Setter ºÎºĞµé.
-	void SetTileIndex(int32 Index) { TileIndex = Index; } // Å¸ÀÏ ÀÎµ¦½º ¼³Á¤
-	int32 GetTileIndex() const { return TileIndex; } //	Å¸ÀÏ ÀÎµ¦½º ¹İÈ¯
-	EInv_GridSlotState GetGridSlotState() const { return GridSlotState; } // ÇöÀç »óÅÂ ¹İÈ¯
-	TWeakObjectPtr<UInv_InventoryItem> GetInventoryItem() const { return InventoryItem; } // ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ¹İÈ¯
-	void SetInventoryItem(UInv_InventoryItem* Item); // ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ¼³Á¤
-	int32 GetStackCount() const { return StackCount; } // ½ºÅÃ Ä«¿îÆ® ¹İÈ¯
-	void SetStackCount(int32 Count) { StackCount = Count; } // ½ºÅÃ Ä«¿îÆ® ¼³Á¤
-	int32 GetIndex() const { return TileIndex; } // ÀÎµ¦½º ¹İÈ¯
-	void SetIndex(int32 Index) { TileIndex = Index; } // ÀÎµ¦½º ¼³Á¤
+	// Getter Setter ë¶€ë¶„ë“¤.
+	void SetTileIndex(int32 Index) { TileIndex = Index; } // íƒ€ì¼ ì¸ë±ìŠ¤ ì„¤ì •
+	int32 GetTileIndex() const { return TileIndex; } //	íƒ€ì¼ ì¸ë±ìŠ¤ ë°˜í™˜
+	EInv_GridSlotState GetGridSlotState() const { return GridSlotState; } // í˜„ì¬ ìƒíƒœ ë°˜í™˜
+	TWeakObjectPtr<UInv_InventoryItem> GetInventoryItem() const { return InventoryItem; } // ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ë°˜í™˜
+	void SetInventoryItem(UInv_InventoryItem* Item); // ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ì„¤ì •
+	int32 GetStackCount() const { return StackCount; } // ìŠ¤íƒ ì¹´ìš´íŠ¸ ë°˜í™˜
+	void SetStackCount(int32 Count) { StackCount = Count; } // ìŠ¤íƒ ì¹´ìš´íŠ¸ ì„¤ì •
+	int32 GetIndex() const { return TileIndex; } // ì¸ë±ìŠ¤ ë°˜í™˜
+	void SetIndex(int32 Index) { TileIndex = Index; } // ì¸ë±ìŠ¤ ì„¤ì •
 
-	//¾ÆÀÌÅÛ ¸ÔÀ»¼ö·Ï ¿ŞÂÊºÎÅÍ Ã¤¿öÁÖ´Â ÇÔ¼öµé ¸¸µé±â
-	int32 GetUpperLeftIndex() const { return UpperLeftIndex; } // ¿ŞÂÊ À§ ÀÎµ¦½º ¹İÈ¯
-	void SetUpperLeftIndex(int32 Index) { UpperLeftIndex = Index; } // ¿ŞÂÊ À§ ÀÎµ¦½º ¼³Á¤
-	bool IsAvailable() const { return bAvailable; } // »ç¿ë °¡´É ¿©ºÎ ¹İÈ¯
-	void SetAvailable(bool bIsAvailable) { bAvailable = bIsAvailable; } // »ç¿ë °¡´É ¿©ºÎ ¼³Á¤
+	//ì•„ì´í…œ ë¨¹ì„ìˆ˜ë¡ ì™¼ìª½ë¶€í„° ì±„ì›Œì£¼ëŠ” í•¨ìˆ˜ë“¤ ë§Œë“¤ê¸°
+	int32 GetUpperLeftIndex() const { return UpperLeftIndex; } // ì™¼ìª½ ìœ„ ì¸ë±ìŠ¤ ë°˜í™˜
+	void SetUpperLeftIndex(int32 Index) { UpperLeftIndex = Index; } // ì™¼ìª½ ìœ„ ì¸ë±ìŠ¤ ì„¤ì •
+	bool IsAvailable() const { return bAvailable; } // ì‚¬ìš© ê°€ëŠ¥ ì—¬ë¶€ ë°˜í™˜
+	void SetAvailable(bool bIsAvailable) { bAvailable = bIsAvailable; } // ì‚¬ìš© ê°€ëŠ¥ ì—¬ë¶€ ì„¤ì •
 
 	void SetOccupiedTexture();
 	void SetUnoccupiedTexture();
 	void SetSelectedTexture();
 	void SetGrayedOutTexture();
 
-	FGridSlotEvent GridSlotClicked; // ±×¸®µå ½½·Ô Å¬¸¯ ÀÌº¥Æ® µ¨¸®°ÔÀÌÆ®
-	FGridSlotEvent GridSlotHovered; // ±×¸®µå ½½·Ô È£¹ö ÀÌº¥Æ® µ¨¸®°ÔÀÌÆ®
-	FGridSlotEvent GridSlotUnhovered; // ±×¸®µå ½½·Ô ¾ğÈ£¹ö ÀÌº¥Æ® µ¨¸®°ÔÀÌÆ®
+	FGridSlotEvent GridSlotClicked; // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ í´ë¦­ ì´ë²¤íŠ¸ ë¸ë¦¬ê²Œì´íŠ¸
+	FGridSlotEvent GridSlotHovered; // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ í˜¸ë²„ ì´ë²¤íŠ¸ ë¸ë¦¬ê²Œì´íŠ¸
+	FGridSlotEvent GridSlotUnhovered; // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ ì–¸í˜¸ë²„ ì´ë²¤íŠ¸ ë¸ë¦¬ê²Œì´íŠ¸
 
 private:
 	int32 TileIndex{ INDEX_NONE };
 	int32 StackCount{ 0 };
-	int32 UpperLeftIndex{ INDEX_NONE }; // Á¤»ç°¢ÇüÀÎÁö È®ÀÎÇØÁÖ´Â °ÍÀÎ°¡?
+	int32 UpperLeftIndex{ INDEX_NONE }; // ì •ì‚¬ê°í˜•ì¸ì§€ í™•ì¸í•´ì£¼ëŠ” ê²ƒì¸ê°€?
 	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;
 	bool bAvailable{ true };
 

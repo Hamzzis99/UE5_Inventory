@@ -1,6 +1,6 @@
 // Gihyeon's Inventory Project
 
-//ÀÎº¥Åä¸® º£ÀÌ½º ÀÚ½Ä Å¬·¡½º
+//ì¸ë²¤í† ë¦¬ ë² ì´ìŠ¤ ìì‹ í´ë˜ìŠ¤
 
 #pragma once
 
@@ -14,12 +14,12 @@ class UInv_ItemComponent;
 class UInv_InventoryItem;
 class UInv_InventoryBase;
 
-//µ¨¸®°ÔÀÌÆ®
+//ë¸ë¦¬ê²Œì´íŠ¸
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChange, UInv_InventoryItem*, Item);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FNoRoomInInventory);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChange, const FInv_SlotAvailabilityResult&, Result);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable ) // Blueprintable : ºí·çÇÁ¸°Æ®¿¡¼­ »ó¼Ó
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable ) // Blueprintable : ë¸”ë£¨í”„ë¦°íŠ¸ì—ì„œ ìƒì†
 class INVENTORY_API UInv_InventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -32,15 +32,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void TryAddItem(UInv_ItemComponent* ItemComponent);
 
-	//¼­¹ö ºÎºĞ RPC·Î ¸¸µé °Í
-	UFUNCTION(Server, Reliable) // ½Å·ÚÇÏ´Â °Í? ¼­¹ö¿¡ Àü´ŞÇÏ´Â °Í?
+	//ì„œë²„ ë¶€ë¶„ RPCë¡œ ë§Œë“¤ ê²ƒ
+	UFUNCTION(Server, Reliable) // ì‹ ë¢°í•˜ëŠ” ê²ƒ? ì„œë²„ì— ì „ë‹¬í•˜ëŠ” ê²ƒ?
 	void Server_AddNewItem(UInv_ItemComponent* ItemComponent, int32 StackCount);
 
-	UFUNCTION(Server, Reliable) // ½Å·ÚÇÏ´Â °Í? ¼­¹ö¿¡ Àü´ŞÇÏ´Â °Í?
+	UFUNCTION(Server, Reliable) // ì‹ ë¢°í•˜ëŠ” ê²ƒ? ì„œë²„ì— ì „ë‹¬í•˜ëŠ” ê²ƒ?
 	void Server_AddStacksToItem(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder);
 
-	void ToggleInventoryMenu(); //ÀÎº¥Åä¸® ¸Ş´º Åä±Û ÇÔ¼ö
-	void AddRepSubObj(UObject* SubObj); //º¹Á¦ ÇÏÀ§ °´Ã¼ Ãß°¡ ÇÔ¼ö
+	void ToggleInventoryMenu(); //ì¸ë²¤í† ë¦¬ ë©”ë‰´ í† ê¸€ í•¨ìˆ˜
+	void AddRepSubObj(UObject* SubObj); //ë³µì œ í•˜ìœ„ ê°ì²´ ì¶”ê°€ í•¨ìˆ˜
 
 
 	FInventoryItemChange OnItemAdded;
@@ -58,15 +58,15 @@ private:
 	void ConstructInventory();
 
 	UPROPERTY(Replicated)
-	FInv_InventoryFastArray InventoryList; // ÀÎº¥Åä¸® 
+	FInv_InventoryFastArray InventoryList; // ì¸ë²¤í† ë¦¬ 
 
-	UPROPERTY() // ÀÌ°Å´Â ¼ÒÀ¯±ÇÀ» È®º¸ÇÏ´Â °Í. ¼ÒÀ¯±ÇÀ» ÀÒÁö ¾Ê°Ô ÇØÁÖ´Â °Í.
-	TObjectPtr<UInv_InventoryBase> InventoryMenu; //ÀÎº¥Åä¸® ¸Ş´º À§Á¬ ÀÎ½ºÅÏ½º
+	UPROPERTY() // ì´ê±°ëŠ” ì†Œìœ ê¶Œì„ í™•ë³´í•˜ëŠ” ê²ƒ. ì†Œìœ ê¶Œì„ ìƒì§€ ì•Šê²Œ í•´ì£¼ëŠ” ê²ƒ.
+	TObjectPtr<UInv_InventoryBase> InventoryMenu; //ì¸ë²¤í† ë¦¬ ë©”ë‰´ ìœ„ì ¯ ì¸ìŠ¤í„´ìŠ¤
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_InventoryBase> InventoryMenuClass;
 
-	bool bInventoryMenuOpen; //ÀÎº¥Åä¸® ¸Ş´º ¿­¸² ¿©ºÎ
+	bool bInventoryMenuOpen; //ì¸ë²¤í† ë¦¬ ë©”ë‰´ ì—´ë¦¼ ì—¬ë¶€
 	void OpenInventoryMenu();
 	void CloseInventoryMenu();
 };

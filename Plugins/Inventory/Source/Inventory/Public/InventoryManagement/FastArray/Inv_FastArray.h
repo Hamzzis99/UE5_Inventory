@@ -1,5 +1,5 @@
 #pragma once
-// Fast Array <- ÀÌ°Å´Â ºü¸¥ Á÷·ÄÈ­ ¹è¿­·Î ³×Æ®¿öÅ© µ¿±âÈ­¿¡ »ç¿ëÇÑ´Ù°í ÇÏ³×¿ä?
+// Fast Array <- ì´ê±°ëŠ” ë¹ ë¥¸ ì§ë ¬í™” ë°°ì—´ë¡œ ë„¤íŠ¸ì›Œí¬ ë™ê¸°í™”ì— ì‚¬ìš©í•œë‹¤ê³  í•˜ë„¤ìš”?
 
 #include "CoreMinimal.h"
 #include "Net/Serialization/FastArraySerializer.h"
@@ -14,7 +14,7 @@ struct FGameplayTag;
 /* A Single entry in an Inventory*/
 
 USTRUCT(BlueprintType)
-//±¸Á¶Ã¼´Â F¶ó´Â °ÍÀ¸·Î ÇÏ´Â±¸³ª?
+//êµ¬ì¡°ì²´ëŠ” Fë¼ëŠ” ê²ƒìœ¼ë¡œ í•˜ëŠ”êµ¬ë‚˜?
 struct FInv_InventoryEntry : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
@@ -22,18 +22,18 @@ struct FInv_InventoryEntry : public FFastArraySerializerItem
 	FInv_InventoryEntry() {}
 
 private:
-	//Àç°í ±¸¼º¿ä¼Ò´Â friend·Î ¼±¾ğµÈ Å¬·¡½º¿¡¼­¸¸ Á¢±Ù °¡´É 
-	//ÀÌ°Å Á» °øºÎ ÇØ¾ß°Ú´Âµ¥? friend ´Ù ±î¸Ô¾ú¾î
-	//¾Æ´Ï ´çÃÊ¿¡ ±¸Á¶Ã¼ÀÎµ¥ ¿Ö ±»ÀÌ private ¼½¼ÇÀ» ¸¸µé¾î¼­ friend¸¦ ¼±¾ğÇÏÁö? ÁøÂ¥ ¸ğ¸£°Ú³×
+	//ì¬ê³  êµ¬ì„±ìš”ì†ŒëŠ” friendë¡œ ì„ ì–¸ëœ í´ë˜ìŠ¤ì—ì„œë§Œ ì ‘ê·¼ ê°€ëŠ¥ 
+	//ì´ê±° ì¢€ ê³µë¶€ í•´ì•¼ê² ëŠ”ë°? friend ë‹¤ ê¹Œë¨¹ì—ˆì–´
+	//ì•„ë‹ˆ ë‹¹ì´ˆì— êµ¬ì¡°ì²´ì¸ë° ì™œ êµ³ì´ private ì„¹ì…˜ì„ ë§Œë“¤ì–´ì„œ friendë¥¼ ì„ ì–¸í•˜ì§€? ì§„ì§œ ëª¨ë¥´ê² ë„¤
 	friend struct FInv_InventoryFastArray;
 	friend UInv_InventoryComponent;
 
 	UPROPERTY()
-	TObjectPtr<UInv_InventoryItem> Item = nullptr; // ¾ÆÀÌÅÛÀº ÃÊ±âÈ­ ÇØ¾ßÁö ´ç¿¬È÷
+	TObjectPtr<UInv_InventoryItem> Item = nullptr; // ì•„ì´í…œì€ ì´ˆê¸°í™” í•´ì•¼ì§€ ë‹¹ì—°íˆ
 };
 
 /* List of inventory Items 
-ÀÎº¥Åä¸® ¾ÆÀÌÅÛ µî·ÏÇÏ´Â °Å?*/
+ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ë“±ë¡í•˜ëŠ” ê±°?*/
 USTRUCT(BlueprintType)
 struct FInv_InventoryFastArray : public FFastArraySerializer
 {
@@ -42,40 +42,40 @@ struct FInv_InventoryFastArray : public FFastArraySerializer
 	FInv_InventoryFastArray() : OwnerComponent(nullptr) {}
 	FInv_InventoryFastArray(UActorComponent* InOwnerComponent) : OwnerComponent(InOwnerComponent) {}
 
-	//À¯Æ¿¸®Æ¼ ÇÔ¼ö ±¸Çö
-	TArray<UInv_InventoryItem*> GetAllItems() const; // ¾ÆÀÌÅÛ Á¤º¸ ¾ò¾î¿À±â
+	//ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ êµ¬í˜„
+	TArray<UInv_InventoryItem*> GetAllItems() const; // ì•„ì´í…œ ì •ë³´ ì–»ì–´ì˜¤ê¸°
 
 	// FFastArraySerializer contract
-	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize); // Á¦°Å Àü Ã³¸®
+	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize); // ì œê±° ì „ ì²˜ë¦¬
 	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
 	// End of FFastArraySerializer contract
 	
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 	{
-		// ¿Í °³¾î·Á¿ö.
-		// ÀÎº¥Åä¸® ºü¸¥ ¹è¿­ÀÇ ½ÇÁ¦ ÀÎ½ºÅÏ½º¸¦ Àü´ŞÇØ¾ß ÇÏ±â ¶§¹®¿¡ ¿ªÂüÁ¶¸¦ »ç¿ëÇÑ °Í.
+		// ì™€ ê°œì–´ë ¤ì›Œ.
+		// ì¸ë²¤í† ë¦¬ ë¹ ë¥¸ ë°°ì—´ì˜ ì‹¤ì œ ì¸ìŠ¤í„´ìŠ¤ë¥¼ ì „ë‹¬í•´ì•¼ í•˜ê¸° ë•Œë¬¸ì— ì—­ì°¸ì¡°ë¥¼ ì‚¬ìš©í•œ ê²ƒ.
 		return FastArrayDeltaSerialize<FInv_InventoryEntry, FInv_InventoryFastArray>(Entries, DeltaParams, *this);
 	}
 
-	//»õÇ×¸ñ Ãß°¡ °ü·Ã ±¸Á¶Ã¼µé
-	UInv_InventoryItem* AddEntry(UInv_ItemComponent* ItemComponent); // ÀÎº¥Åä¸® Ç×¸ñ Ãß°¡
+	//ìƒˆí•­ëª© ì¶”ê°€ ê´€ë ¨ êµ¬ì¡°ì²´ë“¤
+	UInv_InventoryItem* AddEntry(UInv_ItemComponent* ItemComponent); // ì¸ë²¤í† ë¦¬ í•­ëª© ì¶”ê°€
 	UInv_InventoryItem* AddEntry(UInv_InventoryItem* Item);
-	void RemoveEntry(UInv_InventoryItem* Item); // ÀÎº¥Åä¸® Ç×¸ñ Á¦°Å
+	void RemoveEntry(UInv_InventoryItem* Item); // ì¸ë²¤í† ë¦¬ í•­ëª© ì œê±°
 	UInv_InventoryItem* FindFirstItemByType(const FGameplayTag& ItemType); // 
 
 private:
-	//¾Æ´Ï ±¸Á¶Ã¼ÀÎµ¥ ¿Ö friend¸¦ ¼±¾ğÇÏ³Ä°í!!! ¾ß!!
+	//ì•„ë‹ˆ êµ¬ì¡°ì²´ì¸ë° ì™œ friendë¥¼ ì„ ì–¸í•˜ëƒê³ !!! ì•¼!!
 	friend UInv_InventoryComponent;
 
 	// Replicated list of items 
 	UPROPERTY()
 	TArray<FInv_InventoryEntry> Entries;
-	UPROPERTY(NotReplicated) // ÀÌ°Å´Â º¹Á¦ ¾ÈµÇ´Â ¼Ó¼ºÀÌ¶ó´Â ¶æÀÎ°¡?
+	UPROPERTY(NotReplicated) // ì´ê±°ëŠ” ë³µì œ ì•ˆë˜ëŠ” ì†ì„±ì´ë¼ëŠ” ëœ»ì¸ê°€?
 	TObjectPtr<UActorComponent> OwnerComponent;
 };
 
 template<>
 struct TStructOpsTypeTraits<FInv_InventoryFastArray> : public TStructOpsTypeTraitsBase2<FInv_InventoryFastArray>
 {
-	enum { WithNetDeltaSerializer = true }; // ÀÌ ±¸Á¶Ã¼°¡ ³×Æ®¿öÅ© µ¨Å¸ Á÷·ÄÈ­¸¦ Áö¿øÇÔÀ» ³ªÅ¸³¿
+	enum { WithNetDeltaSerializer = true }; // ì´ êµ¬ì¡°ì²´ê°€ ë„¤íŠ¸ì›Œí¬ ë¸íƒ€ ì§ë ¬í™”ë¥¼ ì§€ì›í•¨ì„ ë‚˜íƒ€ëƒ„
 };

@@ -5,7 +5,7 @@
 class UInv_InventoryItem;
 
 UENUM(BlueprintType)
-enum class EInv_ItemCategory : uint8 // À§Á¬ ¸¸µé ¶§ Á¤È®ÇÑ ÀÌ¸§À» ÀÛ¼ºÇØ¾ßÇØ enumÀ¸·Î ¾Ë°ÚÁö. ±â¾ïÇØ. ´Ù¸¸ Build´Â »©°í ÄÄÆ÷³ÍÆ®·Î ÇÒ±î °í¹ÎÁß
+enum class EInv_ItemCategory : uint8 // ìœ„ì ¯ ë§Œë“¤ ë•Œ ì •í™•í•œ ì´ë¦„ì„ ì‘ì„±í•´ì•¼í•´ enumìœ¼ë¡œ ì•Œê² ì§€. ê¸°ì–µí•´. ë‹¤ë§Œ BuildëŠ” ë¹¼ê³  ì»´í¬ë„ŒíŠ¸ë¡œ í• ê¹Œ ê³ ë¯¼ì¤‘
 {
 	Equippable,
 	Consumable,
@@ -19,32 +19,32 @@ struct FInv_SlotAvailability
 {
 	GENERATED_BODY()
 
-	//ÃÊ±âÈ­ ºÎºĞÀÎµ¥ ¿Ö ±»ÀÌ µÎ °³¸¦ ¾²Áö?
+	//ì´ˆê¸°í™” ë¶€ë¶„ì¸ë° ì™œ êµ³ì´ ë‘ ê°œë¥¼ ì“°ì§€?
 	FInv_SlotAvailability() {}
 	FInv_SlotAvailability(int32 ItemIndex, int32 Room, bool bHasItem) : Index(ItemIndex), AmountToFill(Room), bItemAtIndex(bHasItem) {}
 
-	int32 Index{INDEX_NONE}; // ¾ÆÀÌÅÛÀ» ¾ó¸¶³ª Ã¤¿ïÁö
-	int32 AmountToFill{ 0 }; // ¾ó¸¶³ª Ã¤¿ì°í ÀÖÀ¸¸ç
-	bool bItemAtIndex{ false }; // ¾ÆÀÌÄÜ À§Á¬À» ¸¸µé¾î¾ß ÇÏ´ÂÁö
+	int32 Index{INDEX_NONE}; // ì•„ì´í…œì„ ì–¼ë§ˆë‚˜ ì±„ìš¸ì§€
+	int32 AmountToFill{ 0 }; // ì–¼ë§ˆë‚˜ ì±„ìš°ê³  ìˆìœ¼ë©°
+	bool bItemAtIndex{ false }; // ì•„ì´ì½˜ ìœ„ì ¯ì„ ë§Œë“¤ì–´ì•¼ í•˜ëŠ”ì§€
 };
 
 USTRUCT()
-//¾î¶² Ç×¸ñÀÎÁö °áÁ¤ÇØÁÖ°Ô ÇÏ´Â ºÎºĞµé.
+//ì–´ë–¤ í•­ëª©ì¸ì§€ ê²°ì •í•´ì£¼ê²Œ í•˜ëŠ” ë¶€ë¶„ë“¤.
 struct FInv_SlotAvailabilityResult
 {
 	GENERATED_BODY()
 
-	FInv_SlotAvailabilityResult() {} //¿¨ ¿Ö Àç±ÍÀûÀÎ ¹æ¹ıÀ» ¾²Áö?
+	FInv_SlotAvailabilityResult() {} //ì—¥ ì™œ ì¬ê·€ì ì¸ ë°©ë²•ì„ ì“°ì§€?
 
 	
-	TWeakObjectPtr<UInv_InventoryItem> Item; // ¾ÆÀÌÅÛÀÌ À¯È¿ÇÑÁö È®ÀÎÇÏ´Â ºÎºĞ.
-	int32 TotalRoomToFill{ 0 }; // Ã¤¿ï ¼ö ÀÖ´Â °ø°£ (0°³¸é ºÒ°¡´É)
+	TWeakObjectPtr<UInv_InventoryItem> Item; // ì•„ì´í…œì´ ìœ íš¨í•œì§€ í™•ì¸í•˜ëŠ” ë¶€ë¶„.
+	int32 TotalRoomToFill{ 0 }; // ì±„ìš¸ ìˆ˜ ìˆëŠ” ê³µê°„ (0ê°œë©´ ë¶ˆê°€ëŠ¥)
 	int32 Remainder{ 0 };
-	bool bStackable = {false }; // ½×À» ¼ö ÀÖ´ÂÁö
-	TArray<FInv_SlotAvailability> SlotAvailabilities; //½½·Ô °¡´É ¿©ºÎ¸¦ ¸¸µå´Â °Í.
+	bool bStackable = {false }; // ìŒ“ì„ ìˆ˜ ìˆëŠ”ì§€
+	TArray<FInv_SlotAvailability> SlotAvailabilities; //ìŠ¬ë¡¯ ê°€ëŠ¥ ì—¬ë¶€ë¥¼ ë§Œë“œëŠ” ê²ƒ.
 };
 
-//Å¸ÀÏ¿¡ ´ëÇÑ ¸¶¿ì½º È£¹ö ºÎºĞ 
+//íƒ€ì¼ì— ëŒ€í•œ ë§ˆìš°ìŠ¤ í˜¸ë²„ ë¶€ë¶„ 
 UENUM(BlueprintType)
 enum class EInv_TileQuadrant : uint8
 {
@@ -55,7 +55,7 @@ enum class EInv_TileQuadrant : uint8
 	None
 };
 
-//¸¶¿ì½º Ä¿¼­ À§Ä¡°¡ ¾îµğÀÎÁö¿¡ ´ëÇÑ º¯¼öµé. TileCoordinats, TileIndex, TileQuadrant
+//ë§ˆìš°ìŠ¤ ì»¤ì„œ ìœ„ì¹˜ê°€ ì–´ë””ì¸ì§€ì— ëŒ€í•œ ë³€ìˆ˜ë“¤. TileCoordinats, TileIndex, TileQuadrant
 USTRUCT(BlueprintType)
 struct FInv_TileParameters
 {
@@ -71,11 +71,11 @@ struct FInv_TileParameters
 	EInv_TileQuadrant TileQuadrant{ EInv_TileQuadrant::None };
 };
 
-inline bool operator==(const FInv_TileParameters& A, const FInv_TileParameters& B) // Å¸ÀÏ ºñ±³
+inline bool operator==(const FInv_TileParameters& A, const FInv_TileParameters& B) // íƒ€ì¼ ë¹„êµ
 {
 	return A.TileCoordinats == B.TileCoordinats && 
 		A.TileIndex == B.TileIndex && 
-			A.TileQuadrant == B.TileQuadrant; // ¸ğµÎ µ¿ÀÏÇØ¾ß Âü.
+			A.TileQuadrant == B.TileQuadrant; // ëª¨ë‘ ë™ì¼í•´ì•¼ ì°¸.
 }
 
 USTRUCT()
@@ -83,17 +83,17 @@ struct FInv_SpaceQueryResult
 {
 	GENERATED_BODY()
 
-	// °á±¹ ±³Ã¼°¡ °¡´ÉÇÑÁö¿¡ ´ëÇØ¼­ ÀÛ¼ºÇÑ º¯¼öµé.
+	// ê²°êµ­ êµì²´ê°€ ê°€ëŠ¥í•œì§€ì— ëŒ€í•´ì„œ ì‘ì„±í•œ ë³€ìˆ˜ë“¤.
 
 	// True if the space queried has no items in it
-	// ÇØ´ç °ø°£¿¡ Ç×¸ñÀÌ ¾øÀ¸¸é true¶ó°í ¼³Á¤
-	bool bHasSpace{ false }; // °ø°£ÀÌ ÀÖ´ÂÁö È®ÀÎ
+	// í•´ë‹¹ ê³µê°„ì— í•­ëª©ì´ ì—†ìœ¼ë©´ trueë¼ê³  ì„¤ì •
+	bool bHasSpace{ false }; // ê³µê°„ì´ ìˆëŠ”ì§€ í™•ì¸
 
 	// Valid if there's a single item we can swap with
-	// ±³È¯ÇÒ ¼ö ÀÖ´Â Ç×¸ñÀÎÁö?
-	TWeakObjectPtr<UInv_InventoryItem> ValidItem = nullptr; // À¯È¿ÇÑ ¾ÆÀÌÅÛ Æ÷ÀÎÅÍ
+	// êµí™˜í•  ìˆ˜ ìˆëŠ” í•­ëª©ì¸ì§€?
+	TWeakObjectPtr<UInv_InventoryItem> ValidItem = nullptr; // ìœ íš¨í•œ ì•„ì´í…œ í¬ì¸í„°
 
 	// Upper left index of the valid item, if there is one.
-	// À¯È¿ÇÑ Ç×¸ñÀÌ ÀÖ´Â °æ¿ì ¿ŞÂÊ À§ ÀÎµ¦½º.
-	int32 UpperLeftIndex{ INDEX_NONE }; // ¿ŞÂÊ À§ ÀÎµ¦½º
+	// ìœ íš¨í•œ í•­ëª©ì´ ìˆëŠ” ê²½ìš° ì™¼ìª½ ìœ„ ì¸ë±ìŠ¤.
+	int32 UpperLeftIndex{ INDEX_NONE }; // ì™¼ìª½ ìœ„ ì¸ë±ìŠ¤
 };

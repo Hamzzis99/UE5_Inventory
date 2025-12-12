@@ -18,12 +18,12 @@ struct INVENTORY_API FInv_ItemManifest
 {
 	GENERATED_BODY()
 
-	UInv_InventoryItem* Manifest(UObject* NewOuter); //»õ·Î¿î ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ¸¸µé ¶§?
-	EInv_ItemCategory GetItemCategory() const { return ItemCategory; } // ¾ÆÀÌÅÛ Ä«Å×°í¸® ¾ò±â
-	FGameplayTag GetItemType() const { return ItemType; } // ¾ÆÀÌÅÛ Å¸ÀÔ ¾ò±â
+	UInv_InventoryItem* Manifest(UObject* NewOuter); //ìƒˆë¡œìš´ ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ë§Œë“¤ ë•Œ?
+	EInv_ItemCategory GetItemCategory() const { return ItemCategory; } // ì•„ì´í…œ ì¹´í…Œê³ ë¦¬ ì–»ê¸°
+	FGameplayTag GetItemType() const { return ItemType; } // ì•„ì´í…œ íƒ€ì… ì–»ê¸°
 
-	template <typename T>  requires std::derived_from<T, FInv_ItemFragment>// TÅ¸ÀÔ¸¸ Àü´ŞÇÏµµ·Ï °­Á¦ÇÏ´Â ¹æ¹ıÀº? C++20
-	const T* GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const; // ÅÂ±×·Î ±¸¼º¿ä¼Ò ¾ò±â
+	template <typename T>  requires std::derived_from<T, FInv_ItemFragment>// Tíƒ€ì…ë§Œ ì „ë‹¬í•˜ë„ë¡ ê°•ì œí•˜ëŠ” ë°©ë²•ì€? C++20
+	const T* GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const; // íƒœê·¸ë¡œ êµ¬ì„±ìš”ì†Œ ì–»ê¸°
 
 	template <typename T>  requires std::derived_from<T, FInv_ItemFragment>
 	const T* GetFragmentOfType() const; 
@@ -33,58 +33,58 @@ struct INVENTORY_API FInv_ItemManifest
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ExcludeBaseStruct)) 
-	TArray<TInstancedStruct<FInv_ItemFragment>> Fragments; // ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ¹è¿­ °ø°£µé.
+	TArray<TInstancedStruct<FInv_ItemFragment>> Fragments; // ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ë°°ì—´ ê³µê°„ë“¤.
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	EInv_ItemCategory ItemCategory{ EInv_ItemCategory::None }; // °³º° ±¸¼º¿ä¼Ò?
+	EInv_ItemCategory ItemCategory{ EInv_ItemCategory::None }; // ê°œë³„ êµ¬ì„±ìš”ì†Œ?
 	
 
-	// °ÔÀÓÇÃ·¹ÀÌ ÅÂ±× ºÎºĞ
+	// ê²Œì„í”Œë ˆì´ íƒœê·¸ ë¶€ë¶„
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FGameplayTag ItemType;
 
 };
 
 template <typename T>
-requires std::derived_from<T, FInv_ItemFragment>// TÅ¸ÀÔ¸¸ Àü´ŞÇÏµµ·Ï °­Á¦ÇÏ´Â ¹æ¹ıÀº? C++20
+requires std::derived_from<T, FInv_ItemFragment>// Tíƒ€ì…ë§Œ ì „ë‹¬í•˜ë„ë¡ ê°•ì œí•˜ëŠ” ë°©ë²•ì€? C++20
 const T* FInv_ItemManifest::GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const
 {
-	for (const TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments) // ¿©·¯°³¸¦ Ã£´Â °úÁ¤
+	for (const TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments) // ì—¬ëŸ¬ê°œë¥¼ ì°¾ëŠ” ê³¼ì •
 	{
 		if (const T* FragmentPtr = Fragment.GetPtr<T>())
 		{
-			if(!FragmentPtr->GetFragmentTag().MatchesTagExact(FragmentTag)) continue; // ÅÂ±×°¡ Á¤È®È÷ ÀÏÄ¡ÇÏ´ÂÁö È®ÀÎÀÏÄ¡ÇÏÁö ¾ÊÀ¸¸é ´ÙÀ½À¸·Î ³Ñ¾î°¨ 
-			return FragmentPtr; // Ã£¾ÒÀ» ¶© ÇÏ³ªÀÇ ÇØ´ç Æ÷ÀÎÅÍ ¹İÈ¯
+			if(!FragmentPtr->GetFragmentTag().MatchesTagExact(FragmentTag)) continue; // íƒœê·¸ê°€ ì •í™•íˆ ì¼ì¹˜í•˜ëŠ”ì§€ í™•ì¸ì¼ì¹˜í•˜ì§€ ì•Šìœ¼ë©´ ë‹¤ìŒìœ¼ë¡œ ë„˜ì–´ê° 
+			return FragmentPtr; // ì°¾ì•˜ì„ ë• í•˜ë‚˜ì˜ í•´ë‹¹ í¬ì¸í„° ë°˜í™˜
 		}
 	}
 
-	return nullptr; // ¾Æ¹«°Íµµ Ã£Áö ¸øÇßÀ» ¶© nullptr ¹İÈ¯
+	return nullptr; // ì•„ë¬´ê²ƒë„ ì°¾ì§€ ëª»í–ˆì„ ë• nullptr ë°˜í™˜
 }
 
 template <typename T> requires std::derived_from<T, FInv_ItemFragment>
 const T* FInv_ItemManifest::GetFragmentOfType() const
 {
-	for (const TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments) // ¿©·¯°³¸¦ Ã£´Â °úÁ¤
+	for (const TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments) // ì—¬ëŸ¬ê°œë¥¼ ì°¾ëŠ” ê³¼ì •
 	{
 		if (const T* FragmentPtr = Fragment.GetPtr<T>())
 		{
-			return FragmentPtr; // Ã£¾ÒÀ» ¶© ÇÏ³ªÀÇ ÇØ´ç Æ÷ÀÎÅÍ ¹İÈ¯
+			return FragmentPtr; // ì°¾ì•˜ì„ ë• í•˜ë‚˜ì˜ í•´ë‹¹ í¬ì¸í„° ë°˜í™˜
 		}
 	}
 
-	return nullptr; // ¾Æ¹«°Íµµ Ã£Áö ¸øÇßÀ» ¶© nullptr ¹İÈ¯
+	return nullptr; // ì•„ë¬´ê²ƒë„ ì°¾ì§€ ëª»í–ˆì„ ë• nullptr ë°˜í™˜
 }
 
 template <typename T> requires std::derived_from<T, FInv_ItemFragment>
 T* FInv_ItemManifest::GetFragmentOfTypeMutable()
 {
-	for (TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments) // ¿©·¯°³¸¦ Ã£´Â °úÁ¤
+	for (TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments) // ì—¬ëŸ¬ê°œë¥¼ ì°¾ëŠ” ê³¼ì •
 	{
-		if (T* FragmentPtr = Fragment.GetMutablePtr<T>()) // Æ÷ÀÎÅÍ´Â »ó¼ö·Î º¯È¯
+		if (T* FragmentPtr = Fragment.GetMutablePtr<T>()) // í¬ì¸í„°ëŠ” ìƒìˆ˜ë¡œ ë³€í™˜
 		{
-			return FragmentPtr; // Ã£¾ÒÀ» ¶© ÇÏ³ªÀÇ ÇØ´ç Æ÷ÀÎÅÍ ¹İÈ¯
+			return FragmentPtr; // ì°¾ì•˜ì„ ë• í•˜ë‚˜ì˜ í•´ë‹¹ í¬ì¸í„° ë°˜í™˜
 		}
 	}
 
-	return nullptr; // ¾Æ¹«°Íµµ Ã£Áö ¸øÇßÀ» ¶© nullptr ¹İÈ¯
+	return nullptr; // ì•„ë¬´ê²ƒë„ ì°¾ì§€ ëª»í–ˆì„ ë• nullptr ë°˜í™˜
 }

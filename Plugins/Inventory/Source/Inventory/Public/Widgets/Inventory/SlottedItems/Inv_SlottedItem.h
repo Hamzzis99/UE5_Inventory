@@ -10,7 +10,7 @@ class UInv_InventoryItem;
 class UImage;
 class UTextBlock;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSlottedItemClicked, int32, GridIndex, const FPointerEvent&, MouseEvent); // ½½·Ô ¾ÆÀÌÅÛ Å¬¸¯ µ¨¸®°ÔÀÌÆ® ¼±¾ğ
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSlottedItemClicked, int32, GridIndex, const FPointerEvent&, MouseEvent); // ìŠ¬ë¡¯ ì•„ì´í…œ í´ë¦­ ë¸ë¦¬ê²Œì´íŠ¸ ì„ ì–¸
 
 UCLASS()
 class INVENTORY_API UInv_SlottedItem : public UUserWidget
@@ -18,21 +18,21 @@ class INVENTORY_API UInv_SlottedItem : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; //¸¶¿ì½º Å¬¸¯ »óÈ£ÀÛ¿ë ¸¸µé±â
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; //ë§ˆìš°ìŠ¤ í´ë¦­ ìƒí˜¸ì‘ìš© ë§Œë“¤ê¸°
 		
-	bool IsStackable() const { return bIsStackable; } // ½ºÅÃ °¡´É ¿©ºÎ °¡Á®¿À±â
-	void SetIsStackable(bool bStackable) { bIsStackable = bStackable; } // ½ºÅÃ °¡´É ¿©ºÎ ¼³Á¤
-	UImage* GetImageIcon() const {return Image_Icon;} // ¾ÆÀÌÄÜ ÀÌ¹ÌÁö °¡Á®¿À±â
-	void SetGridIndex(int32 Index) { GridIndex = Index; } // ±×¸®µå ÀÎµ¦½º ¼³Á¤
-	int32 GetGridIndex() const { return GridIndex; } // ±×¸®µå ÀÎµ¦½º °¡Á®¿À±â
-	void SetGridDimensions(const FIntPoint& Dimensions) { GridDimensions = Dimensions; } // ±×¸®µå Å©±â ¼³Á¤
-	FIntPoint GetGridDimensions() const { return GridDimensions; } // ±×¸®µå Å©±â °¡Á®¿À±â
-	void SetInventoryItem(UInv_InventoryItem* Item); // ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ¼³Á¤
-	UInv_InventoryItem* GetInventoryItem() const { return InventoryItem.Get(); } // ÀÎº¥Åä¸® ¾ÆÀÌÅÛ °¡Á®¿À±â
-	void SetImageBrush(const FSlateBrush& Brush) const; // ÀÌ¹ÌÁö ºê·¯½Ã ¼³Á¤
-	void UpdateStackCount(int32 StackCount); // ¾ÆÀÌÅÛ ½ºÅÃ ¼ö·® ¾÷µ¥ÀÌÆ®
+	bool IsStackable() const { return bIsStackable; } // ìŠ¤íƒ ê°€ëŠ¥ ì—¬ë¶€ ê°€ì ¸ì˜¤ê¸°
+	void SetIsStackable(bool bStackable) { bIsStackable = bStackable; } // ìŠ¤íƒ ê°€ëŠ¥ ì—¬ë¶€ ì„¤ì •
+	UImage* GetImageIcon() const {return Image_Icon;} // ì•„ì´ì½˜ ì´ë¯¸ì§€ ê°€ì ¸ì˜¤ê¸°
+	void SetGridIndex(int32 Index) { GridIndex = Index; } // ê·¸ë¦¬ë“œ ì¸ë±ìŠ¤ ì„¤ì •
+	int32 GetGridIndex() const { return GridIndex; } // ê·¸ë¦¬ë“œ ì¸ë±ìŠ¤ ê°€ì ¸ì˜¤ê¸°
+	void SetGridDimensions(const FIntPoint& Dimensions) { GridDimensions = Dimensions; } // ê·¸ë¦¬ë“œ í¬ê¸° ì„¤ì •
+	FIntPoint GetGridDimensions() const { return GridDimensions; } // ê·¸ë¦¬ë“œ í¬ê¸° ê°€ì ¸ì˜¤ê¸°
+	void SetInventoryItem(UInv_InventoryItem* Item); // ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ì„¤ì •
+	UInv_InventoryItem* GetInventoryItem() const { return InventoryItem.Get(); } // ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ê°€ì ¸ì˜¤ê¸°
+	void SetImageBrush(const FSlateBrush& Brush) const; // ì´ë¯¸ì§€ ë¸ŒëŸ¬ì‹œ ì„¤ì •
+	void UpdateStackCount(int32 StackCount); // ì•„ì´í…œ ìŠ¤íƒ ìˆ˜ëŸ‰ ì—…ë°ì´íŠ¸
 
-	FSlottedItemClicked OnSlottedItemClicked; // ¸¶¿ì½º·Î ½½·Ô ¾ÆÀÌÅÛ Å¬¸¯ µ¨¸®°ÔÀÌÆ®
+	FSlottedItemClicked OnSlottedItemClicked; // ë§ˆìš°ìŠ¤ë¡œ ìŠ¬ë¡¯ ì•„ì´í…œ í´ë¦­ ë¸ë¦¬ê²Œì´íŠ¸
 
 private:
 	UPROPERTY(meta = (BindWidget))

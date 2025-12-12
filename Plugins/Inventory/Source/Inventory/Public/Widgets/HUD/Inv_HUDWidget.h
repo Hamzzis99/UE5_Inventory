@@ -17,7 +17,7 @@ class INVENTORY_API UInv_HUDWidget : public UUserWidget
 public:
 	virtual void NativeOnInitialized() override;
 
-	// ¾ÆÀÌÅÛ È¹µæ ¸Ş½ÃÁö Ç¥½Ã ÇÔ¼ö
+	// ì•„ì´í…œ íšë“ ë©”ì‹œì§€ í‘œì‹œ í•¨ìˆ˜
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
 	void ShowPickupMessage(const FString& Message);
 	
@@ -25,7 +25,7 @@ public:
 	void HidePickupMessage();
 
 
-	// ÀÎº¥Åä¸® ²ËÃ¡´Ù´Â ¸Ş½ÃÁö Ãâ·ÂÇÏ±â?
+	// ì¸ë²¤í† ë¦¬ ê½‰ì°¼ë‹¤ëŠ” ë©”ì‹œì§€ ì¶œë ¥í•˜ê¸°?
 private:
 
 	UPROPERTY(meta = (BindWidget))

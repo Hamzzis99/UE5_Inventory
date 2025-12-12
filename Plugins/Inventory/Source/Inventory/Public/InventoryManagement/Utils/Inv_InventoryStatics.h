@@ -22,23 +22,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static EInv_ItemCategory GetItemCategoryFromItemComp(UInv_ItemComponent* ItemComp);
 
-	// 2D ¹è¿­ ¼øÈ¸ ¾Ë°í¸®Áò (±×¸®µå Á¶°¢À» for each¹®À¸·Î µ¹¸®´Â ¾Ë°í¸®Áò Á¦ÀÛ ºÎºĞ)
+	// 2D ë°°ì—´ ìˆœíšŒ ì•Œê³ ë¦¬ì¦˜ (ê·¸ë¦¬ë“œ ì¡°ê°ì„ for eachë¬¸ìœ¼ë¡œ ëŒë¦¬ëŠ” ì•Œê³ ë¦¬ì¦˜ ì œì‘ ë¶€ë¶„)
 	template<typename T, typename FuncT>
 	static void ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& Range2D, int32 GridColumns, const FuncT& Function); 
 };
 
 template<typename T, typename FuncT>
-static void UInv_InventoryStatics::ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& Range2D, int32 GridColumns, const FuncT& Function) // ¾Ë°í¸®Áò ºÎºĞ.
+static void UInv_InventoryStatics::ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& Range2D, int32 GridColumns, const FuncT& Function) // ì•Œê³ ë¦¬ì¦˜ ë¶€ë¶„.
 {
 	for (int32 j = 0; j < Range2D.Y; ++j)
 	{
 		for (int32 i = 0; i < Range2D.X; ++i)
 		{
-			const FIntPoint Coordinates = UInv_WidgetUtils::GetPositionFromIndex(Index, GridColumns) + FIntPoint(i, j); // 2D ÁÂÇ¥ °è»ê
-			const int32 TileIndex = UInv_WidgetUtils::GetIndexFromPosition(Coordinates, GridColumns); // 1D ÀÎµ¦½º °è»ê
-			if (Array.IsValidIndex(TileIndex)) // À¯È¿ÇÑ ÀÎµ¦½ºÀÎÁö È®ÀÎ
+			const FIntPoint Coordinates = UInv_WidgetUtils::GetPositionFromIndex(Index, GridColumns) + FIntPoint(i, j); // 2D ì¢Œí‘œ ê³„ì‚°
+			const int32 TileIndex = UInv_WidgetUtils::GetIndexFromPosition(Coordinates, GridColumns); // 1D ì¸ë±ìŠ¤ ê³„ì‚°
+			if (Array.IsValidIndex(TileIndex)) // ìœ íš¨í•œ ì¸ë±ìŠ¤ì¸ì§€ í™•ì¸
 			{
-				Function(Array[TileIndex]); // ÇÔ¼ö È£Ãâ
+				Function(Array[TileIndex]); // í•¨ìˆ˜ í˜¸ì¶œ
 			}
 		}
 	}

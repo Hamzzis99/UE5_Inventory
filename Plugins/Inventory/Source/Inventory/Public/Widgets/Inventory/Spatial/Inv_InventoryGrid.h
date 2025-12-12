@@ -27,37 +27,37 @@ class INVENTORY_API UInv_InventoryGrid : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	virtual void NativeOnInitialized() override; // Viewport¸¦ µ¿½Ã¿¡ »ı¼ºÇÏ´Â °ÍÀÌ NativeConstruct?
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override; // ¸Å ÇÁ·¹ÀÓ¸¶´Ù È£ÃâµÇ´Â Æ½ ÇÔ¼ö (¸¶¿ì½º Hover¿¡ »ç¿ë)
+	virtual void NativeOnInitialized() override; // Viewportë¥¼ ë™ì‹œì— ìƒì„±í•˜ëŠ” ê²ƒì´ NativeConstruct?
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override; // ë§¤ í”„ë ˆì„ë§ˆë‹¤ í˜¸ì¶œë˜ëŠ” í‹± í•¨ìˆ˜ (ë§ˆìš°ìŠ¤ Hoverì— ì‚¬ìš©)
 
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
-	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent); // ¾ÆÀÌÅÛÀ» À§ÇÑ °ø°£ÀÌ ÀÖ´ÂÁö È®ÀÎ
+	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent); // ì•„ì´í…œì„ ìœ„í•œ ê³µê°„ì´ ìˆëŠ”ì§€ í™•ì¸
 
 	UFUNCTION()
-	void AddItem(UInv_InventoryItem* Item); // ¾ÆÀÌÅÛ Ãß°¡
+	void AddItem(UInv_InventoryItem* Item); // ì•„ì´í…œ ì¶”ê°€
 
 private:
 
 	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
 
 	void ConstructGrid();
-	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* Item); // ÀÎº¥Åä¸® Ç×¸ñÀ¸·Î itemÀÌ ÀÖ´Â °ø°£ÀÌ ÀÖÀ» ¼ö ÀÖ¾î¼­ ¸¸µå´Â °Í?
-	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest); // ³ªÁß¿¡ Builds ¸¸µé ¶§ »ç¿ëÇÏ´Â °ø°£ÀÎ°¡?
-	void AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* NewItem); // ¾ÆÀÌÅÛÀ» ÀÎµ¦½º¿¡ Ãß°¡
-	bool MatchesCategory(const UInv_InventoryItem* Item) const; // Ä«Å×°í¸® ÀÏÄ¡ ¿©ºÎ È®ÀÎ
-	FVector2D GetDrawSize(const FInv_GridFragment* GridFragment) const; // ±×¸®µå Á¶°¢ÀÇ ±×¸®±â Å©±â °¡Á®¿À±â
-	void SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const; // ½½·ÎÆ¼µå ¾ÆÀÌÅÛ ÀÌ¹ÌÁö ¼³Á¤
-	void AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, const bool bStackable, const int32 StackAmount); // ÀÎµ¦½º¿¡ ¾ÆÀÌÅÛ Ãß°¡
+	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* Item); // ì¸ë²¤í† ë¦¬ í•­ëª©ìœ¼ë¡œ itemì´ ìˆëŠ” ê³µê°„ì´ ìˆì„ ìˆ˜ ìˆì–´ì„œ ë§Œë“œëŠ” ê²ƒ?
+	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest); // ë‚˜ì¤‘ì— Builds ë§Œë“¤ ë•Œ ì‚¬ìš©í•˜ëŠ” ê³µê°„ì¸ê°€?
+	void AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* NewItem); // ì•„ì´í…œì„ ì¸ë±ìŠ¤ì— ì¶”ê°€
+	bool MatchesCategory(const UInv_InventoryItem* Item) const; // ì¹´í…Œê³ ë¦¬ ì¼ì¹˜ ì—¬ë¶€ í™•ì¸
+	FVector2D GetDrawSize(const FInv_GridFragment* GridFragment) const; // ê·¸ë¦¬ë“œ ì¡°ê°ì˜ ê·¸ë¦¬ê¸° í¬ê¸° ê°€ì ¸ì˜¤ê¸°
+	void SetSlottedItemImage(const UInv_SlottedItem* SlottedItem, const FInv_GridFragment* GridFragment, const FInv_ImageFragment* ImageFragment) const; // ìŠ¬ë¡œí‹°ë“œ ì•„ì´í…œ ì´ë¯¸ì§€ ì„¤ì •
+	void AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, const bool bStackable, const int32 StackAmount); // ì¸ë±ìŠ¤ì— ì•„ì´í…œ ì¶”ê°€
 	UInv_SlottedItem* CreateSlottedItem(UInv_InventoryItem* Item,
 		const bool bStackable,
 		const int32 StackAmount,
 		const FInv_GridFragment* GridFragment,
 		const FInv_ImageFragment* ImageFragment,
 		const int32 Index
-	); // ½½·ÎÆ¼µå ¾ÆÀÌÅÛ »ı¼º
+	); // ìŠ¬ë¡œí‹°ë“œ ì•„ì´í…œ ìƒì„±
 	void AddSlottedItemToCanvas(const int32 Index, const FInv_GridFragment* GridFragment, UInv_SlottedItem* SlottedItem) const;
-	void UpdateGridSlots(UInv_InventoryItem* NewItem, const int32 Index, bool bStackableItem, const int32 StackAmount); // ±×¸®µå ½½·Ô ¾÷µ¥ÀÌÆ®
-	bool IsIndexClaimed(const TSet<int32>& CheckedIndices, const int32 Index) const; // ÀÎµ¦½º°¡ ÀÌ¹Ì Á¡À¯µÇ¾ú´ÂÁö È®ÀÎ
+	void UpdateGridSlots(UInv_InventoryItem* NewItem, const int32 Index, bool bStackableItem, const int32 StackAmount); // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ ì—…ë°ì´íŠ¸
+	bool IsIndexClaimed(const TSet<int32>& CheckedIndices, const int32 Index) const; // ì¸ë±ìŠ¤ê°€ ì´ë¯¸ ì ìœ ë˜ì—ˆëŠ”ì§€ í™•ì¸
 	bool HasRoomAtIndex(const UInv_GridSlot* GridSlot,
 		const FIntPoint& Dimensions,
 		const TSet<int32>& CheckedIndices,
@@ -71,39 +71,39 @@ private:
 		TSet<int32>& OutTentativelyClaimed,
 		const FGameplayTag& ItemType,
 		const int32 MaxStackSize) const;
-	FIntPoint GetItemDimensions(const FInv_ItemManifest& Manifest) const; // ¾ÆÀÌÅÛ Ä¡¼ö °¡Á®¿À±â
-	bool HasValidItem(const UInv_GridSlot* GridSlot) const; // ±×¸®µå ½½·Ô¿¡ À¯È¿ÇÑ ¾ÆÀÌÅÛÀÌ ÀÖ´ÂÁö È®ÀÎ
-	bool IsUpperLeftSlot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const; // ±×¸®µå ½½·ÔÀÌ ¿ŞÂÊ À§ ½½·ÔÀÎÁö È®ÀÎ
-	bool DoesItemTypeMatch(const UInv_InventoryItem* SubItem, const FGameplayTag& ItemType) const; // ¾ÆÀÌÅÛ À¯ÇüÀÌ ÀÏÄ¡ÇÏ´ÂÁö È®ÀÎ
-	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& ItemDimensions) const; // ±×¸®µå °æ°è ³»¿¡ ÀÖ´ÂÁö È®ÀÎ
+	FIntPoint GetItemDimensions(const FInv_ItemManifest& Manifest) const; // ì•„ì´í…œ ì¹˜ìˆ˜ ê°€ì ¸ì˜¤ê¸°
+	bool HasValidItem(const UInv_GridSlot* GridSlot) const; // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì— ìœ íš¨í•œ ì•„ì´í…œì´ ìˆëŠ”ì§€ í™•ì¸
+	bool IsUpperLeftSlot(const UInv_GridSlot* GridSlot, const UInv_GridSlot* SubGridSlot) const; // ê·¸ë¦¬ë“œ ìŠ¬ë¡¯ì´ ì™¼ìª½ ìœ„ ìŠ¬ë¡¯ì¸ì§€ í™•ì¸
+	bool DoesItemTypeMatch(const UInv_InventoryItem* SubItem, const FGameplayTag& ItemType) const; // ì•„ì´í…œ ìœ í˜•ì´ ì¼ì¹˜í•˜ëŠ”ì§€ í™•ì¸
+	bool IsInGridBounds(const int32 StartIndex, const FIntPoint& ItemDimensions) const; // ê·¸ë¦¬ë“œ ê²½ê³„ ë‚´ì— ìˆëŠ”ì§€ í™•ì¸
 	int32 DetermineFillAmountForSlot(const bool bStackable, const int32 MaxStackSize, const int32 AmountToFill, const UInv_GridSlot* GridSlot) const;
 	int32 GetStackAmount(const UInv_GridSlot* GridSlot) const;
 	
-	/* ¾ÆÀÌÅÛ ¸¶¿ì½º Å¬¸¯ ÆÇ´Ü*/
+	/* ì•„ì´í…œ ë§ˆìš°ìŠ¤ í´ë¦­ íŒë‹¨*/
 	bool IsRightClick(const FPointerEvent& MouseEvent) const;
 	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
-	void PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex); // ÀÌ ÇÈ¾÷Àº ¸¶¿ì½º·Î ¾ÆÀÌÅÛÀ» ÀâÀ» ¶§
-	void AssignHoverItem(UInv_InventoryItem* InventoryItem); // ¾ÆÀÌÅÛ ±â¹İ È£¹ö ¾ÆÀÌÅÛ ÇÒ´ç
-	void AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex); // ÀÎµ¦½º ±â¹İ È£¹ö ¾ÆÀÌÅÛ ÇÒ´ç
-	void RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, const int32 GridIndex); // ±×¸®µå¿¡¼­ ¾ÆÀÌÅÛ Á¦°Å
-	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition); // Å¸ÀÏ ¸Å°³º¯¼ö ¾÷µ¥ÀÌÆ®
-	FIntPoint CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const; // È£¹öµÈ ÁÂÇ¥ °è»ê
-	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const; // Å¸ÀÏ »çºĞ¸é °è»ê
-	void OnTileParametersUpdated(const FInv_TileParameters& Parameters); // Å¸ÀÏ ¸Å°³º¯¼ö ¾÷µ¥ÀÌÆ®½Ã È£ÃâµÇ´Â ÇÔ¼ö
-	FIntPoint CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const; // ¹®ÅÎÀ» ¾ó¸¶³ª ³ÑÀ» ¼ö ÀÖ´ÂÁö.
-	FInv_SpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions); // È£¹ö À§Ä¡ È®ÀÎ
-	bool CursorExitedCanvas(const FVector2D& BoundaryPos, const FVector2D& BoundarySize, const FVector2D& Location); // Ä¿¼­°¡ Äµ¹ö½º¸¦ ¹ş¾î³µ´ÂÁö È®ÀÎ
-	void HighlightSlots(const int32 Index, const FIntPoint& Dimensions); // ½½·Ô º¸ÀÌ±â
-	void UnHighlightSlots(const int32 Index, const FIntPoint& Dimensions); // ½½·Ô ¼û±â±â
+	void PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex); // ì´ í”½ì—…ì€ ë§ˆìš°ìŠ¤ë¡œ ì•„ì´í…œì„ ì¡ì„ ë•Œ
+	void AssignHoverItem(UInv_InventoryItem* InventoryItem); // ì•„ì´í…œ ê¸°ë°˜ í˜¸ë²„ ì•„ì´í…œ í• ë‹¹
+	void AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex); // ì¸ë±ìŠ¤ ê¸°ë°˜ í˜¸ë²„ ì•„ì´í…œ í• ë‹¹
+	void RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, const int32 GridIndex); // ê·¸ë¦¬ë“œì—ì„œ ì•„ì´í…œ ì œê±°
+	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition); // íƒ€ì¼ ë§¤ê°œë³€ìˆ˜ ì—…ë°ì´íŠ¸
+	FIntPoint CalculateHoveredCoordinates(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const; // í˜¸ë²„ëœ ì¢Œí‘œ ê³„ì‚°
+	EInv_TileQuadrant CalculateTileQuadrant(const FVector2D& CanvasPosition, const FVector2D& MousePosition) const; // íƒ€ì¼ ì‚¬ë¶„ë©´ ê³„ì‚°
+	void OnTileParametersUpdated(const FInv_TileParameters& Parameters); // íƒ€ì¼ ë§¤ê°œë³€ìˆ˜ ì—…ë°ì´íŠ¸ì‹œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜
+	FIntPoint CalculateStartingCoordinate(const FIntPoint& Coordinate, const FIntPoint& Dimensions, const EInv_TileQuadrant Quadrant) const; // ë¬¸í„±ì„ ì–¼ë§ˆë‚˜ ë„˜ì„ ìˆ˜ ìˆëŠ”ì§€.
+	FInv_SpaceQueryResult CheckHoverPosition(const FIntPoint& Position, const FIntPoint& Dimensions); // í˜¸ë²„ ìœ„ì¹˜ í™•ì¸
+	bool CursorExitedCanvas(const FVector2D& BoundaryPos, const FVector2D& BoundarySize, const FVector2D& Location); // ì»¤ì„œê°€ ìº”ë²„ìŠ¤ë¥¼ ë²—ì–´ë‚¬ëŠ”ì§€ í™•ì¸
+	void HighlightSlots(const int32 Index, const FIntPoint& Dimensions); // ìŠ¬ë¡¯ ë³´ì´ê¸°
+	void UnHighlightSlots(const int32 Index, const FIntPoint& Dimensions); // ìŠ¬ë¡¯ ìˆ¨ê¸°ê¸°
 	void ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState);
-	void PutDownOnIndex(const int32 Index); // ÀÎµ¦½º¿¡ ³»·Á³õ±â
-	void ClearHoverItem(); // È£¹ö ¾ÆÀÌÅÛ Áö¿ì±â
+	void PutDownOnIndex(const int32 Index); // ì¸ë±ìŠ¤ì— ë‚´ë ¤ë†“ê¸°
+	void ClearHoverItem(); // í˜¸ë²„ ì•„ì´í…œ ì§€ìš°ê¸°
 
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
 
 	UFUNCTION()
-	void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent); // ½½·Ô ¾ÆÀÌÅÛ Å¬¸¯½Ã È£ÃâµÇ´Â ÇÔ¼ö
+	void OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent); // ìŠ¬ë¡¯ ì•„ì´í…œ í´ë¦­ì‹œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜
 	UFUNCTION()
 	void OnGridSlotClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
 	UFUNCTION()
@@ -115,7 +115,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;
 
-	//2Â÷¿ø °İÀÚ¸¦ ¸¸µå´Â °Í Tarray·Î
+	//2ì°¨ì› ê²©ìë¥¼ ë§Œë“œëŠ” ê²ƒ Tarrayë¡œ
 	UPROPERTY()
 	TArray<TObjectPtr<UInv_GridSlot>> GridSlots;
 
@@ -129,9 +129,9 @@ private:
 	TSubclassOf<UInv_SlottedItem> SlottedItemClass; 
 
 	UPROPERTY()
-	TMap<int32, TObjectPtr<UInv_SlottedItem>> SlottedItems; // ÀÎµ¦½º¿Í ½½·ÎÆ¼µå ¾ÆÀÌÅÛ ¸ÅÇÎ ¾ÆÀÌÅÛÀ» µî·ÏÇÒ ¶§¸¶´Ù ÀÌ °ÍÀ» »ç¿ëÇÒ °Í.
+	TMap<int32, TObjectPtr<UInv_SlottedItem>> SlottedItems; // ì¸ë±ìŠ¤ì™€ ìŠ¬ë¡œí‹°ë“œ ì•„ì´í…œ ë§¤í•‘ ì•„ì´í…œì„ ë“±ë¡í•  ë•Œë§ˆë‹¤ ì´ ê²ƒì„ ì‚¬ìš©í•  ê²ƒ.
 
-	// ¿Ö ±»ÀÌ int32·Î?
+	// ì™œ êµ³ì´ int32ë¡œ?
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	int32 Rows;
 	UPROPERTY(EditAnywhere, Category = "Inventory")
@@ -140,21 +140,21 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float TileSize;
 
-	//Æ÷ÀÎÅÍ¸¦ »ı¼ºÇÏ±â À§ÇÑ º¸Á¶ Å¬·¡½º
+	//í¬ì¸í„°ë¥¼ ìƒì„±í•˜ê¸° ìœ„í•œ ë³´ì¡° í´ë˜ìŠ¤
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_HoverItem> HoverItemClass;
 
 	UPROPERTY()
 	TObjectPtr<UInv_HoverItem> HoverItem;
 
-	//¾ÆÀÌÅÛÀÌ ÇÁ·¹ÀÓ¸¶´Ù ¸Å°³º¯¼ö¸¦ ¾î¶»°Ô ¹ŞÀ»Áö °è»ê.
+	//ì•„ì´í…œì´ í”„ë ˆì„ë§ˆë‹¤ ë§¤ê°œë³€ìˆ˜ë¥¼ ì–´ë–»ê²Œ ë°›ì„ì§€ ê³„ì‚°.
 	FInv_TileParameters TileParameters;
 	FInv_TileParameters LastTileParameters;
 
 	// Index where an item would be placed if we click on the grid at a valid location
-	// ¾ÆÀÌÅÛÀÌ À¯È¿ÇÑ À§Ä¡¿¡ ±×¸®µå¸¦ Å¬¸¯ÇÏ¸é ¹èÄ¡µÉ ÀÎµ¦½º
+	// ì•„ì´í…œì´ ìœ íš¨í•œ ìœ„ì¹˜ì— ê·¸ë¦¬ë“œë¥¼ í´ë¦­í•˜ë©´ ë°°ì¹˜ë  ì¸ë±ìŠ¤
 	int32 ItemDropIndex{ INDEX_NONE };
-	FInv_SpaceQueryResult CurrentQueryResult; // ÇöÀç Äõ¸® °á°ú
+	FInv_SpaceQueryResult CurrentQueryResult; // í˜„ì¬ ì¿¼ë¦¬ ê²°ê³¼
 	bool bMouseWithinCanvas;
 	bool bLastMouseWithinCanvas;
 	int32 LastHighlightedIndex;

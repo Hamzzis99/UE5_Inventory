@@ -5,7 +5,7 @@
 #include "Modules/ModuleManager.h"
 
 
-//�α׿� ���ؼ� ����� �� ����ٰ� �̸��� �ִ´�?
+//로그에 대해서 허용할 때 여기다가 이름을 넣는다?
 DECLARE_LOG_CATEGORY_EXTERN(LogInventory, Log, All);
 
 class FInventoryModule : public IModuleInterface

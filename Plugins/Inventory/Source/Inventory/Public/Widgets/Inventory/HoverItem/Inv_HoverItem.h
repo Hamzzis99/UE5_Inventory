@@ -8,7 +8,7 @@
 #include "Inv_HoverItem.generated.h"
 
 /**
- * GridSlot ³»¿¡¼­ ¾ÆÀÌÅÛÀ» ¸¶¿ì½º·Î ÂŞ¿í ²ø¾î´ç°Ü Å×Æ®¸®½º¸¦ ÇÒ ¼ö ÀÖ¾î¿ä!
+ * GridSlot ë‚´ì—ì„œ ì•„ì´í…œì„ ë§ˆìš°ìŠ¤ë¡œ ì­ˆìš± ëŒì–´ë‹¹ê²¨ í…ŒíŠ¸ë¦¬ìŠ¤ë¥¼ í•  ìˆ˜ ìˆì–´ìš”!
  */
 class UInv_InventoryItem;
 class UImage;
@@ -19,10 +19,10 @@ class INVENTORY_API UInv_HoverItem : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	void SetImageBrush(const FSlateBrush& Brush) const; //½½·¹ÀÌÆ® ºê·¯½Ã ¼³Á¤ ÇÔ¼ö
+	void SetImageBrush(const FSlateBrush& Brush) const; //ìŠ¬ë ˆì´íŠ¸ ë¸ŒëŸ¬ì‹œ ì„¤ì • í•¨ìˆ˜
 	void UpdateStackCount(const int32 Count);
 
-	//ÂüÁ¶¸¦ ÇÏ±â À§ÇÑ ±×¸®µå¿¡¼­ ±âÁ¸ ¾ò´ø °Íµé. (¿À·ÎÁö ÀÌµ¿ÇÏ±â À§ÇØ)
+	//ì°¸ì¡°ë¥¼ í•˜ê¸° ìœ„í•œ ê·¸ë¦¬ë“œì—ì„œ ê¸°ì¡´ ì–»ë˜ ê²ƒë“¤. (ì˜¤ë¡œì§€ ì´ë™í•˜ê¸° ìœ„í•´)
 	FGameplayTag GetItemType() const;
 	int32 GetStackCount() const { return StackCount; }
 	bool IsStackable() const { return bIsStackable; }
@@ -41,7 +41,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Text_StackCount;
 
-	//ÀÌÀü ±×¸®µå ÀÎµ¦½º¸¦ ¾Ë¾Æ³»´Â º¯¼ö ¿ì¸®°¡ Grid¿¡¼­ ¾Ë¾Æ³»¾ß ÇÒ º¯¼öµé
+	//ì´ì „ ê·¸ë¦¬ë“œ ì¸ë±ìŠ¤ë¥¼ ì•Œì•„ë‚´ëŠ” ë³€ìˆ˜ ìš°ë¦¬ê°€ Gridì—ì„œ ì•Œì•„ë‚´ì•¼ í•  ë³€ìˆ˜ë“¤
 	int32 PreviousGridIndex;
 	FIntPoint GridDimensions;
 	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;

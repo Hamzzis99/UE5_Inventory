@@ -19,17 +19,17 @@ class INVENTORY_API UInv_SpatialInventory : public UInv_InventoryBase
 	GENERATED_BODY()
 	
 public:
-	virtual void NativeOnInitialized() override; // NativeOnInitialized ÀÌ°Ô ¹¹Áö?
+	virtual void NativeOnInitialized() override; // NativeOnInitialized ì´ê²Œ ë­ì§€?
 
-	//½ÇÁ¦ °ø°£ÀÌ ÀÖ´ÂÁö È®ÀÎÇÏ´Â °÷.
+	//ì‹¤ì œ ê³µê°„ì´ ìˆëŠ”ì§€ í™•ì¸í•˜ëŠ” ê³³.
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
 	
-private: // ¿©±â ÀÖ´Â UPROPERTY¿Í À§Á¬°úÀÇ ÀÌ¸§ÀÌ µ¿ÀÏÇØ¾ß¸¸ÇÔ.
-	//½ºÀ§Ä¡
+private: // ì—¬ê¸° ìˆëŠ” UPROPERTYì™€ ìœ„ì ¯ê³¼ì˜ ì´ë¦„ì´ ë™ì¼í•´ì•¼ë§Œí•¨.
+	//ìŠ¤ìœ„ì¹˜
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWidgetSwitcher> Switcher;
 
-	//¸Ş´º µî·Ï
+	//ë©”ë‰´ ë“±ë¡
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UInv_InventoryGrid> Grid_Equippables;
 	UPROPERTY(meta = (BindWidget))
@@ -40,7 +40,7 @@ private: // ¿©±â ÀÖ´Â UPROPERTY¿Í À§Á¬°úÀÇ ÀÌ¸§ÀÌ µ¿ÀÏÇØ¾ß¸¸ÇÔ.
 	TObjectPtr<UInv_InventoryGrid> Grid_Builds;
 
 
-	//¹öÆ° µî·Ï
+	//ë²„íŠ¼ ë“±ë¡
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Button_Equippables;
 

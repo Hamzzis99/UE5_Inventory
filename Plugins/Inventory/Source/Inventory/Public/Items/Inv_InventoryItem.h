@@ -15,21 +15,21 @@ class INVENTORY_API UInv_InventoryItem : public UObject
 {
 	GENERATED_BODY()
 public:
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; // ÀÌ°Ô º¹Á¦ÇØÁÖ´Â °Í
-	virtual bool IsSupportedForNetworking() const override { return true; } // ³×Æ®¿öÅ· Áö¿ø ¿©ºÎ
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; // ì´ê²Œ ë³µì œí•´ì£¼ëŠ” ê²ƒ
+	virtual bool IsSupportedForNetworking() const override { return true; } // ë„¤íŠ¸ì›Œí‚¹ ì§€ì› ì—¬ë¶€
 
-	void SetItemManifest(const FInv_ItemManifest& Manifest); // ¾ÆÀÌÅÛ ¸Å´ÏÆä½ºÆ® ¼³Á¤
+	void SetItemManifest(const FInv_ItemManifest& Manifest); // ì•„ì´í…œ ë§¤ë‹ˆí˜ìŠ¤íŠ¸ ì„¤ì •
 	const FInv_ItemManifest& GetItemManifest() const { return ItemManifest.Get<FInv_ItemManifest>();  }
 	FInv_ItemManifest& GetItemManifestMutable() { return ItemManifest.GetMutable<FInv_ItemManifest>(); }
-	bool IsStackable() const; // ¾ÆÀÌÅÛÀÌ ½×À» ¼ö ÀÖ´ÂÁö ¿©ºÎ È®ÀÎ
-	int32 GetTotalStackCount() const { return TotalStackCount; } // ÃÑ ½ºÅÃ ¼ö °¡Á®¿À±â
-	void SetTotalStackCount(int32 Count) { TotalStackCount = Count; } // ÃÑ ½ºÅÃ ¼ö ¼³Á¤
+	bool IsStackable() const; // ì•„ì´í…œì´ ìŒ“ì„ ìˆ˜ ìˆëŠ”ì§€ ì—¬ë¶€ í™•ì¸
+	int32 GetTotalStackCount() const { return TotalStackCount; } // ì´ ìŠ¤íƒ ìˆ˜ ê°€ì ¸ì˜¤ê¸°
+	void SetTotalStackCount(int32 Count) { TotalStackCount = Count; } // ì´ ìŠ¤íƒ ìˆ˜ ì„¤ì •
 
-private: //ÀÌ ºÎºĞ GPT µ¹·Áº¸ÀÚ Ç×¸ñ º¹Á¦ÇØ¼­ ¼­¹ö¿¡ Àü´ŞÇÏ´Â °÷. ±×°Ô ¹Ù·Î Replicated
-	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/Inventory.Inv_ItemManifest"), Replicated) //ÀÎº¥Åä¸® ¾ÆÀÌÅÛ ºí·çÇÁ¸°Æ® ¸¸µå´Â °÷? ÆÄ»ı?
-	FInstancedStruct ItemManifest; // instance struct? ÀÌ°Ô ¹ºµ¥?
+private: //ì´ ë¶€ë¶„ GPT ëŒë ¤ë³´ì í•­ëª© ë³µì œí•´ì„œ ì„œë²„ì— ì „ë‹¬í•˜ëŠ” ê³³. ê·¸ê²Œ ë°”ë¡œ Replicated
+	UPROPERTY(VisibleAnywhere, meta = (BaseStruct = "/Script/Inventory.Inv_ItemManifest"), Replicated) //ì¸ë²¤í† ë¦¬ ì•„ì´í…œ ë¸”ë£¨í”„ë¦°íŠ¸ ë§Œë“œëŠ” ê³³? íŒŒìƒ?
+	FInstancedStruct ItemManifest; // instance struct? ì´ê²Œ ë­”ë°?
 	
-	UPROPERTY(Replicated) // ÀÌ ¾ÆÀÌÅÛÀÇ ÃÑ ½ºÅÃ ¼ö Replicated ¶æÀÌ ¹»±î?
+	UPROPERTY(Replicated) // ì´ ì•„ì´í…œì˜ ì´ ìŠ¤íƒ ìˆ˜ Replicated ëœ»ì´ ë­˜ê¹Œ?
 	int32 TotalStackCount{ 0 };
 };
 

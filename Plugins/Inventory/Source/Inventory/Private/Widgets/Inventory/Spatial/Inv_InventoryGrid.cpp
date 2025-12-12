@@ -790,6 +790,7 @@ void UInv_InventoryGrid::ClearHoverItem() // 호버(잡는모션) 아이템 초�
 	HoverItem->UpdateStackCount(0); // 스택 수 초기화
 	HoverItem->SetImageBrush(FSlateNoResource()); // 이미지 브러시 초기화 FSlateNoResource <- 모든 것을 지운다고 하네
 
+	
 	HoverItem->RemoveFromParent(); // 호버 아이템을 부모에서 제거
 	HoverItem = nullptr; // 호버 아이템 포인터 초기화
 

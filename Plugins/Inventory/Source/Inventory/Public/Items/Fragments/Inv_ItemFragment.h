@@ -10,26 +10,26 @@ struct FInv_ItemFragment
 {
 	GENERATED_BODY()
 
-	//½ºÆä¼È ÇÔ¼ö ÀÌµ¿ ¿¬»êÀÚ ¹× ÀÌµ¿ ÇÒ´ç ¿¬»êÀÚ À±Á¤Çö ±³¼ö´Ô µµ¿ÍÁà!!
+	//ìŠ¤í˜ì…œ í•¨ìˆ˜ ì´ë™ ì—°ì‚°ì ë° ì´ë™ í• ë‹¹ ì—°ì‚°ì ìœ¤ì •í˜„ êµìˆ˜ë‹˜ ë„ì™€ì¤˜!!
 
-	FInv_ItemFragment() {} //±âº»»ı¼ºÀÚ
+	FInv_ItemFragment() {} //ê¸°ë³¸ìƒì„±ì
 
-	//º¹»ç¿¬»êÀÚµé
-	FInv_ItemFragment(const FInv_ItemFragment&) = default; // º¹»ç»ı¼ºÀÚ
-	FInv_ItemFragment& operator=(const FInv_ItemFragment&) = default; // º¹»ç ÇÒ´ç ¿¬»êÀÚ
+	//ë³µì‚¬ì—°ì‚°ìë“¤
+	FInv_ItemFragment(const FInv_ItemFragment&) = default; // ë³µì‚¬ìƒì„±ì
+	FInv_ItemFragment& operator=(const FInv_ItemFragment&) = default; // ë³µì‚¬ í• ë‹¹ ì—°ì‚°ì
 
-	//ÀÌµ¿¿¬»êÀÚµé
-	FInv_ItemFragment(FInv_ItemFragment&&) = default; // ÀÌµ¿ »ı¼ºÀÚ
-	FInv_ItemFragment& operator=(FInv_ItemFragment&&) = default; // ÀÌµ¿ ÇÒ´ç ¿¬»êÀÚ
+	//ì´ë™ì—°ì‚°ìë“¤
+	FInv_ItemFragment(FInv_ItemFragment&&) = default; // ì´ë™ ìƒì„±ì
+	FInv_ItemFragment& operator=(FInv_ItemFragment&&) = default; // ì´ë™ í• ë‹¹ ì—°ì‚°ì
 
-	virtual ~FInv_ItemFragment() {} // ¼Ò¸êÀÚÀÎµ¥ ¹¹ ¾îÂ÷ÇÇ ´Ù ÇÊ¿äÇÏÀİ¾Æ (´ÙÇü¼º ¼Ò¸êÀÚ)
+	virtual ~FInv_ItemFragment() {} // ì†Œë©¸ìì¸ë° ë­ ì–´ì°¨í”¼ ë‹¤ í•„ìš”í•˜ì–ì•„ (ë‹¤í˜•ì„± ì†Œë©¸ì)
 
-	FGameplayTag GetFragmentTag() const { return FragmentTag; } // Á¶°¢ ÅÂ±× °¡Á®¿À±â
-	void SetFragmentTag(FGameplayTag Tag) { FragmentTag = Tag; } // Á¶°¢ ÅÂ±× ¼³Á¤
+	FGameplayTag GetFragmentTag() const { return FragmentTag; } // ì¡°ê° íƒœê·¸ ê°€ì ¸ì˜¤ê¸°
+	void SetFragmentTag(FGameplayTag Tag) { FragmentTag = Tag; } // ì¡°ê° íƒœê·¸ ì„¤ì •
 private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	FGameplayTag FragmentTag = FGameplayTag::EmptyTag; //Á¶°¢ ÅÂ±×
+	FGameplayTag FragmentTag = FGameplayTag::EmptyTag; //ì¡°ê° íƒœê·¸
 };
 
 USTRUCT(BlueprintType)
@@ -37,17 +37,17 @@ struct FInv_GridFragment : public FInv_ItemFragment
 {
 	GENERATED_BODY()
 
-	FIntPoint GetGridSize() const { return GridSize; } //±×¸®µå Å©±â ¾ò±â
-	void SetGridSize(const FIntPoint& Size) { GridSize = Size; } //±×¸®µå Å©±â ¼³Á¤
-	float GetGridPadding() const { return GridPadding; } //±×¸®µå ÆĞµù ¾ò±â
-	void SetGridPadding(float Padding) { GridPadding = Padding; } //±×¸®µå ÆĞµù ¼³Á¤
+	FIntPoint GetGridSize() const { return GridSize; } //ê·¸ë¦¬ë“œ í¬ê¸° ì–»ê¸°
+	void SetGridSize(const FIntPoint& Size) { GridSize = Size; } //ê·¸ë¦¬ë“œ í¬ê¸° ì„¤ì •
+	float GetGridPadding() const { return GridPadding; } //ê·¸ë¦¬ë“œ íŒ¨ë”© ì–»ê¸°
+	void SetGridPadding(float Padding) { GridPadding = Padding; } //ê·¸ë¦¬ë“œ íŒ¨ë”© ì„¤ì •
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	FIntPoint GridSize{1, 1}; //±×¸®µå Å©±â
+	FIntPoint GridSize{1, 1}; //ê·¸ë¦¬ë“œ í¬ê¸°
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float GridPadding{ 0.f }; //±×¸®µå ÆĞµù
+	float GridPadding{ 0.f }; //ê·¸ë¦¬ë“œ íŒ¨ë”©
 };
 
 USTRUCT(BlueprintType) 
@@ -55,14 +55,14 @@ struct FInv_ImageFragment : public  FInv_ItemFragment
 {
 	GENERATED_BODY()
 
-	UTexture2D* GetIcon() const { return Icon; } //¾ÆÀÌÄÜ ÅØ½ºÃ³ ¾ò±â
+	UTexture2D* GetIcon() const { return Icon; } //ì•„ì´ì½˜ í…ìŠ¤ì²˜ ì–»ê¸°
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TObjectPtr<UTexture2D> Icon = nullptr; //¾ÆÀÌÄÜ ÅØ½ºÃ³ {nullptr]µµ Ç¥Çö °¡´É
+	TObjectPtr<UTexture2D> Icon = nullptr; //ì•„ì´ì½˜ í…ìŠ¤ì²˜ {nullptr]ë„ í‘œí˜„ ê°€ëŠ¥
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	FVector2D IconDimensions{ 44.f, 44.f }; //¾ÆÀÌÄÜ Å©±â
+	FVector2D IconDimensions{ 44.f, 44.f }; //ì•„ì´ì½˜ í¬ê¸°
 };
 
 USTRUCT(BlueprintType)
@@ -70,14 +70,14 @@ struct FInv_StackableFragment : public  FInv_ItemFragment
 {
 	GENERATED_BODY()
 
-	int32 GetMaxStackSize() const { return MaxStackSize; } //ÃÖ´ë ¾ÆÀÌÅÛ ½ºÅÃ Å©±â ¾ò±â
-	int32 GetStackCount() const { return StackCount; } //ÃÖ´ë ¾ÆÀÌÅÛ ½ºÅÃ °³¼ö ¾ò±â
-	void SetStackCount(int32 Count) { StackCount = Count; } //ÃÖ´ë ¾ÆÀÌÅÛ ½ºÅÃ °³¼ö ¼³Á¤
+	int32 GetMaxStackSize() const { return MaxStackSize; } //ìµœëŒ€ ì•„ì´í…œ ìŠ¤íƒ í¬ê¸° ì–»ê¸°
+	int32 GetStackCount() const { return StackCount; } //ìµœëŒ€ ì•„ì´í…œ ìŠ¤íƒ ê°œìˆ˜ ì–»ê¸°
+	void SetStackCount(int32 Count) { StackCount = Count; } //ìµœëŒ€ ì•„ì´í…œ ìŠ¤íƒ ê°œìˆ˜ ì„¤ì •
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	int32 MaxStackSize{ 1 }; //ÃÖ´ë ¾ÆÀÌÅÛ ½ºÅÃ Å©±â
+	int32 MaxStackSize{ 1 }; //ìµœëŒ€ ì•„ì´í…œ ìŠ¤íƒ í¬ê¸°
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	int32 StackCount{ 1 }; //ÃÖ´ë ¾ÆÀÌÅÛ ½ºÅÃ °³¼ö
+	int32 StackCount{ 1 }; //ìµœëŒ€ ì•„ì´í…œ ìŠ¤íƒ ê°œìˆ˜
 };

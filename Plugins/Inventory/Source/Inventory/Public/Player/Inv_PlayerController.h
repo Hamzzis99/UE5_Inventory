@@ -22,42 +22,42 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void ToggleInventory(); // ÀÎº¥Åä¸® Åä±Û ÇÔ¼ö
+	void ToggleInventory(); // ì¸ë²¤í† ë¦¬ í† ê¸€ í•¨ìˆ˜
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
 private:
-	//Å° µî·Ïµé?
+	//í‚¤ ë“±ë¡ë“¤?
 	void PrimaryInteract();
-	void CreateHUDWidget(); // À§Á¬ »ı¼º ÇÔ¼ö ¼±¾ğ
-	void TraceForItem(); // ¾ÆÀÌÅÛ µî·Ï
+	void CreateHUDWidget(); // ìœ„ì ¯ ìƒì„± í•¨ìˆ˜ ì„ ì–¸
+	void TraceForItem(); // ì•„ì´í…œ ë“±ë¡
 	
-	//ºí·çÇÁ¸°Æ®¿¡¼­ ÀÎº¥Åä¸® ÄÄÆ÷³ÍÆ®¸¦ ¿­±â À§ÇØ WeakObjectPtr(ÂüÁ¶)¸¦ ¼±¾ğÇß´Ù°í? ÀÌÀ¯°¡ ¹»±î?
+	//ë¸”ë£¨í”„ë¦°íŠ¸ì—ì„œ ì¸ë²¤í† ë¦¬ ì»´í¬ë„ŒíŠ¸ë¥¼ ì—´ê¸° ìœ„í•´ WeakObjectPtr(ì°¸ì¡°)ë¥¼ ì„ ì–¸í–ˆë‹¤ê³ ? ì´ìœ ê°€ ë­˜ê¹Œ?
 	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	TArray<TObjectPtr<UInputMappingContext>> DefaultIMCs; // TArray·ÎºÎÅÍ ´ÜÀÏ Æ÷ÀÎÅÍ¸¦ ¹è¿­È­ ½ÃÄÑ°¡Áö°í ¿©·¯°³ º¹¼ö Æ÷ÀÎÅÍ·Î ¸¸µé ¼ö ÀÖ´Ù! À¸ÇÏÇÏ
+	TArray<TObjectPtr<UInputMappingContext>> DefaultIMCs; // TArrayë¡œë¶€í„° ë‹¨ì¼ í¬ì¸í„°ë¥¼ ë°°ì—´í™” ì‹œì¼œê°€ì§€ê³  ì—¬ëŸ¬ê°œ ë³µìˆ˜ í¬ì¸í„°ë¡œ ë§Œë“¤ ìˆ˜ ìˆë‹¤! ìœ¼í•˜í•˜
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	TObjectPtr<UInputAction> PrimaryInteractAction; // »óÈ£ÀÛ¿ë ¾×¼Ç
+	TObjectPtr<UInputAction> PrimaryInteractAction; // ìƒí˜¸ì‘ìš© ì•¡ì…˜
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	TObjectPtr<UInputAction> ToggleInventoryAction; // ÀÎº¥Åä¸® Å° ´©¸£´Â ¾×¼Ç
+	TObjectPtr<UInputAction> ToggleInventoryAction; // ì¸ë²¤í† ë¦¬ í‚¤ ëˆ„ë¥´ëŠ” ì•¡ì…˜
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	TSubclassOf<UInv_HUDWidget> HUDWidgetClass; // À§Á¬ ¼±¾ğ
+	TSubclassOf<UInv_HUDWidget> HUDWidgetClass; // ìœ„ì ¯ ì„ ì–¸
 
 	UPROPERTY()
-	TObjectPtr<UInv_HUDWidget> HUDWidget; // À§Á¬ ÀÎ½ºÅÏ½º
+	TObjectPtr<UInv_HUDWidget> HUDWidget; // ìœ„ì ¯ ì¸ìŠ¤í„´ìŠ¤
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")	
-	double TraceLength; // ÃßÀû ±æÀÌ
+	double TraceLength; // ì¶”ì  ê¸¸ì´
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")	
-	TEnumAsByte<ECollisionChannel> ItemTraceChannel; // ÃßÀû Ã¤³Î? Ãæµ¿ Ã¤³Î? ¿Ö ±»ÀÌ EnumÀ» ¾²´ÂÁö º¸ÀÚ
+	TEnumAsByte<ECollisionChannel> ItemTraceChannel; // ì¶”ì  ì±„ë„? ì¶©ë™ ì±„ë„? ì™œ êµ³ì´ Enumì„ ì“°ëŠ”ì§€ ë³´ì
 
-	TWeakObjectPtr<AActor> ThisActor; // °´Ã¼¿¡ ´ëÇÑ Æ÷ÀÎÅÍ´Â À¯ÁöÇÏÁö¸¸ °¡ºñÁö ÄÃ·º¼Ç¿£ ¿µÇâÀº ¾øÀ½
-	TWeakObjectPtr<AActor> LastActor; // ¸¶Áö¸·À¸·Î »óÈ£ÀÛ¿ëÇÑ ¾×ÅÍ
+	TWeakObjectPtr<AActor> ThisActor; // ê°ì²´ì— ëŒ€í•œ í¬ì¸í„°ëŠ” ìœ ì§€í•˜ì§€ë§Œ ê°€ë¹„ì§€ ì»¬ë ‰ì…˜ì—” ì˜í–¥ì€ ì—†ìŒ
+	TWeakObjectPtr<AActor> LastActor; // ë§ˆì§€ë§‰ìœ¼ë¡œ ìƒí˜¸ì‘ìš©í•œ ì•¡í„°
 };
