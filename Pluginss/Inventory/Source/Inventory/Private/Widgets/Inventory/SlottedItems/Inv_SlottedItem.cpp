@@ -1,4 +1,5 @@
-// Gihyeon's Inventory Project
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
 
 #include "Widgets/Inventory/SlottedItems/Inv_SlottedItem.h"
 #include "Items/Inv_InventoryItem.h"
@@ -8,8 +9,8 @@
 
 FReply UInv_SlottedItem::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
-	OnSlottedItemClicked.Broadcast(GridIndex, MouseEvent); // 슬롯 아이템 클릭 델리게이트 브로드캐스트
-	return FReply::Handled(); // 이벤트가 처리되었음을 나타내는 FReply 반환
+	OnSlottedItemClicked.Broadcast(GridIndex, MouseEvent);
+	return FReply::Handled();
 }
 
 void UInv_SlottedItem::SetInventoryItem(UInv_InventoryItem* Item)
@@ -22,7 +23,7 @@ void UInv_SlottedItem::SetImageBrush(const FSlateBrush& Brush) const
 	Image_Icon->SetBrush(Brush);
 }
 
-void UInv_SlottedItem::UpdateStackCount(int32 StackCount) // 아이템 텍스트 스택 업데이트 부분
+void UInv_SlottedItem::UpdateStackCount(int32 StackCount)
 {
 	if (StackCount > 0)
 	{

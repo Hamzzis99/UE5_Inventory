@@ -606,10 +606,10 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 	}
 	
 	// 호버아이템이 넘어간다면?
-	
-		// 호버 된 항목과 (클릭된) 인벤토리 항목이 유형을 공유하고, 쌓을 수 있는가?
-		// Do the hovered item and the clicked inventory item share a type, and are they Stackable?
-		
+	// 호버 된 항목과 (클릭된) 인벤토리 항목이 유형을 공유하고, 쌓을 수 있는가?
+	// Do the hovered item and the clicked inventory item share a type, and are they Stackable?
+	if (IsSameStackable(ClickedInventoryItem))
+	{
 		// 호버 아이템의 스택을 소모해야 하는가?
 		// Should we consume the hover item's stacks?
 	
@@ -618,9 +618,11 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 	
 		// 만약 누를 공간(슬롯)이 없다면?
 		// Is there no room in the clicked slot?
-	
+		return;
+	}
 	// 호버 아이템과 교체(Swap)하기
 	// Sawp with the hover item.
+	SwapWithHoverItem(ClickedInventoryItem, GridIndex);
 }
 
 // 인벤토리 스택 쌓는 부분.
@@ -719,7 +721,7 @@ void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int3
 	}
 
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment); // 그리드 조각 가져오기
-	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1,1); // 그리드 크기 가져오기
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1); // 그리드 크기 가져오기
 
 	//2D 격자 순회하면서 그리드 슬롯 업데이트
 	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot) // [&] 이건 뭔데?
@@ -830,6 +832,30 @@ UUserWidget* UInv_InventoryGrid::GetHiddenCursorWidget()
 		HiddenCursorWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), HiddenCursorWidgetClass); // 컨트롤러 플레이어에 의해 활성화 될 것.
 	}
 	return HiddenCursorWidget;
+}
+
+bool UInv_InventoryGrid::IsSameStackable(const UInv_InventoryItem* ClickedInventoryItem) const
+{
+	const bool bIsSameItem = ClickedInventoryItem == HoverItem->GetInventoryItem();
+	const bool bIsStackable = ClickedInventoryItem->IsStackable();
+	return bIsSameItem && bIsStackable && HoverItem->GetItemType().MatchesTagExact(ClickedInventoryItem->GetItemManifest().GetItemType());
+}
+
+void UInv_InventoryGrid::SwapWithHoverItem(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex)
+{
+	if (!IsValid(HoverItem)) return; // 호버 아이템이 유효하다면 리턴
+	
+	// 임시로 저장해서 할당하는 이유가 뭘까?
+	UInv_InventoryItem* TempInventoryItem = HoverItem->GetInventoryItem(); // 호버 아이템 임시 저장
+	const int32 TempStackCount = HoverItem->GetStackCount(); // 호버 아이템 스택 수 임시 저장
+	const bool bTempIsStackable = HoverItem->IsStackable(); // 호버 아이템 스택 가능 여부 임시 저장
+	
+	// 이전 격자 인덱스를 유지시켜야 하는 부분.
+	// Keep the same previous grid index.
+	AssignHoverItem(ClickedInventoryItem, GridIndex, HoverItem->GetPreviousGridIndex()); // 클릭된 아이템을 호버 아이템으로 할당
+	RemoveItemFromGrid(ClickedInventoryItem, GridIndex); // 그리드에서 클릭된 아이템 제거
+	AddItemAtIndex(TempInventoryItem, ItemDropIndex, bTempIsStackable, TempStackCount); // 임시 저장된 아이템을 인덱스에 추가
+	UpdateGridSlots(TempInventoryItem, ItemDropIndex, bTempIsStackable, TempStackCount); // 그리드 슬롯 업데이트
 }
 
 
