@@ -12,7 +12,7 @@ void UInv_HoverItem::SetImageBrush(const FSlateBrush& Brush) const
 
 void UInv_HoverItem::UpdateStackCount(const int32 Count)
 {
-	StackCount = Count;
+	StackCount = Count; // 호버 되었을 때 할당 카운트를 세는 것.?
 	if (Count > 0)
 	{
 		Text_StackCount->SetText(FText::AsNumber(Count));

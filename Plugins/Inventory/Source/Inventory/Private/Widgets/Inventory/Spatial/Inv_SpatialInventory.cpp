@@ -16,12 +16,12 @@ void UInv_SpatialInventory::NativeOnInitialized()
 	Button_Equippables->OnClicked.AddDynamic(this, &ThisClass::ShowEquippables);
 	Button_Consumables->OnClicked.AddDynamic(this, &ThisClass::ShowConsumables);
 	Button_Craftables->OnClicked.AddDynamic(this, &ThisClass::ShowCraftables);
-	Button_Builds->OnClicked.AddDynamic(this, &ThisClass::ShowBuilds); // ºôµå ºÎºÐ ³»°¡ ¸¸µç °Í.
+	Button_Builds->OnClicked.AddDynamic(this, &ThisClass::ShowBuilds); // ë¹Œë“œ ë¶€ë¶„ ë‚´ê°€ ë§Œë“  ê²ƒ.
 
-	ShowEquippables(); // ±âº»°ªÀ¸·Î ÀåºñÃ¢À» º¸¿©ÁÖÀÚ.
+	ShowEquippables(); // ê¸°ë³¸ê°’ìœ¼ë¡œ ìž¥ë¹„ì°½ì„ ë³´ì—¬ì£¼ìž.
 }
 
-FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemComponent* ItemComponent) const // ¾ÆÀÌÅÛ ÄÄÆ÷³ÍÆ®°¡ ÀÖ´ÂÁö È®ÀÎ
+FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemComponent* ItemComponent) const // ì•„ì´í…œ ì»´í¬ë„ŒíŠ¸ê°€ ìžˆëŠ”ì§€ í™•ì¸
 {
 	switch (UInv_InventoryStatics::GetItemCategoryFromItemComp(ItemComponent))
 	{
@@ -33,7 +33,7 @@ FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemCompo
 		return Grid_Craftables->HasRoomForItem(ItemComponent);
 	default:
 		UE_LOG(LogInventory, Error, TEXT("ItemComponent doesn't have a valid Item Category. (inventory.h)"))
-			return FInv_SlotAvailabilityResult(); // ºó °á°ú ¹ÝÈ¯
+			return FInv_SlotAvailabilityResult(); // ë¹ˆ ê²°ê³¼ ë°˜í™˜
 	}
 }
 
@@ -57,7 +57,7 @@ void UInv_SpatialInventory::ShowBuilds()
 	SetActiveGrid(Grid_Builds, Button_Builds);
 }
 
-//¸®ÆåÅä¸µÀ» ÀÌ·¸°Ô ÇÏ³× ½Å±âÇÏ´Ù.
+//ë¦¬íŽ™í† ë§ì„ ì´ë ‡ê²Œ í•˜ë„¤ ì‹ ê¸°í•˜ë‹¤.
 void UInv_SpatialInventory::DisableButton(UButton* Button)
 {
 	Button_Equippables->SetIsEnabled(true);
@@ -67,9 +67,12 @@ void UInv_SpatialInventory::DisableButton(UButton* Button)
 	Button->SetIsEnabled(false);
 }
 
-void UInv_SpatialInventory::SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button)
+// ê·¸ë¦¬ë“œê°€ í™œì„± ë˜ë©´ ë“±ìž¥í•˜ëŠ” ê²ƒë“¤.
+void UInv_SpatialInventory::SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button) 
 {
+	if (ActiveGrid.IsValid()) ActiveGrid->HideCursor();
+	ActiveGrid = Grid;
+	if (ActiveGrid.IsValid()) ActiveGrid->ShowCursor();
 	DisableButton(Button);
-
 	Switcher->SetActiveWidget(Grid);
 }

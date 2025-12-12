@@ -794,7 +794,42 @@ void UInv_InventoryGrid::ClearHoverItem() // 호버(잡는모션) 아이템 초�
 	HoverItem->RemoveFromParent(); // 호버 아이템을 부모에서 제거
 	HoverItem = nullptr; // 호버 아이템 포인터 초기화
 
-	// TODO : Show Mouse Cursor (마우스 커서 보이게 하기)
+	// 마우스 커서 보이게 하기
+	ShowCursor();
+}
+
+UUserWidget* UInv_InventoryGrid::GetVisibleCursorWidget()
+{
+	if (!IsValid(GetOwningPlayer())) return nullptr;
+	if (!IsValid(VisibleCursorWidget)) // 유효한 커서 위젯이 아닐 시
+	{ 
+		VisibleCursorWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), VisibleCursorWidgetClass); // 컨트롤러 플레이어에 의해 활성화 될 것.
+	}
+	return VisibleCursorWidget;
+}
+
+UUserWidget* UInv_InventoryGrid::GetHiddenCursorWidget()
+{
+	if (!IsValid(GetOwningPlayer())) return nullptr;
+	if (!IsValid(HiddenCursorWidget)) // 유효한 커서 위젯이 아닐 시
+	{ 
+		HiddenCursorWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), HiddenCursorWidgetClass); // 컨트롤러 플레이어에 의해 활성화 될 것.
+	}
+	return HiddenCursorWidget;
+}
+
+
+// 마우스 커서 켜기 끄기 함수들
+void UInv_InventoryGrid::ShowCursor()
+{
+	if (!IsValid(GetOwningPlayer())) return;
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, GetVisibleCursorWidget()); // 마우스 커서 위젯 설정
+}
+
+void UInv_InventoryGrid::HideCursor()
+{
+	if (!IsValid(GetOwningPlayer())) return;
+	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, GetHiddenCursorWidget()); // 마우스 커서 위젯 설정
 }
 
 void UInv_InventoryGrid::OnGridSlotHovered(int32 GridIndex, const FPointerEvent& MouseEvent)

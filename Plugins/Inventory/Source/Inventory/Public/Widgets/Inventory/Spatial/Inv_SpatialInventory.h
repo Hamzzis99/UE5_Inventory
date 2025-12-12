@@ -66,7 +66,6 @@ private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함
 	void ShowBuilds();
 
 	void DisableButton(UButton* Button);
-
 	void SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button);
-
+	TWeakObjectPtr<UInv_InventoryGrid> ActiveGrid; // 활성 그리드가 생기면 늘 활성해주느 ㄴ함수.
 };

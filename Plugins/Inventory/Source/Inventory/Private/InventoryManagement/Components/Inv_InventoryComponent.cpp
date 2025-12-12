@@ -11,74 +11,74 @@
 UInv_InventoryComponent::UInv_InventoryComponent() : InventoryList(this)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	SetIsReplicatedByDefault(true); // ±âº»ÀûÀ¸·Î º¹Á¦ ¼³Á¤
-	bReplicateUsingRegisteredSubObjectList = true; // µî·ÏµÈ ÇÏÀ§ °´Ã¼ ¸ñ·ÏÀ» »ç¿ëÇÏ¿© º¹Á¦ ¼³Á¤
-	bInventoryMenuOpen = false;	// ÀÎº¥Åä¸® ¸Ş´º°¡ ¿­·ÁÀÖ´ÂÁö ¿©ºÎ ÃÊ±âÈ­
+	SetIsReplicatedByDefault(true); // ê¸°ë³¸ì ìœ¼ë¡œ ë³µì œ ì„¤ì •
+	bReplicateUsingRegisteredSubObjectList = true; // ë“±ë¡ëœ í•˜ìœ„ ê°ì²´ ëª©ë¡ì„ ì‚¬ìš©í•˜ì—¬ ë³µì œ ì„¤ì •
+	bInventoryMenuOpen = false;	// ì¸ë²¤í† ë¦¬ ë©”ë‰´ê°€ ì—´ë ¤ìˆëŠ”ì§€ ì—¬ë¶€ ì´ˆê¸°í™”
 }
 
-void UInv_InventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const // º¹Á¦ ¼Ó¼º ¼³Á¤ ÇÔ¼ö
+void UInv_InventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const // ë³µì œ ì†ì„± ì„¤ì • í•¨ìˆ˜
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, InventoryList); // ÀÎº¥Åä¸® ¸ñ·Ï º¹Á¦ ¼³Á¤
+	DOREPLIFETIME(ThisClass, InventoryList); // ì¸ë²¤í† ë¦¬ ëª©ë¡ ë³µì œ ì„¤ì •
 }
 
 void UInv_InventoryComponent::TryAddItem(UInv_ItemComponent* ItemComponent)
 {
-	FInv_SlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent); // ÀÎº¥Åä¸®¿¡ ¾ÆÀÌÅÛÀ» Ãß°¡ÇÒ ¼ö ÀÖ´ÂÁö È®ÀÎÇÏ´Â ºÎºĞ.
+	FInv_SlotAvailabilityResult Result = InventoryMenu->HasRoomForItem(ItemComponent); // ì¸ë²¤í† ë¦¬ì— ì•„ì´í…œì„ ì¶”ê°€í•  ìˆ˜ ìˆëŠ”ì§€ í™•ì¸í•˜ëŠ” ë¶€ë¶„.
 
-	UInv_InventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemComponent->GetItemManifest().GetItemType()); // µ¿ÀÏÇÑ À¯ÇüÀÇ ¾ÆÀÌÅÛÀÌ ÀÌ¹Ì ÀÖ´ÂÁö È®ÀÎÇÏ´Â ºÎºĞ.
-	Result.Item = FoundItem; // Ã£Àº ¾ÆÀÌÅÛÀ» °á°ú¿¡ ¼³Á¤.
+	UInv_InventoryItem* FoundItem = InventoryList.FindFirstItemByType(ItemComponent->GetItemManifest().GetItemType()); // ë™ì¼í•œ ìœ í˜•ì˜ ì•„ì´í…œì´ ì´ë¯¸ ìˆëŠ”ì§€ í™•ì¸í•˜ëŠ” ë¶€ë¶„.
+	Result.Item = FoundItem; // ì°¾ì€ ì•„ì´í…œì„ ê²°ê³¼ì— ì„¤ì •.
 
 	if (Result.TotalRoomToFill == 0)
 	{
-		NoRoomInInventory.Broadcast(); // ³ª ÀÎº¥Åä¸® ²ËÃ¡¾î! ÀÌ°É ¾Ë·ÁÁÖ´Â°Å¾ß! ¹æ¼Û »ß¿ë»ß¿ë ¸ğµÎ ¾Ë¾ÆµÖ¶ó!
+		NoRoomInInventory.Broadcast(); // ë‚˜ ì¸ë²¤í† ë¦¬ ê½‰ì°¼ì–´! ì´ê±¸ ì•Œë ¤ì£¼ëŠ”ê±°ì•¼! ë°©ì†¡ ì‚ìš©ì‚ìš© ëª¨ë‘ ì•Œì•„ë‘¬ë¼!
 		return;
 	}
-	// TODO : ½ÇÁ¦·Î ÀÎº¥Åä¸®¿¡ Ãß°¡ÇÏ´Â ºÎºĞÀ» ¸¸µé °Í. (ÀÏ´Ü ³ªÁß¿¡)
+	// TODO : ì‹¤ì œë¡œ ì¸ë²¤í† ë¦¬ì— ì¶”ê°€í•˜ëŠ” ë¶€ë¶„ì„ ë§Œë“¤ ê²ƒ. (ì¼ë‹¨ ë‚˜ì¤‘ì—)
 
-	// ¾ÆÀÌÅÛ ½ºÅÃ °¡´É Á¤º¸¸¦ Àü´ŞÇÏ´Â °Í? ¼­¹ö RPC·Î ÇØº¸ÀÚ.
-	if (Result.Item.IsValid() && Result.bStackable) // À¯È¿ÇÑÁö °Ë»çÇÏ´Â ÀÛ¾÷. ½×À» ¼ö ÀÖ´Ù¸é ´ÙÀ½ ºÎºĞµéÀ» ÁøÇà.
+	// ì•„ì´í…œ ìŠ¤íƒ ê°€ëŠ¥ ì •ë³´ë¥¼ ì „ë‹¬í•˜ëŠ” ê²ƒ? ì„œë²„ RPCë¡œ í•´ë³´ì.
+	if (Result.Item.IsValid() && Result.bStackable) // ìœ íš¨í•œì§€ ê²€ì‚¬í•˜ëŠ” ì‘ì—…. ìŒ“ì„ ìˆ˜ ìˆë‹¤ë©´ ë‹¤ìŒ ë¶€ë¶„ë“¤ì„ ì§„í–‰.
 	{
-		// ÀÌ¹Ì Á¸ÀçÇÏ´Â ¾ÆÀÌÅÛ¿¡ ½ºÅÃÀ» Ãß°¡ÇÏ´Â ºÎºĞ. 
-		// ½½·Ô °¡´É ¿©ºÎ °á°ú¸¦ ¹æ¼ÛÇÒ À§ÀÓÀÚ¸¦ ¸¸µé±â (Broadcast)
+		// ì´ë¯¸ ì¡´ì¬í•˜ëŠ” ì•„ì´í…œì— ìŠ¤íƒì„ ì¶”ê°€í•˜ëŠ” ë¶€ë¶„. 
+		// ìŠ¬ë¡¯ ê°€ëŠ¥ ì—¬ë¶€ ê²°ê³¼ë¥¼ ë°©ì†¡í•  ìœ„ì„ìë¥¼ ë§Œë“¤ê¸° (Broadcast)
 		// Add stacks to an item that already exists in the inventory. We only want to update the stack count,
 		// not create a new item of this type.
-		OnStackChange.Broadcast(Result); // ½ºÅÃ º¯°æ »çÇ× ¹æ¼Û
-		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder); // ¾ÆÀÌÅÛÀ» Ãß°¡ÇÏ´Â ºÎºĞ.
+		OnStackChange.Broadcast(Result); // ìŠ¤íƒ ë³€ê²½ ì‚¬í•­ ë°©ì†¡
+		Server_AddStacksToItem(ItemComponent, Result.TotalRoomToFill, Result.Remainder); // ì•„ì´í…œì„ ì¶”ê°€í•˜ëŠ” ë¶€ë¶„.
 	}
-	// ¼­¹ö¿¡¼­ ¾ÆÀÌÅÛ µî·Ï ¿ì¿Í.... ÀÚ»ìÇÏ°í ½Í¾îÁø´Ù.
+	// ì„œë²„ì—ì„œ ì•„ì´í…œ ë“±ë¡ ìš°ì™€.... ìì‚´í•˜ê³  ì‹¶ì–´ì§„ë‹¤.
 	else if (Result.TotalRoomToFill > 0)
 	{
 		// This item type dosen't exist in the inventory. Create a new one and update all partient slots.
-		Server_AddNewItem(ItemComponent, Result.bStackable ?  Result.TotalRoomToFill : 0); //½×À» ¼ö ÀÖ´Ù¸é Ã¤¿ï ¼ö ÀÖ´Â °ø°£ ÀÌ·± ¹®¹ıÀº ¶Ç Ã³À½ º¸³×
+		Server_AddNewItem(ItemComponent, Result.bStackable ?  Result.TotalRoomToFill : 0); //ìŒ“ì„ ìˆ˜ ìˆë‹¤ë©´ ì±„ìš¸ ìˆ˜ ìˆëŠ” ê³µê°„ ì´ëŸ° ë¬¸ë²•ì€ ë˜ ì²˜ìŒ ë³´ë„¤
 	}
 }
 
-void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount) // ¼­¹ö¿¡¼­ »õ·Î¿î ¾ÆÀÌÅÛ Ãß°¡ ±¸Çö
+void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount) // ì„œë²„ì—ì„œ ìƒˆë¡œìš´ ì•„ì´í…œ ì¶”ê°€ êµ¬í˜„
 {
-	UInv_InventoryItem* NewItem = InventoryList.AddEntry(ItemComponent); // ¿©±â¼­ ¾ÆÀÌÅÛÀ»Á¤»óÀûÀ¸·Î Áİ°Ô µÈ´Ù¸é? Ãß°¡¸¦ ÇÑ´Ù.
+	UInv_InventoryItem* NewItem = InventoryList.AddEntry(ItemComponent); // ì—¬ê¸°ì„œ ì•„ì´í…œì„ì •ìƒì ìœ¼ë¡œ ì¤ê²Œ ëœë‹¤ë©´? ì¶”ê°€ë¥¼ í•œë‹¤.
 	NewItem->SetTotalStackCount(StackCount);
 
-	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone) // ÀÌ ºÎºĞÀÌ º¹Á¦ÇÒ Å¬¶óÀÌ¾ğÆ®°¡ ¾ø±â ¶§¹®¿¡ ¹è¿­ º¹Á¦ ¾È µÇ´Â °Å (µ¥µğ ¼­¹ö·Î º¯°æÇÒ ¶§ Âü°íÇØ¶ó)
+	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone) // ì´ ë¶€ë¶„ì´ ë³µì œí•  í´ë¼ì´ì–¸íŠ¸ê°€ ì—†ê¸° ë•Œë¬¸ì— ë°°ì—´ ë³µì œ ì•ˆ ë˜ëŠ” ê±° (ë°ë”” ì„œë²„ë¡œ ë³€ê²½í•  ë•Œ ì°¸ê³ í•´ë¼)
 	{
 		OnItemAdded.Broadcast(NewItem);
 	}
 
-	// ¾ÆÀÌÅÛÀ» Á¤»óÀûÀ¸·Î Áİ°Ô µÇ¸é ³²¾ÆÀÖ´Â ¹Ù±ù¿¡ÀÖ´Â ¹°°ÇÀº Áö¿öÁÖ±â!
+	// ì•„ì´í…œì„ ì •ìƒì ìœ¼ë¡œ ì¤ê²Œ ë˜ë©´ ë‚¨ì•„ìˆëŠ” ë°”ê¹¥ì—ìˆëŠ” ë¬¼ê±´ì€ ì§€ì›Œì£¼ê¸°!
 	ItemComponent->PickedUp();
 }
 
-void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder) // ¼­¹ö¿¡¼­ ¾ÆÀÌÅÛ ½ºÅÃ °³¼ö¸¦ ¼¼¾îÁÖ´Â ¿ªÇÒ.
+void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemComponent* ItemComponent, int32 StackCount, int32 Remainder) // ì„œë²„ì—ì„œ ì•„ì´í…œ ìŠ¤íƒ ê°œìˆ˜ë¥¼ ì„¸ì–´ì£¼ëŠ” ì—­í• .
 {
-	const FGameplayTag& ItemType = IsValid(ItemComponent) ? ItemComponent->GetItemManifest().GetItemType() : FGameplayTag::EmptyTag; // ¾ÆÀÌÅÛ À¯Çü °¡Á®¿À±â
-	UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(ItemType); // µ¿ÀÏÇÑ À¯ÇüÀÇ ¾ÆÀÌÅÛ Ã£±â
+	const FGameplayTag& ItemType = IsValid(ItemComponent) ? ItemComponent->GetItemManifest().GetItemType() : FGameplayTag::EmptyTag; // ì•„ì´í…œ ìœ í˜• ê°€ì ¸ì˜¤ê¸°
+	UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(ItemType); // ë™ì¼í•œ ìœ í˜•ì˜ ì•„ì´í…œ ì°¾ê¸°
 	if (!IsValid(Item)) return;
 
-	//¾ÆÀÌÅÛ ½ºÅÃ¼ö ºÒ·¯¿À±â (ÀÌ¹Ì ÀÖ´Â Ç×¸ñ¿¡ Ãß°¡·Î µî·Ï)
+	//ì•„ì´í…œ ìŠ¤íƒìˆ˜ ë¶ˆëŸ¬ì˜¤ê¸° (ì´ë¯¸ ìˆëŠ” í•­ëª©ì— ì¶”ê°€ë¡œ ë“±ë¡)
 	Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
 
-	//0°¡ µÇ¸é ¾ÆÀÌÅÛ ÆÄ±«ÇÏ´Â ºÎºĞ
+	//0ê°€ ë˜ë©´ ì•„ì´í…œ íŒŒê´´í•˜ëŠ” ë¶€ë¶„
 	//TODO : Destroy the item if the Remainder is zero.
 	// Otherwise, update the stack count for the item pickup.
 
@@ -107,9 +107,9 @@ void UInv_InventoryComponent::ToggleInventoryMenu()
 void UInv_InventoryComponent::AddRepSubObj(UObject* SubObj)
 
 {
-	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && IsValid(SubObj)) // º¹Á¦ ÁØºñ°¡ µÇ¾ú´ÂÁö È®ÀÎ
+	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && IsValid(SubObj)) // ë³µì œ ì¤€ë¹„ê°€ ë˜ì—ˆëŠ”ì§€ í™•ì¸
 	{
-		AddReplicatedSubObject(SubObj); // º¹Á¦µÈ ÇÏÀ§ °´Ã¼ Ãß°¡
+		AddReplicatedSubObject(SubObj); // ë³µì œëœ í•˜ìœ„ ê°ì²´ ì¶”ê°€
 	}
 	AddReplicatedSubObject(SubObj);
 }
@@ -125,20 +125,20 @@ void UInv_InventoryComponent::BeginPlay()
 }
 
 
-//ÀÎº¥Åä¸® ¸Ş´º À§Á¬ »ı¼º ÇÔ¼ö
+//ì¸ë²¤í† ë¦¬ ë©”ë‰´ ìœ„ì ¯ ìƒì„± í•¨ìˆ˜
 void UInv_InventoryComponent::ConstructInventory()
 {
 	OwningController = Cast<APlayerController>(GetOwner());
 	checkf(OwningController.IsValid(), TEXT("Inventory Component should have a Player Controller as Owner."))
 	if (!OwningController->IsLocalController()) return;
 
-	//ºí·çÇÁ¸°ÅÍ À§Á¬ Å¬·¡½º°¡ ¼³Á¤µÇ¾î ÀÖ´ÂÁö È®ÀÎ
+	//ë¸”ë£¨í”„ë¦°í„° ìœ„ì ¯ í´ë˜ìŠ¤ê°€ ì„¤ì •ë˜ì–´ ìˆëŠ”ì§€ í™•ì¸
 	InventoryMenu = CreateWidget<UInv_InventoryBase>(OwningController.Get(), InventoryMenuClass);
 	InventoryMenu->AddToViewport();
 	CloseInventoryMenu();
 }
 
-//ÀÎº¥Åä¸® ¸Ş´º ¿­±â/´İ±â ÇÔ¼ö
+//ì¸ë²¤í† ë¦¬ ë©”ë‰´ ì—´ê¸°/ë‹«ê¸° í•¨ìˆ˜
 void UInv_InventoryComponent::OpenInventoryMenu()
 {
 	if (!IsValid(InventoryMenu)) return;

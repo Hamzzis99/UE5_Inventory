@@ -33,6 +33,9 @@ public:
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; }
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent); // 아이템을 위한 공간이 있는지 확인
 
+	void ShowCursor();
+	void HideCursor();
+	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item); // 아이템 추가
 
@@ -98,7 +101,22 @@ private:
 	void ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState);
 	void PutDownOnIndex(const int32 Index); // 인덱스에 내려놓기
 	void ClearHoverItem(); // 호버 아이템 지우기
+	UUserWidget* GetVisibleCursorWidget(); // 마우스 커서 보이게 하는 함수
+	UUserWidget* GetHiddenCursorWidget(); // 마우스 커서 비활성화 하는 함수
 
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UUserWidget> VisibleCursorWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UUserWidget> HiddenCursorWidgetClass;
+	
+	UPROPERTY()
+	TObjectPtr<UUserWidget> VisibleCursorWidget; // 마우스 커서 위젯
+	
+	UPROPERTY()
+	TObjectPtr<UUserWidget> HiddenCursorWidget; // 마우스 커서 숨겨진 것
+	
 	UFUNCTION()
 	void AddStacks(const FInv_SlotAvailabilityResult& Result);
 
