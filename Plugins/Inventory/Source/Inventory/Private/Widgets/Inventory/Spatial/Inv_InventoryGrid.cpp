@@ -599,10 +599,28 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 	//호버 항목으로 설정한다. 좌클릭으로.
 	if (!IsValid(HoverItem) && IsLeftClick(MouseEvent))
 	{
-		// TODO : Pickup - 호버 항목을 지정하고 그리드에서 슬롯이 있는 항목을 제거하는 부분을 구현하자.
-		// TODO: PickUp - Assign the hover item, and remove the slotted item from the grid.
+		// 호버 항목을 지정하고 그리드에서 슬롯이 있는 항목을 제거하는 부분을 구현하자.
+		// Assign the hover item, and remove the slotted item from the grid.
 		PickUp(ClickedInventoryItem, GridIndex);
+		return;
 	}
+	
+	// 호버아이템이 넘어간다면?
+	
+		// 호버 된 항목과 (클릭된) 인벤토리 항목이 유형을 공유하고, 쌓을 수 있는가?
+		// Do the hovered item and the clicked inventory item share a type, and are they Stackable?
+		
+		// 호버 아이템의 스택을 소모해야 하는가?
+		// Should we consume the hover item's stacks?
+	
+		// 클릭된 아이템의 스택을 채워야 하는가? (그리고 호버 아이템은 소모하지 않는가?)
+		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
+	
+		// 만약 누를 공간(슬롯)이 없다면?
+		// Is there no room in the clicked slot?
+	
+	// 호버 아이템과 교체(Swap)하기
+	// Sawp with the hover item.
 }
 
 // 인벤토리 스택 쌓는 부분.
@@ -758,14 +776,10 @@ void UInv_InventoryGrid::OnGridSlotClicked(int32 GridIndex, const FPointerEvent&
 		OnSlottedItemClicked(CurrentQueryResult.UpperLeftIndex, MouseEvent); // 유효한 인덱스를 확인한 후 픽업 실행.
 		return;
 	}
-
-
-
+	
 	auto GridSlot = GridSlots[ItemDropIndex];
-
 	if (!GridSlot->GetInventoryItem().IsValid()) // 그리드 슬롯에 아이템이 없다면
 	{
-		// TODO: Put item down at this index.
 		// 아이템을 내려놓을 시 일어나는 이벤트.
 		PutDownOnIndex(ItemDropIndex);
 	}
