@@ -610,18 +610,19 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 	// Do the hovered item and the clicked inventory item share a type, and are they Stackable?
 	if (IsSameStackable(ClickedInventoryItem))
 	{
-		// 호버 아이템의 스택을 소모해야 하는가?
-		// Should we consume the hover item's stacks?
-		const int32 ClickedStackCount = GridSlots[GridIndex]->GetStackCount();
-		const FInv_StackableFragment* StackableFragment = ClickedInventoryItem->GetItemManifest().GetFragmentOfType<FInv_StackableFragment>();
-		const int32 MaxStackSize = StackableFragment->GetMaxStackSize();
-		const int32 RoomInClickedSlot = MaxStackSize - ClickedStackCount;
-		const int32 HoveredStackCount = HoverItem->GetStackCount();
+		// 호버 아이템의 스택을 소모해야 하는가? 선택한 스롯에 여우 공간이 없으면
+		// Should we consume the hover item's stacks? (Room in the clicked slot == 0 && HoveredStackCound < MaxStackSize)
+		const int32 ClickedStackCount = GridSlots[GridIndex]->GetStackCount(); // 클릭된 슬롯의 스택 수
+		const FInv_StackableFragment* StackableFragment = ClickedInventoryItem->GetItemManifest().GetFragmentOfType<FInv_StackableFragment>(); // 그리드의 최대스택 쌓을 수 있는지 얻기 위해
+		const int32 MaxStackSize = StackableFragment->GetMaxStackSize(); // 최대 쌓기 스택을 얻기 위한 것
+		const int32 RoomInClickedSlot = MaxStackSize - ClickedStackCount; // 클릭된 슬롯의 남은 공간 계산
+		const int32 HoveredStackCount = HoverItem->GetStackCount(); // 호버된 아이템의 스택 수
 		
 		// Should we swap their stack counts? (Room in the clicked slot == 0 && HoveredStackCount < MaxStackSize)
-		if (ShouldSwapStackCounts(RoomInClickedSlot, HoveredStackCount, MaxStackSize))
+		if (ShouldSwapStackCounts(RoomInClickedSlot, HoveredStackCount, MaxStackSize)) // 스택 수를 교체할 수 있는지 확인하는 것  
 		{
 			// TODO: Swap Stack Counts
+			// 스택 교체 수
 		}
 		
 		// 클릭된 아이템의 스택을 채워야 하는가? (그리고 호버 아이템은 소모하지 않는가?)
@@ -871,7 +872,7 @@ void UInv_InventoryGrid::SwapWithHoverItem(UInv_InventoryItem* ClickedInventoryI
 
 bool UInv_InventoryGrid::ShouldSwapStackCounts(const int32 RoomInClickedSlot, const int32 HoveredStackCount, const int32 MaxStackSize) const
 {
-	return RoomInClickedSlot == 0 && HoveredStackCount < MaxStackSize;
+	return RoomInClickedSlot == 0 && HoveredStackCount < MaxStackSize; // 스택 개수가 최대 스택 크기보다 작으면?
 }
 
 // 마우스 커서 켜기 끄기 함수들
