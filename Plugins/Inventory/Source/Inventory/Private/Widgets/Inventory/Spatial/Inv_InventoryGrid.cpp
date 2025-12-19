@@ -622,12 +622,15 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 		if (ShouldSwapStackCounts(RoomInClickedSlot, HoveredStackCount, MaxStackSize)) // 스택 수를 교체할 수 있는지 확인하는 것  
 		{
 			// TODO: Swap Stack Counts
-			// 스택 교체 수
+			// 스택 교체 부분
+			SwapStackCounts(ClickedStackCount, HoveredStackCount, GridIndex); // 스택 수 교체 함수
+			
 		}
 		
+		// Should we consume the hover item's stacks?
+		// 호버 아이템의 스택을 소모해야 하는 것일까?
 		// 클릭된 아이템의 스택을 채워야 하는가? (그리고 호버 아이템은 소모하지 않는가?)
 		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
-	
 		// 만약 누를 공간(슬롯)이 없다면?
 		// Is there no room in the clicked slot?
 		return;
@@ -873,6 +876,17 @@ void UInv_InventoryGrid::SwapWithHoverItem(UInv_InventoryItem* ClickedInventoryI
 bool UInv_InventoryGrid::ShouldSwapStackCounts(const int32 RoomInClickedSlot, const int32 HoveredStackCount, const int32 MaxStackSize) const
 {
 	return RoomInClickedSlot == 0 && HoveredStackCount < MaxStackSize; // 스택 개수가 최대 스택 크기보다 작으면?
+}
+
+void UInv_InventoryGrid::SwapStackCounts(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index)
+{
+	UInv_GridSlot* GridSlot = GridSlots[Index]; // 그리드 슬롯 가져오기
+	GridSlot->SetStackCount(HoveredStackCount);
+	
+	UInv_SlottedItem* ClickedSlottedItem = SlottedItems.FindChecked(Index); // 클릭된 슬로티드 아이템 가져오기
+	ClickedSlottedItem->UpdateStackCount(HoveredStackCount); // 클릭된 슬로티드 아이템 스택 수 업데이트
+	
+	HoverItem->UpdateStackCount(ClickedStackCount); // 호버 아이템 스택 수 업데이트
 }
 
 // 마우스 커서 켜기 끄기 함수들
