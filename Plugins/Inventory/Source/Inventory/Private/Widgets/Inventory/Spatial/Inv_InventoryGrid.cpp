@@ -627,8 +627,14 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 			
 		}
 		
-		// Should we consume the hover item's stacks?
-		// 호버 아이템의 스택을 소모해야 하는 것일까?
+		// Should we consume the hover item's stacks? (Room in the clicked slot >= HoveredStackCount)
+		// 호버 아이템의 스택을 소모해야 하는 것일까? (아이템을 소모하는 부분)
+		if (ShouldConsumeHoverItemStacks(HoveredStackCount, RoomInClickedSlot))
+		{
+			// TODO: ConsumeHoverItemSatcks
+			ConsumeHoverItemStacks(ClickedStackCount, HoveredStackCount, GridIndex); // 호버 아이템 스택 소모 함수
+		}
+		
 		// 클릭된 아이템의 스택을 채워야 하는가? (그리고 호버 아이템은 소모하지 않는가?)
 		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
 		// 만약 누를 공간(슬롯)이 없다면?
@@ -887,6 +893,30 @@ void UInv_InventoryGrid::SwapStackCounts(const int32 ClickedStackCount, const in
 	ClickedSlottedItem->UpdateStackCount(HoveredStackCount); // 클릭된 슬로티드 아이템 스택 수 업데이트
 	
 	HoverItem->UpdateStackCount(ClickedStackCount); // 호버 아이템 스택 수 업데이트
+}
+
+bool UInv_InventoryGrid::ShouldConsumeHoverItemStacks(const int32 HoveredStackCount, const int32 RoomInClickedSlot) const
+{
+	// 클릭된 슬롯의 남은 공간이 호버된 스택 수보다 크거나 같으면?
+	return RoomInClickedSlot >= HoveredStackCount; 
+}
+
+// 스택을 어떻게 채울지에 대한 구현 부분?
+void UInv_InventoryGrid::ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index)
+{
+	const int32 AmountToTransfer = HoveredStackCount;
+	const int32 NewClickedStackCount = ClickedStackCount + AmountToTransfer;
+	
+	//인덱스 격자 슬롯의 스택 수 확인
+	GridSlots[Index]->SetStackCount(NewClickedStackCount); // 그리드 슬롯 스택 수 업데이트
+	SlottedItems.FindChecked(Index)->UpdateStackCount(NewClickedStackCount); // 슬로티드 아이템 스택 수 업데이트
+	ClearHoverItem(); // 호버 아이템 초기화
+	ShowCursor(); // 마우스 커서 보이게 하기
+	
+	//그리드 조각 일부를 얻을 수 있는 정보
+	const FInv_GridFragment* GridFragment = GridSlots[Index]->GetInventoryItem()->GetItemManifest().GetFragmentOfType<FInv_GridFragment>();
+	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1); // 그리드 크기 가져오기
+	HighlightSlots(Index, Dimensions); // 슬롯 강조 표시 이제 더이상 회색이 아니야!
 }
 
 // 마우스 커서 켜기 끄기 함수들
