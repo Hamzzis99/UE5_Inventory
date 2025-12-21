@@ -698,7 +698,7 @@ void UInv_InventoryGrid::SetSlottedItemImage(const UInv_SlottedItem* SlottedItem
 	SlottedItem->SetImageBrush(Brush); // 슬로티드 아이템에 브러시 설정
 }
 
-void UInv_InventoryGrid::AddItemAtIndex(UInv_InventoryItem* Item, int32 Index, const bool bStackable, const int32 StackAmount)
+void UInv_InventoryGrid::AddItemAtIndex(UInv_InventoryItem* Item, const int32 Index, const bool bStackable, const int32 StackAmount)
 {
 	//격자의 크기를 얻어오자. 게임플레이 태그로 말야
 	// Get Grid Fragment so we know how many grid spaces the item takes.

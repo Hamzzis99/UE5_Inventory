@@ -7,6 +7,7 @@
 #include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Items/Inv_InventoryItem.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
 
 UInv_InventoryComponent::UInv_InventoryComponent() : InventoryList(this)
 {
@@ -105,15 +106,12 @@ void UInv_InventoryComponent::ToggleInventoryMenu()
 }
 
 void UInv_InventoryComponent::AddRepSubObj(UObject* SubObj)
-
 {
 	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && IsValid(SubObj)) // 복제 준비가 되었는지 확인
 	{
 		AddReplicatedSubObject(SubObj); // 복제된 하위 객체 추가
 	}
-	AddReplicatedSubObject(SubObj);
 }
-
 
 // Called when the game starts
 void UInv_InventoryComponent::BeginPlay()
@@ -145,8 +143,8 @@ void UInv_InventoryComponent::OpenInventoryMenu()
 
 	InventoryMenu->SetVisibility(ESlateVisibility::Visible);
 	bInventoryMenuOpen = true;
-	
-	if (!OwningController->IsValidLowLevel()) return;
+
+	if (!OwningController.IsValid()) return;
 
 	FInputModeGameAndUI InputMode;
 	OwningController->SetInputMode(InputMode);

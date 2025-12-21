@@ -10,18 +10,18 @@ UInv_ItemComponent::UInv_ItemComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 
-	PickupMessage = FString("E - Pick Up Item"); // ±âº» ÇÈ¾÷ ¸Ş½ÃÁö ¼³Á¤ ÀÌ°Å ÇÑ±Û·Î µÇ´ÂÁö ÇÑ ¹ø ³ªÁß¿¡ °Ë»ç TEXT¸¦ ¾²¶ó´Âµ¥..
+	PickupMessage = FString("E - Pick Up Item"); // ê¸°ë³¸ í”½ì—… ë©”ì‹œì§€ ì„¤ì • ì´ê±° í•œê¸€ë¡œ ë˜ëŠ”ì§€ í•œ ë²ˆ ë‚˜ì¤‘ì— ê²€ì‚¬ TEXTë¥¼ ì“°ë¼ëŠ”ë°..
 }
 
 void UInv_ItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(ThisClass, ItemManifest); // ¾ÆÀÌÅÛ ¸Å´ÏÆä½ºÆ® º¹Á¦ ¼³Á¤
+	DOREPLIFETIME(ThisClass, ItemManifest); // ì•„ì´í…œ ë§¤ë‹ˆí˜ìŠ¤íŠ¸ ë³µì œ ì„¤ì •
 }
 
 void UInv_ItemComponent::PickedUp()
 {
-	OnPickedUp(); // ÇÈ¾÷ ÀÌº¥Æ® È£Ãâ Áß´ÜÁ¡ ¼³Á¤ ½Ã ¹°°ÇÀÌ »ç¶óÁöÁö°¡ ¾Ê³×? ºĞ±âÁ¡À» ³ªÁß¿¡ ½Ã°£³ª¸é °É¾îº¸ÀÚ (µğ¹ö±ë)
-	GetOwner()->Destroy(); // ¾ÆÀÌÅÛÀ» Áİ°Ô µÇ¸é ³²¾ÆÀÖ´Â ¶³¾îÁ®ÀÖ´Â ÈçÀûÀ» Áö¿ì°Ô ¸¸µå´Â °Í.
+	OnPickedUp(); // í”½ì—… ì´ë²¤íŠ¸ í˜¸ì¶œ ì¤‘ë‹¨ì  ì„¤ì • ì‹œ ë¬¼ê±´ì´ ì‚¬ë¼ì§€ì§€ê°€ ì•Šë„¤? ë¶„ê¸°ì ì„ ë‚˜ì¤‘ì— ì‹œê°„ë‚˜ë©´ ê±¸ì–´ë³´ì (ë””ë²„ê¹…)
+	GetOwner()->Destroy(); // ì•„ì´í…œì„ ì¤ê²Œ ë˜ë©´ ë‚¨ì•„ìˆëŠ” ë–¨ì–´ì ¸ìˆëŠ” í”ì ì„ ì§€ìš°ê²Œ ë§Œë“œëŠ” ê²ƒ.
 }

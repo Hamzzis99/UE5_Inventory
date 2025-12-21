@@ -71,11 +71,9 @@ struct FInv_TileParameters
 	EInv_TileQuadrant TileQuadrant{ EInv_TileQuadrant::None };
 };
 
-inline bool operator==(const FInv_TileParameters& A, const FInv_TileParameters& B) // 타일 비교
+inline bool operator==(const FInv_TileParameters& A, const FInv_TileParameters& B)
 {
-	return A.TileCoordinats == B.TileCoordinats && 
-		A.TileIndex == B.TileIndex && 
-			A.TileQuadrant == B.TileQuadrant; // 모두 동일해야 참.
+	return A.TileCoordinats == B.TileCoordinats && A.TileIndex == B.TileIndex && A.TileQuadrant == B.TileQuadrant; // 모두 동일해야! 
 }
 
 USTRUCT()
@@ -95,5 +93,5 @@ struct FInv_SpaceQueryResult
 
 	// Upper left index of the valid item, if there is one.
 	// 유효한 항목이 있는 경우 왼쪽 위 인덱스.
-	int32 UpperLeftIndex{ INDEX_NONE }; // 왼쪽 위 인덱스
+	int32 UpperLeftIndex{INDEX_NONE}; // 왼쪽 위 인덱스
 };
