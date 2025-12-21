@@ -16,11 +16,11 @@ namespace GameItems
 		{
 			UE_DECLARE_GAMEPLAY_TAG_EXTERN(RedCloak)
 		}
+
 		namespace Masks
 		{
 			UE_DECLARE_GAMEPLAY_TAG_EXTERN(SteelMask)
 		}
-
 	}
 
 	namespace Consumables
@@ -33,7 +33,7 @@ namespace GameItems
 				UE_DECLARE_GAMEPLAY_TAG_EXTERN(Large)
 			}
 
-			namespace Blue 
+			namespace Blue
 			{
 				UE_DECLARE_GAMEPLAY_TAG_EXTERN(Small)
 				UE_DECLARE_GAMEPLAY_TAG_EXTERN(Large)

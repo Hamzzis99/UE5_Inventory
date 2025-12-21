@@ -89,7 +89,7 @@ void UInv_InventoryGrid::OnTileParametersUpdated(const FInv_TileParameters& Para
 	}
 	UnHighlightSlots(LastHighlightedIndex, LastHighlightedDimensions); // 마지막 강조 표시된 슬롯 강조 해제
 
-	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex)) // 검색결과에 유효할 경우
+	if (CurrentQueryResult.ValidItem.IsValid() && GridSlots.IsValidIndex(CurrentQueryResult.UpperLeftIndex)) // 검색 결과 확인하고
 	{
 		const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(CurrentQueryResult.ValidItem.Get(), FragmentTags::GridFragment);
 		if (!GridFragment) return;
@@ -654,7 +654,7 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 		}
 	}
 	// 호버 아이템과 교체(Swap)하기
-	// Sawp with the hover item.
+	// Swap with the hover item.
 	SwapWithHoverItem(ClickedInventoryItem, GridIndex);
 }
 

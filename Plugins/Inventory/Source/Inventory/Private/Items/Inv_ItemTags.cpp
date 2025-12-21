@@ -2,28 +2,28 @@
 
 namespace GameItems
 {
-	namespace Equipment // 장비
+	namespace Equipment
 	{
 		namespace Weapons
 		{
-			UE_DEFINE_GAMEPLAY_TAG(Axe, "GameItems.Equipment.Weapon.Axe")
-			UE_DEFINE_GAMEPLAY_TAG(Sword, "GameItems.Equipment.Weapon.Sword")
+			UE_DEFINE_GAMEPLAY_TAG(Axe, "GameItems.Equipment.Weapons.Axe")
+			UE_DEFINE_GAMEPLAY_TAG(Sword, "GameItems.Equipment.Weapons.Sword")
 		}
 
 		namespace Cloaks
 		{
-			UE_DEFINE_GAMEPLAY_TAG(RedCloak, "GameItems.Equipment.Cloaks.Redcloak")
-		}
-		namespace Masks
-		{
-			UE_DEFINE_GAMEPLAY_TAG(SteelMask, "GameItems.Equipment.Cloaks.SteelMask")
+			UE_DEFINE_GAMEPLAY_TAG(RedCloak, "GameItems.Equipment.Cloaks.RedCloak")
 		}
 
+		namespace Masks
+		{
+			UE_DEFINE_GAMEPLAY_TAG(SteelMask, "GameItems.Equipment.Masks.SteelMask")
+		}
 	}
 
 	namespace Consumables
 	{
-		namespace Potions // 포션
+		namespace Potions
 		{
 			namespace Red
 			{
@@ -39,18 +39,17 @@ namespace GameItems
 		}
 	}
 
-	namespace Craftables // 재료
+	namespace Craftables
 	{
-		UE_DEFINE_GAMEPLAY_TAG(FireFernFruit, "GameItems.Craftables.Blue.FireFernFruit")
-		UE_DEFINE_GAMEPLAY_TAG(LuminDaisy, "GameItems.Craftables.Blue.LuminDaisy")
-		UE_DEFINE_GAMEPLAY_TAG(ScorchPetalBlossom, "GameItems.Craftables.Blue.ScorchPetalBlossom")
+		UE_DEFINE_GAMEPLAY_TAG(FireFernFruit, "GameItems.Craftables.FireFernFruit")
+		UE_DEFINE_GAMEPLAY_TAG(LuminDaisy, "GameItems.Craftables.LuminDaisy")
+		UE_DEFINE_GAMEPLAY_TAG(ScorchPetalBlossom, "GameItems.Craftables.ScorchPetalBlossom")
 	}
 
-	namespace Builds // 건축
+	namespace Builds 
 	{
 
 	}
 }
 
 
-//GameItems::Equipment::Weapons::Axe // 식별자에 접근법.
