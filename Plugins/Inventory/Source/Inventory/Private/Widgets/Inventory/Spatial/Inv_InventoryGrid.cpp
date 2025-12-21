@@ -645,9 +645,13 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 			return;
 		}
 		
-		// 만약 누를 공간(슬롯)이 없다면?
-		// Is there no room in the clicked slot?
-		return;
+		// Clicked Slot is already full - do nothing
+		// 클릭된 슬롯이 이미 가득 찼습니다 - 아무 것도 하지 않습니다
+		if (RoomInClickedSlot == 0)
+		{
+			// 슬롯이 가득 찼을 때 아무 것도 하지 않는 부분
+			return;
+		}
 	}
 	// 호버 아이템과 교체(Swap)하기
 	// Sawp with the hover item.
