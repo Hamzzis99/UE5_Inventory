@@ -624,7 +624,7 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 			// TODO: Swap Stack Counts
 			// 스택 교체 부분
 			SwapStackCounts(ClickedStackCount, HoveredStackCount, GridIndex); // 스택 수 교체 함수
-			
+			return;
 		}
 		
 		// Should we consume the hover item's stacks? (Room in the clicked slot >= HoveredStackCount)
@@ -633,10 +633,18 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 		{
 			// TODO: ConsumeHoverItemSatcks
 			ConsumeHoverItemStacks(ClickedStackCount, HoveredStackCount, GridIndex); // 호버 아이템 스택 소모 함수
+			return;
 		}
 		
 		// 클릭된 아이템의 스택을 채워야 하는가? (그리고 호버 아이템은 소모하지 않는가?)
 		// Should we fill in the stacks of the clicked item? (and not consume the hover item)
+		if (ShouldFillInStack(RoomInClickedSlot, HoveredStackCount)) // 스택을 채울 수 있는지 확인하는 것
+		{
+			// 그리드 슬롯을 가져오고 스택 카운트를 세는 것. 클릭하는 항목에 여유가 있을 때 발생하는 부분
+			FillInStack(RoomInClickedSlot, HoveredStackCount - RoomInClickedSlot, GridIndex); // 스택 채우기 함수
+			return;
+		}
+		
 		// 만약 누를 공간(슬롯)이 없다면?
 		// Is there no room in the clicked slot?
 		return;
@@ -917,6 +925,25 @@ void UInv_InventoryGrid::ConsumeHoverItemStacks(const int32 ClickedStackCount, c
 	const FInv_GridFragment* GridFragment = GridSlots[Index]->GetInventoryItem()->GetItemManifest().GetFragmentOfType<FInv_GridFragment>();
 	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1); // 그리드 크기 가져오기
 	HighlightSlots(Index, Dimensions); // 슬롯 강조 표시 이제 더이상 회색이 아니야!
+}
+
+// 스택을 채워야 하는가?
+bool UInv_InventoryGrid::ShouldFillInStack(const int32 RoomInClickedSlot, const int32 HoveredStackCount) const 
+{
+	return RoomInClickedSlot < HoveredStackCount; // 클릭된 슬롯의 남은 공간이 호버된 스택 수보다 작으면? 채운다.
+}
+
+void UInv_InventoryGrid::FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index)
+{
+	UInv_GridSlot* GridSlot = GridSlots[Index]; // 그리드 슬롯 가져오기
+	const int32 NewStackCount = GridSlot->GetStackCount() + FillAmount; // 새로운 스택 수 계산 -> 합칠 때 스택 개수를 어떻게 할지
+	
+	GridSlot->SetStackCount(NewStackCount); // 그리드 슬롯 스택 수 업데이트
+	
+	UInv_SlottedItem* ClickedSlottedItem = SlottedItems.FindChecked(Index); // 클릭된 슬로티드 아이템 가져오기
+	ClickedSlottedItem->UpdateStackCount(NewStackCount); // 클릭된 슬로티드 아이템 스택 수 업데이트
+	
+	HoverItem->UpdateStackCount(Remainder); // 호버 아이템 스택 수 업데이트
 }
 
 // 마우스 커서 켜기 끄기 함수들

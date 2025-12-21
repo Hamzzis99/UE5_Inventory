@@ -101,14 +101,15 @@ private:
 	void ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState);
 	void PutDownOnIndex(const int32 Index); // 인덱스에 내려놓기
 	void ClearHoverItem(); // 호버 아이템 지우기
-	UUserWidget* GetVisibleCursorWidget(); // 마우스 커서 보이게 하는 함수
 	UUserWidget* GetHiddenCursorWidget(); // 마우스 커서 비활성화 하는 함수
 	bool IsSameStackable(const UInv_InventoryItem* ClickedInventoryItem) const; // 같은 아이템이라 스택 가능한지 확인하는 함수
 	void SwapWithHoverItem(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex); // 호버 아이템과 교체하는 함수
-	bool ShouldSwapStackCounts(const int32 RoomInClickedSlot, const int32 HoveredStackCount, const int32 MaxStackSize) const;  // 스택 수를 교체해야 하는지 확인하는 함수
+	bool ShouldSwapStackCounts(const int32 RoomInClickedSlot, const int32 HoveredStackCount, const int32 MaxStackSize) const; // 스택 수를 교체해야 하는지 확인하는 함수
 	void SwapStackCounts(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index);
 	bool ShouldConsumeHoverItemStacks(const int32 HoveredStackCount, const int32 RoomInClickedSlot) const; // 호버 아이템 스택을 소모해야 하는지 확인하는 함수
 	void ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index); // 호버 아이템 스택 소모 함수
+	bool ShouldFillInStack(const int32 RoomInClickedSlot, const int32 HoveredStackCount) const; // 클릭된 아이템의 스택을 채워야 하는지 확인하는 함수
+	void FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index); // 스택 채우기 함수
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UUserWidget> VisibleCursorWidgetClass;
@@ -137,6 +138,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;
+	UUserWidget* GetVisibleCursorWidget(); // 마우스 커서 보이게 하는 함수
 
 	//2차원 격자를 만드는 것 Tarray로
 	UPROPERTY()
