@@ -47,10 +47,6 @@ namespace GameItems
 		UE_DECLARE_GAMEPLAY_TAG_EXTERN(LuminDaisy)
 		UE_DECLARE_GAMEPLAY_TAG_EXTERN(ScorchPetalBlossom)
 	}
-	namespace Builds
-	{
-
-	}
 }
 
 

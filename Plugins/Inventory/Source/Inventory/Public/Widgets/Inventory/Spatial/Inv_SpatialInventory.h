@@ -10,6 +10,8 @@ class UInv_InventoryGrid;
 class UWidgetSwitcher;
 class UButton;
 
+// UI 연동 부분들
+
 /**
  * 
  */
@@ -36,8 +38,6 @@ private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함
 	TObjectPtr<UInv_InventoryGrid> Grid_Consumables;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UInv_InventoryGrid> Grid_Craftables;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UInv_InventoryGrid> Grid_Builds;
 
 
 	//버튼 등록
@@ -49,10 +49,7 @@ private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Button_Craftables;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> Button_Builds;
-
+	
 	UFUNCTION()
 	void ShowEquippables();
 

@@ -9,6 +9,7 @@
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
 
+//버튼 생성할 때 필요한 것들
 void UInv_SpatialInventory::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
@@ -16,7 +17,6 @@ void UInv_SpatialInventory::NativeOnInitialized()
 	Button_Equippables->OnClicked.AddDynamic(this, &ThisClass::ShowEquippables);
 	Button_Consumables->OnClicked.AddDynamic(this, &ThisClass::ShowConsumables);
 	Button_Craftables->OnClicked.AddDynamic(this, &ThisClass::ShowCraftables);
-	Button_Builds->OnClicked.AddDynamic(this, &ThisClass::ShowBuilds); // 빌드 부분 내가 만든 것.
 
 	ShowEquippables(); // 기본값으로 장비창을 보여주자.
 }
@@ -52,18 +52,12 @@ void UInv_SpatialInventory::ShowCraftables()
 	SetActiveGrid(Grid_Craftables, Button_Craftables);
 }
 
-void UInv_SpatialInventory::ShowBuilds()
-{
-	SetActiveGrid(Grid_Builds, Button_Builds);
-}
-
-//리펙토링을 이렇게 하네 신기하다.
+//리펙토링을 이렇게 하네 신기하다. 일단 버튼 비활성화 부분
 void UInv_SpatialInventory::DisableButton(UButton* Button)
 {
 	Button_Equippables->SetIsEnabled(true);
 	Button_Consumables->SetIsEnabled(true);
 	Button_Craftables->SetIsEnabled(true);
-	Button_Builds->SetIsEnabled(true);
 	Button->SetIsEnabled(false);
 }
 
