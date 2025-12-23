@@ -17,18 +17,33 @@ void UInv_ItemPopUp::NativeOnInitialized()
 	Slider_Split->OnValueChanged.AddDynamic(this, &ThisClass::SliderValueChanged);
 }
 
-void UInv_ItemPopUp::SplitButtonClicked()
+int32 UInv_ItemPopUp::GetSplitAmount() const
 {
+	return FMath::Floor(Slider_Split->GetValue());
+}
+
+void UInv_ItemPopUp::SplitButtonClicked() 
+{
+	if (OnSplit.ExcuteIfBound(GetSplitAmount(), GridIndex)) 
+	{
+		RemoveFromParent(); // 위젯 제거
+	}
 }
 
 void UInv_ItemPopUp::DropButtonClicked()
 {
+	if (OnDrop.ExecuteIfBound(GridIndex))
+	{
+		RemoveFromParent(); // 위젯 제거
+	}
 }
 
 void UInv_ItemPopUp::ConsumeButtonClicked()
 {
+
 }
 
 void UInv_ItemPopUp::SliderValueChanged(float Value)
 {
+	
 }

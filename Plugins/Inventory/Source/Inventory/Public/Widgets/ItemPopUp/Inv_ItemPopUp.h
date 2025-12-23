@@ -16,6 +16,11 @@ class USlider;
 class UTextBlock;
 class USizeBox;
 
+//콜백 브로드캐스트 알림 창
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FPopUpMenuSplit, int32, SplitAmount, int32, Index);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FPopUpMenuDrop, int32, Index);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FPopUpMenuConsume, int32, Index);
+
 UCLASS()
 class INVENTORY_API UInv_ItemPopUp : public UUserWidget
 {
@@ -23,6 +28,11 @@ class INVENTORY_API UInv_ItemPopUp : public UUserWidget
 public:
 	virtual void NativeOnInitialized() override; // 위젯이 초기화될 때 호출되는 함수 재정의
 	
+	FPopUpMenuSplit OnSplit;
+	FPopUpMenuDrop OnDrop;
+	FPopUpMenuConsume OnConsume;
+	
+	int32 GetSplitAmount() const;
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Button_Split;
@@ -42,6 +52,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<USizeBox> SizeBox_Root; // 사이즈박스 (위젯 크기 전체를 감싸는 부분)
 	
+	int32 GridIndex{INDEX_NONE};
+	
 	UFUNCTION() // 함수를 만들 때 선언하는 것이 유펑션
 	void SplitButtonClicked(); // 분할 버튼 클릭시 실행되는 함수	
 	
@@ -53,4 +65,6 @@ private:
 	
 	UFUNCTION()
 	void SliderValueChanged(float Value); // 슬라이더 값이 변경될 때 실행되는 함수
+	
+	void CollapseSplitButton() const;
 };
