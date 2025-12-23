@@ -27,12 +27,21 @@ class INVENTORY_API UInv_ItemPopUp : public UUserWidget
 	GENERATED_BODY()
 public:
 	virtual void NativeOnInitialized() override; // 위젯이 초기화될 때 호출되는 함수 재정의
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	
 	FPopUpMenuSplit OnSplit;
 	FPopUpMenuDrop OnDrop;
 	FPopUpMenuConsume OnConsume;
 	
 	int32 GetSplitAmount() const;
+	void CollapseSplitButton() const;
+	void CollapseConsumeButton() const;
+	void SetSliderParams(const float Max, const float Value) const;
+	FVector2D GetBoxSize() const;
+	void SetGridIndex(int32 Index) {GridIndex = Index;}
+	int32 GetGridIndex() const {return GridIndex;}
+	
+	
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Button_Split;
@@ -66,5 +75,5 @@ private:
 	UFUNCTION()
 	void SliderValueChanged(float Value); // 슬라이더 값이 변경될 때 실행되는 함수
 	
-	void CollapseSplitButton() const;
+
 };

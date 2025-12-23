@@ -58,9 +58,7 @@ private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함
 
 	UFUNCTION()
 	void ShowCraftables();
-
-	UFUNCTION()
-	void ShowBuilds();
+	
 
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button);
