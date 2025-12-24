@@ -1040,7 +1040,21 @@ void UInv_InventoryGrid::OnGridSlotUnhovered(int32 GridIndex, const FPointerEven
 
 void UInv_InventoryGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index) // 아이템 분할 함수
 {
+	// 오른쪽 마우스 우클릭 창 불러오는 곳
+	UInv_InventoryItem* RightClickedItem = GridSlots[Index]->GetInventoryItem().Get(); // 오른쪽 클릭한 아이템 가져오기
+	if (!IsValid(RightClickedItem)) return; // 유효한 아이템인지 확인
+	if (!RightClickedItem -> IsStackable()) return; // 스택 가능한 아이템인지 확인
 	
+	const int32 UpperLeftIndex = GridSlots[Index]->GetUpperLeftIndex(); // 그리드 슬롯의 왼쪽 위 인덱스 가져오기
+	UInv_GridSlot* UpperLeftGridSlot = GridSlots[UpperLeftIndex]; // 왼쪽 위 그리드 슬롯 가져오기
+	const int32 StackCount = UpperLeftGridSlot -> GetStackCount(); // 스택 수 가져오기
+	const int32 NewStackCount = StackCount - SplitAmount; // 새로운 스택 수 계산 <- 분할된 양을 빼주는 것
+	
+	UpperLeftGridSlot->SetStackCount(NewStackCount); // 그리드 슬롯 스택 수 업데이트
+	SlottedItems.FindChecked(UpperLeftIndex)->UpdateStackCount(NewStackCount); // 슬로티드 아이템 스택 수 업데이트
+	
+	AssignHoverItem(RightClickedItem, UpperLeftIndex, UpperLeftIndex); // 호버 아이템 할당
+	HoverItem->UpdateStackCount(SplitAmount); // 호버 아이템 스택 수 업데이트
 }
 
 void UInv_InventoryGrid::OnPopUpMenuDrop(int32 Index) // 아이템 버리기 함수
