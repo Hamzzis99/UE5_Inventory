@@ -6,6 +6,8 @@
 
 #include "Inv_InventoryGrid.generated.h"
 
+class UInv_ItemPopUp;
+class UInv_HoverItem;
 struct FInv_ImageFragment;
 struct FInv_GridFragment;
 class UInv_SlottedItem;
@@ -15,7 +17,6 @@ class UCanvasPanel;
 class UInv_GridSlot;
 class UInv_InventoryComponent;
 struct FGameplayTag;
-class UInv_HoverItem;
 enum class EInv_GridSlotState : uint8;
 
 /**
@@ -35,14 +36,16 @@ public:
 
 	void ShowCursor();
 	void HideCursor();
+	void SetOwningCanvas(UCanvasPanel* OwningCanvas); // 장비 튤팁 캔버스 설정 부분
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item); // 아이템 추가
-
+	
 private:
 
 	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
-
+	TWeakObjectPtr<UCanvasPanel> OwningCanvasPanel;
+	
 	void ConstructGrid();
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* Item); // 인벤토리 항목으로 item이 있는 공간이 있을 수 있어서 만드는 것?
 	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest); // 나중에 Builds 만들 때 사용하는 공간인가?
@@ -109,6 +112,13 @@ private:
 	void ConsumeHoverItemStacks(const int32 ClickedStackCount, const int32 HoveredStackCount, const int32 Index); // 호버 아이템 스택 소모 함수
 	bool ShouldFillInStack(const int32 RoomInClickedSlot, const int32 HoveredStackCount) const; // 클릭된 아이템의 스택을 채워야 하는지 확인하는 함수
 	void FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index); // 스택 채우기 함수
+	void CreateItemPopUp(const int32 GridIndex); // 아이템 팝업 생성 함수
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_ItemPopUp> ItemPopUpClass; // 아이템 팝업 클래스
+	
+	UPROPERTY() // 팝업 아이템 가비지 콜렉션 부분
+	TObjectPtr<UInv_ItemPopUp> ItemPopUp;
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UUserWidget> VisibleCursorWidgetClass;

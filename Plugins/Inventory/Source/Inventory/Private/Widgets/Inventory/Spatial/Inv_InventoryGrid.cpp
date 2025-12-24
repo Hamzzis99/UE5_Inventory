@@ -16,7 +16,7 @@
 #include "Items/Manifest/Inv_ItemManifest.h"
 #include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
 #include "Widgets/Inventory/SlottedItems/Inv_SlottedItem.h"
-
+#include "Widgets/ItemPopUp/Inv_ItemPopUp.h"
 
 void UInv_InventoryGrid::NativeOnInitialized()
 {
@@ -589,14 +589,14 @@ void UInv_InventoryGrid::AddStacks(const FInv_SlotAvailabilityResult& Result)
 	}
 }
 
-// 슬롯에 있는 아이템 클릭했을 때
+// 슬롯에 있는 아이템을 마우스로 클릭했을 때 
 void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEvent& MouseEvent)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Clicked on item at index %d"), GridIndex); // 아이템 클릭 디버깅입니다.
 	check(GridSlots.IsValidIndex(GridIndex)); // 유효한 인덱스인지 확인
 	UInv_InventoryItem* ClickedInventoryItem = GridSlots[GridIndex]->GetInventoryItem().Get(); // 클릭한 아이템 가져오기
 
-	//호버 항목으로 설정한다. 좌클릭으로.
+	//좌클릭을 눌렀을 때 실행되는 호버 부분 실행 부분
 	if (!IsValid(HoverItem) && IsLeftClick(MouseEvent))
 	{
 		// 호버 항목을 지정하고 그리드에서 슬롯이 있는 항목을 제거하는 부분을 구현하자.
@@ -604,6 +604,13 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 		PickUp(ClickedInventoryItem, GridIndex);
 		return;
 	}
+	
+	if (IsRightClick(MouseEvent)) // 우클릭을 눌렀을 때 실행되는 팝업 부분 실행 부분
+	{
+		CreateItemPopUp(GridIndex); // 팝업 생성 함수 호출
+		return;
+	}
+	
 	
 	// 호버아이템이 넘어간다면?
 	// 호버 된 항목과 (클릭된) 인벤토리 항목이 유형을 공유하고, 쌓을 수 있는가?
@@ -656,6 +663,24 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 	// 호버 아이템과 교체(Swap)하기
 	// Swap with the hover item.
 	SwapWithHoverItem(ClickedInventoryItem, GridIndex);
+}
+
+//우클릭 팝업을 생성하는 함수를 만드는 부분. (아이템 디테일 부분들) 
+void UInv_InventoryGrid::CreateItemPopUp(const int32 GridIndex)
+{
+	UInv_InventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
+	if (!IsValid(RightClickedItem)) return; //오른쪽 클릭을 확인했을 때.
+	
+	ItemPopUp = CreateWidget<UInv_ItemPopUp>(this, ItemPopUpClass); // 팝업 위젯 생성
+	
+	//마우스 올려진 곳에 툴팁 같은 것이 등장하는 부분인가?
+	OwningCanvasPanel->AddChild(ItemPopUp);
+	UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(ItemPopUp);
+	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
+	CanvasSlot->SetPosition(MousePosition); // 마우스 위치에 팝업 위치 설정
+	CanvasSlot->SetSize(ItemPopUp->GetBoxSize());
+	
+	//그리드에 벗어나는?
 }
 
 // 인벤토리 스택 쌓는 부분.
@@ -961,6 +986,12 @@ void UInv_InventoryGrid::HideCursor()
 {
 	if (!IsValid(GetOwningPlayer())) return;
 	GetOwningPlayer()->SetMouseCursorWidget(EMouseCursor::Default, GetHiddenCursorWidget()); // 마우스 커서 위젯 설정
+}
+
+//장비 툴팁 부분 캔버스 패널
+void UInv_InventoryGrid::SetOwningCanvas(UCanvasPanel* OwningCanvas)
+{
+	OwningCanvasPanel = OwningCanvas;
 }
 
 void UInv_InventoryGrid::OnGridSlotHovered(int32 GridIndex, const FPointerEvent& MouseEvent)

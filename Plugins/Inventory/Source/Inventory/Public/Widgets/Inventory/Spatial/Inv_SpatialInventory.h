@@ -9,7 +9,7 @@
 class UInv_InventoryGrid;
 class UWidgetSwitcher;
 class UButton;
-
+class UCanvasPanel;
 // UI 연동 부분들
 
 /**
@@ -27,10 +27,15 @@ public:
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
 	
 private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함.
+	
+	//어떤 캔버스 패널일까? 아 아이템 튤팁 공간
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> CanvasPanel;
+	
 	//스위치
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UWidgetSwitcher> Switcher;
-
+	
 	//메뉴 등록
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UInv_InventoryGrid> Grid_Equippables;
