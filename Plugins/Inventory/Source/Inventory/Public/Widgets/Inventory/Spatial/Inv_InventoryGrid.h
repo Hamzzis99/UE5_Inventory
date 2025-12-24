@@ -165,6 +165,10 @@ private:
 	UPROPERTY()
 	TMap<int32, TObjectPtr<UInv_SlottedItem>> SlottedItems; // 인덱스와 슬로티드 아이템 매핑 아이템을 등록할 때마다 이 것을 사용할 것.
 
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FVector2D ItemPopUpOffset; // 마우스 우클릭 팝업 위치 조정하기 (누르자마자 뜨는 부분)
+	
 	// 왜 굳이 int32로?
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	int32 Rows;

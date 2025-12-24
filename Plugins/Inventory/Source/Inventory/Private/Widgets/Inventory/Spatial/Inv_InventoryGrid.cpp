@@ -679,7 +679,7 @@ void UInv_InventoryGrid::CreateItemPopUp(const int32 GridIndex)
 	OwningCanvasPanel->AddChild(ItemPopUp);
 	UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(ItemPopUp);
 	const FVector2D MousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
-	CanvasSlot->SetPosition(MousePosition); // 마우스 위치에 팝업 위치 설정
+	CanvasSlot->SetPosition(MousePosition - ItemPopUpOffset); // 마우스 위치에 팝업 위치 설정
 	CanvasSlot->SetSize(ItemPopUp->GetBoxSize());
 	
 	
