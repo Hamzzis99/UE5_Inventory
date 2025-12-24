@@ -86,5 +86,7 @@ private:
 	FSlateBrush Brush_GrayedOut;
 
 	EInv_GridSlotState GridSlotState;
-
+	
+	UFUNCTION()
+	void OnItemPopUpDestruct(UUserWidget* Menu); // 아이템 팝업 소멸시 호출되는 함수
 };

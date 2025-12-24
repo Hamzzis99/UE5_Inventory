@@ -682,6 +682,7 @@ void UInv_InventoryGrid::CreateItemPopUp(const int32 GridIndex)
 	CanvasSlot->SetPosition(MousePosition); // 마우스 위치에 팝업 위치 설정
 	CanvasSlot->SetSize(ItemPopUp->GetBoxSize());
 	
+	
 }
 
 // 인벤토리 스택 쌓는 부분.
