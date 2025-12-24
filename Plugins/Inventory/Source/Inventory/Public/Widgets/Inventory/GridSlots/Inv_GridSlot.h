@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Inv_GridSlot.generated.h"
 
+class UInv_ItemPopUp;
 class UInv_InventoryItem;
 class UImage;
 
@@ -60,9 +61,11 @@ private:
 	int32 TileIndex{ INDEX_NONE };
 	int32 StackCount{ 0 };
 	int32 UpperLeftIndex{ INDEX_NONE }; // 정사각형인지 확인해주는 것인가?
-	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;
-	bool bAvailable{ true };
 
+	bool bAvailable{ true }; // 사용 가능 여부
+	TWeakObjectPtr<UInv_InventoryItem> InventoryItem; // 인벤토리 아이템 포인터
+	TWeakObjectPtr<UInv_ItemPopUp> ItemPopUp; // 아이템 팝업 포인터
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GridSlot;
 
