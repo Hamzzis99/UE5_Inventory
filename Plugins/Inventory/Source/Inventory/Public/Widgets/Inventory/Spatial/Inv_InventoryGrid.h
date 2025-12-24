@@ -141,10 +141,22 @@ private:
 	void OnGridSlotClicked(int32 GridIndex, const FPointerEvent& MouseEvent);
 	UFUNCTION()
 	void OnGridSlotHovered(int32 GridIndex, const FPointerEvent& MouseEvent);
-
+	
 	UFUNCTION()
-	void OnGridSlotUnhovered(int32 GridIndex, const FPointerEvent& MouseEvent);
+	void OnGridSlotUnhovered(int32 GridIndex, const FPointerEvent& MouseEvent); 
 
+	// 나누기 버튼 상호작용
+	UFUNCTION()
+	void OnPopUpMenuSplit(int32 SplitAmount, int32 Index);
+	
+	// 버리기 버튼 상호작용
+	UFUNCTION()
+	void OnPopUpMenuDrop(int32 Index);
+	
+	// 사용하기 버튼 상호작용
+	UFUNCTION()
+	void OnPopUpMenuConsume(int32 Index);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;
 	UUserWidget* GetVisibleCursorWidget(); // 마우스 커서 보이게 하는 함수
@@ -197,5 +209,6 @@ private:
 	bool bLastMouseWithinCanvas;
 	int32 LastHighlightedIndex;
 	FIntPoint LastHighlightedDimensions;
+	
 };
 

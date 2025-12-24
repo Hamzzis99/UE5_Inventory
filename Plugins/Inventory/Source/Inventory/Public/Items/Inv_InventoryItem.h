@@ -22,6 +22,7 @@ public:
 	const FInv_ItemManifest& GetItemManifest() const { return ItemManifest.Get<FInv_ItemManifest>(); }
 	FInv_ItemManifest& GetItemManifestMutable() { return ItemManifest.GetMutable<FInv_ItemManifest>(); }
 	bool IsStackable() const; // 아이템이 쌓을 수 있는지 여부 확인
+	bool IsConsumable() const; // 아이템이 소비 가능한지 여부 확인
 	int32 GetTotalStackCount() const { return TotalStackCount; } // 총 스택 수 가져오기
 	void SetTotalStackCount(int32 Count) { TotalStackCount = Count; } // 총 스택 수 설정
 

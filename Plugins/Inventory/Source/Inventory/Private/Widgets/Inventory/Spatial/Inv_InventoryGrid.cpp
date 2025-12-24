@@ -682,7 +682,27 @@ void UInv_InventoryGrid::CreateItemPopUp(const int32 GridIndex)
 	CanvasSlot->SetPosition(MousePosition - ItemPopUpOffset); // 마우스 위치에 팝업 위치 설정
 	CanvasSlot->SetSize(ItemPopUp->GetBoxSize());
 	
+	const int32 SliderMax = GridSlots[GridIndex]->GetStackCount() - 1; // 슬라이더 최대값 설정
+	if (RightClickedItem->IsStackable() && SliderMax > 0)
+	{
+		ItemPopUp->OnSplit.BindDynamic(this, &ThisClass::OnPopUpMenuSplit); // 분할 바인딩
+		ItemPopUp->SetSliderParams(SliderMax, FMath::Max(1, GridSlots[GridIndex] -> GetStackCount() / 2)); // 슬라이더 파라미터 설정
+	}
+	else
+	{
+		ItemPopUp->CollapseSplitButton(); // 분할 버튼 숨기기
+	}
 	
+	ItemPopUp->OnDrop.BindDynamic(this, &ThisClass::OnPopUpMenuDrop); // 드롭 바인딩
+	
+	if (RightClickedItem->IsConsumable())
+	{
+		ItemPopUp->OnConsume.BindDynamic(this, &ThisClass::OnPopUpMenuConsume);
+	}
+	else
+	{
+		ItemPopUp->CollapseConsumeButton();
+	}
 }
 
 // 인벤토리 스택 쌓는 부분.
@@ -1016,6 +1036,21 @@ void UInv_InventoryGrid::OnGridSlotUnhovered(int32 GridIndex, const FPointerEven
 	{
 		GridSlot->SetUnoccupiedTexture(); // 비점유된 텍스처로 설정
 	}
+}
+
+void UInv_InventoryGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index) // 아이템 분할 함수
+{
+	
+}
+
+void UInv_InventoryGrid::OnPopUpMenuDrop(int32 Index) // 아이템 버리기 함수
+{
+	
+}
+
+void UInv_InventoryGrid::OnPopUpMenuConsume(int32 Index) // 아이템 소비 함수
+{
+	
 }
 
 bool UInv_InventoryGrid::MatchesCategory(const UInv_InventoryItem* Item) const
