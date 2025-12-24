@@ -47,7 +47,11 @@ public:
 	void SetUpperLeftIndex(int32 Index) { UpperLeftIndex = Index; } // 왼쪽 위 인덱스 설정
 	bool IsAvailable() const { return bAvailable; } // 사용 가능 여부 반환
 	void SetAvailable(bool bIsAvailable) { bAvailable = bIsAvailable; } // 사용 가능 여부 설정
-
+	
+	//팝업 창 관련 함수들
+	void SetItemPopUp(UInv_ItemPopUp* PopUp); // 아이템 팝업 설정
+	UInv_ItemPopUp* GetItemPopUp() const; // 아이템 팝업 반환
+	
 	void SetOccupiedTexture();
 	void SetUnoccupiedTexture();
 	void SetSelectedTexture();
@@ -58,13 +62,13 @@ public:
 	FGridSlotEvent GridSlotUnhovered; // 그리드 슬롯 언호버 이벤트 델리게이트
 
 private:
-	int32 TileIndex{ INDEX_NONE };
 	int32 StackCount{ 0 };
-	int32 UpperLeftIndex{ INDEX_NONE }; // 정사각형인지 확인해주는 것인가?
-
 	bool bAvailable{ true }; // 사용 가능 여부
+	int32 TileIndex{ INDEX_NONE };
+	int32 UpperLeftIndex{ INDEX_NONE }; // 정사각형인지 확인해주는 것인가?
 	TWeakObjectPtr<UInv_InventoryItem> InventoryItem; // 인벤토리 아이템 포인터
 	TWeakObjectPtr<UInv_ItemPopUp> ItemPopUp; // 아이템 팝업 포인터
+	
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GridSlot;

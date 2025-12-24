@@ -3,6 +3,7 @@
 
 #include "Widgets/Inventory/GridSlots/Inv_GridSlot.h"
 #include "Items/Inv_InventoryItem.h"
+#include "Widgets/ItemPopUp/Inv_ItemPopUp.h"
 
 #include "Components/Image.h"
 
@@ -29,6 +30,16 @@ FReply UInv_GridSlot::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const
 void UInv_GridSlot::SetInventoryItem(UInv_InventoryItem* Item)
 {
 	InventoryItem = Item;
+}
+
+void UInv_GridSlot::SetItemPopUp(UInv_ItemPopUp* PopUp)
+{
+	ItemPopUp = PopUp; // 아이템 팝업 설정
+}
+
+UInv_ItemPopUp* UInv_GridSlot::GetItemPopUp() const
+{
+	return ItemPopUp.Get(); // 아이템 팝업 반환
 }
 
 void UInv_GridSlot::SetOccupiedTexture()

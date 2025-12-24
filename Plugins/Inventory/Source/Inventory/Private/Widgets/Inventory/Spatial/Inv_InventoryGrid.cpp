@@ -670,8 +670,10 @@ void UInv_InventoryGrid::CreateItemPopUp(const int32 GridIndex)
 {
 	UInv_InventoryItem* RightClickedItem = GridSlots[GridIndex]->GetInventoryItem().Get();
 	if (!IsValid(RightClickedItem)) return; //오른쪽 클릭을 확인했을 때.
+	if (IsValid(GridSlots[GridIndex]->GetItemPopUp())) return; // 이미 팝업이 있다면 리턴
 	
 	ItemPopUp = CreateWidget<UInv_ItemPopUp>(this, ItemPopUpClass); // 팝업 위젯 생성
+	GridSlots[GridIndex]->SetItemPopUp(ItemPopUp);
 	
 	//마우스 올려진 곳에 툴팁 같은 것이 등장하는 부분인가?
 	OwningCanvasPanel->AddChild(ItemPopUp);
@@ -680,7 +682,6 @@ void UInv_InventoryGrid::CreateItemPopUp(const int32 GridIndex)
 	CanvasSlot->SetPosition(MousePosition); // 마우스 위치에 팝업 위치 설정
 	CanvasSlot->SetSize(ItemPopUp->GetBoxSize());
 	
-	//그리드에 벗어나는?
 }
 
 // 인벤토리 스택 쌓는 부분.
