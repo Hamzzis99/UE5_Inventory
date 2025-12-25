@@ -1082,9 +1082,26 @@ void UInv_InventoryGrid::OnPopUpMenuDrop(int32 Index) // 아이템 버리기 함
 	DropItem(); // 아이템 버리기
 }
 
-void UInv_InventoryGrid::OnPopUpMenuConsume(int32 Index) // 아이템 소비 함수
+// 아이템 소비 상호작용 부분
+void UInv_InventoryGrid::OnPopUpMenuConsume(int32 Index) 
 {
+	UInv_InventoryItem* RightClickedItem = GridSlots[Index]->GetInventoryItem().Get(); // 오른쪽 클릭한 아이템 가져오기
+	if (!IsValid(RightClickedItem)) return; // 유효한 아이템인지 확인
 	
+	const int32 UpperLeftIndex = GridSlots[Index]->GetUpperLeftIndex(); // 그리드 슬롯의 왼쪽 위 인덱스 가져오기
+	UInv_GridSlot* UpperLeftGridSlot = GridSlots[UpperLeftIndex]; // 왼쪽 위 그리드 슬롯 가져오기
+	const int32 StackCount = UpperLeftGridSlot -> GetStackCount(); // 스택 수 가져오기
+	const int32 NewStackCount = StackCount - 1; // 새로운 스택 수 계산 <- 1개 소비하는 것
+	
+	UpperLeftGridSlot->SetStackCount(NewStackCount); // 그리드 슬롯 스택 수 업데이트
+	SlottedItems.FindChecked(UpperLeftIndex)->UpdateStackCount(NewStackCount); // 슬로티드 아이템 스택 수 업데이트
+	
+	// TODO: 서버에서 내가 소모되는 것을 서버에게 알리는 부분.
+	
+	if (NewStackCount <= 0)
+	{
+		RemoveItemFromGrid(RightClickedItem, Index); // 그리드에서 아이템 제거
+	}
 }
 
 bool UInv_InventoryGrid::MatchesCategory(const UInv_InventoryItem* Item) const
