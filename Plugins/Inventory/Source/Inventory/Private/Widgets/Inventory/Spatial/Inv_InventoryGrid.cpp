@@ -729,6 +729,7 @@ void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 	FInv_SlotAvailabilityResult Result = HasRoomForItem(Item);
 
 	// Create a widget to show the item icon and add it to the correct spot on the grid.
+	// 아이콘을 보여주고 그리드의 올바른 위치에 추가하는 위젯을 만듭니다.
 	AddItemToIndices(Result, Item);
 
 }

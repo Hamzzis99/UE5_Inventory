@@ -8,9 +8,8 @@
 UInv_ItemComponent::UInv_ItemComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-
-
 	PickupMessage = FString("E - Pick Up Item"); // 기본 픽업 메시지 설정 이거 한글로 되는지 한 번 나중에 검사 TEXT를 쓰라는데..
+	SetIsReplicatedByDefault(true); // 기본적으로 복제 설정 (개수 버그 수정 시키는 것.)
 }
 
 void UInv_ItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

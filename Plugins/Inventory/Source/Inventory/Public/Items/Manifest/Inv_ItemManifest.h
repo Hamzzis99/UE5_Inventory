@@ -39,7 +39,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	EInv_ItemCategory ItemCategory{ EInv_ItemCategory::None }; // 개별 구성요소?
-	
 
 	// 게임플레이 태그 부분
 	UPROPERTY(EditAnywhere, Category = "Inventory")
