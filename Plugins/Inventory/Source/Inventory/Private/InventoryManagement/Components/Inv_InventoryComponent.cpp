@@ -145,7 +145,7 @@ void UInv_InventoryComponent::Server_ConsumeItem_Implementation(UInv_InventoryIt
 	}
 	
 	// TODO: Get the consumable fragment and call Consume()
-	// 소비 프래그먼트를 가져와서 소비 함수 호출
+	// 소비 프래그먼트를 가져와서 소비 함수 호출 (소비할 때 실제로 일어나는 일을 구현하자!)
 	// (Actually create the Consumable Fragment)
 	// (소모 프래그먼트 실제로 만들기)
 }

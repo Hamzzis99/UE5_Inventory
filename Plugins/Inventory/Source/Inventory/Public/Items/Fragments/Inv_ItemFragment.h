@@ -5,6 +5,8 @@
 
 #include "Inv_ItemFragment.generated.h"
 
+class APlayerController;
+
 USTRUCT(BlueprintType)
 struct FInv_ItemFragment
 {
@@ -51,7 +53,7 @@ private:
 };
 
 USTRUCT(BlueprintType) 
-struct FInv_ImageFragment : public  FInv_ItemFragment
+struct FInv_ImageFragment : public FInv_ItemFragment
 {
 	GENERATED_BODY()
 
@@ -66,7 +68,7 @@ private:
 };
 
 USTRUCT(BlueprintType)
-struct FInv_StackableFragment : public  FInv_ItemFragment
+struct FInv_StackableFragment : public FInv_ItemFragment
 {
 	GENERATED_BODY()
 
@@ -80,4 +82,26 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	int32 StackCount{ 1 }; //최대 아이템 스택 개수
+};
+
+//아이템 사용 프래그먼트
+USTRUCT(BlueprintType)
+struct FInv_ConsumableFragment : public FInv_ItemFragment
+{
+	GENERATED_BODY()
+	
+	//소비 호출?
+	virtual void OnConsume(APlayerController* PC) {}
+};
+
+USTRUCT(BlueprintType)
+struct FInv_HealthPotionFragment : public FInv_ConsumableFragment
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float HealAmount = 20.f; //회복량	
+	
+	//소비 호출?
+	virtual void OnConsume(APlayerController* PC) override;
 };
