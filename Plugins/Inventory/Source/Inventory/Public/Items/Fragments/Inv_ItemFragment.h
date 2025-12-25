@@ -105,3 +105,15 @@ struct FInv_HealthPotionFragment : public FInv_ConsumableFragment
 	//소비 호출?
 	virtual void OnConsume(APlayerController* PC) override;
 };
+
+USTRUCT(BlueprintType)
+struct FInv_ManaPotionFragment : public FInv_ConsumableFragment
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float ManaAmount = 20.f; //회복량	
+	
+	//소비 호출?
+	virtual void OnConsume(APlayerController* PC) override;
+};

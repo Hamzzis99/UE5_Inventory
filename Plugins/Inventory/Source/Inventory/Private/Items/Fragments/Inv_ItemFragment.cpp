@@ -13,3 +13,12 @@ void FInv_HealthPotionFragment::OnConsume(APlayerController* PC)
 	GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,
 		FString::Printf(TEXT("Consumed Health Potion! Healed for %f HP"), HealAmount));
 }
+
+void FInv_ManaPotionFragment::OnConsume(APlayerController* PC)
+{
+	//Replenish mana however you wish
+	
+	//디버그 메시지
+	GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Blue,
+		FString::Printf(TEXT("Consumed Mana Potion! Healed for %f HP"), ManaAmount));
+}
