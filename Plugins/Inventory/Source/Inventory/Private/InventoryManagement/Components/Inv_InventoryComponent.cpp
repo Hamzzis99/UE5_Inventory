@@ -131,6 +131,25 @@ void UInv_InventoryComponent::SpawnDroppedItem(UInv_InventoryItem* Item, int32 S
 	ItemManifest.SpawnPickupActor(this,SpawnLocation, SpawnRotation); // 아이템 매니페스트로 픽업 액터 생성
 }
 
+// 아이템 소비 상호작용을 누른 뒤 서버에서 어떻게 처리를 할지.
+void UInv_InventoryComponent::Server_ConsumeItem_Implementation(UInv_InventoryItem* Item)
+{
+	const int32 NewStackCount = Item->GetTotalStackCount() - 1;
+	if (NewStackCount <= 0) // 스택 카운트가 0일시.
+	{
+		InventoryList.RemoveEntry(Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewStackCount);
+	}
+	
+	// TODO: Get the consumable fragment and call Consume()
+	// 소비 프래그먼트를 가져와서 소비 함수 호출
+	// (Actually create the Consumable Fragment)
+	// (소모 프래그먼트 실제로 만들기)
+}
+
 void UInv_InventoryComponent::ToggleInventoryMenu()
 {
 	if (bInventoryMenuOpen)

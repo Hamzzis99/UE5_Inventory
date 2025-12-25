@@ -1096,7 +1096,8 @@ void UInv_InventoryGrid::OnPopUpMenuConsume(int32 Index)
 	UpperLeftGridSlot->SetStackCount(NewStackCount); // 그리드 슬롯 스택 수 업데이트
 	SlottedItems.FindChecked(UpperLeftIndex)->UpdateStackCount(NewStackCount); // 슬로티드 아이템 스택 수 업데이트
 	
-	// TODO: 서버에서 내가 소모되는 것을 서버에게 알리는 부분.
+	// 서버에서 내가 소모되는 것을 서버에게 알리는 부분.
+	InventoryComponent->Server_ConsumeItem(RightClickedItem);
 	
 	if (NewStackCount <= 0)
 	{

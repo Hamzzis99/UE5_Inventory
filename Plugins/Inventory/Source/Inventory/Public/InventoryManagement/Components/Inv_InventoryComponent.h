@@ -42,6 +42,11 @@ public:
 	UFUNCTION(Server, Reliable) // 신뢰하는 것? 서버에 전달하는 것?
 	void Server_DropItem(UInv_InventoryItem* Item, int32 StackCount); // 아이템을 서버에다 어떻게 버릴지
 	
+	UFUNCTION(Server, Reliable) // 신뢰하는 것? 서버에 전달하는 것?
+	void Server_ConsumeItem(UInv_InventoryItem* Item);
+	
+	//서버 RPC 전송하는 부분 함수들
+	
 	void ToggleInventoryMenu(); //인벤토리 메뉴 토글 함수
 	void AddRepSubObj(UObject* SubObj); //복제 하위 객체 추가 함수
 	void SpawnDroppedItem(UInv_InventoryItem* Item, int32 StackCount); // 떨어진 아이템 생성 함수
