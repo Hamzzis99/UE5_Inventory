@@ -30,7 +30,7 @@ struct FInv_ItemFragment
 	void SetFragmentTag(FGameplayTag Tag) { FragmentTag = Tag; } // 조각 태그 설정
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ExposeFunctionCategories = "FragmentTags")) 
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (Categories = "FragmentTags")) 
 	FGameplayTag FragmentTag = FGameplayTag::EmptyTag; //조각 태그
 };
 
