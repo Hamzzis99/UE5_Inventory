@@ -27,6 +27,13 @@ void UInv_SpatialInventory::NativeOnInitialized()
 	ShowEquippables(); // 기본값으로 장비창을 보여주자.
 }
 
+// 마우스 버튼 다운 이벤트 처리 인벤토리 아이템 드롭
+FReply UInv_SpatialInventory::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	ActiveGrid->DropItem();
+	return FReply::Handled();
+}
+
 FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemComponent* ItemComponent) const // 아이템 컴포넌트가 있는지 확인
 {
 	switch (UInv_InventoryStatics::GetItemCategoryFromItemComp(ItemComponent))

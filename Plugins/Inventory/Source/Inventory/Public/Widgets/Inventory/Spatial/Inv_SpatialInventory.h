@@ -22,6 +22,7 @@ class INVENTORY_API UInv_SpatialInventory : public UInv_InventoryBase
 	
 public:
 	virtual void NativeOnInitialized() override; // NativeOnInitialized 이게 뭐지?
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; // 마우스 버튼 다운 이벤트 처리 인벤토리 아이템 드롭
 
 	//실제 공간이 있는지 확인하는 곳.
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
@@ -67,5 +68,5 @@ private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함
 
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button);
-	TWeakObjectPtr<UInv_InventoryGrid> ActiveGrid; // 활성 그리드가 생기면 늘 활성해주느 ㄴ함수.
+	TWeakObjectPtr<UInv_InventoryGrid> ActiveGrid; // 활성 그리드가 생기면 늘 활성해주는 포인터.
 };
