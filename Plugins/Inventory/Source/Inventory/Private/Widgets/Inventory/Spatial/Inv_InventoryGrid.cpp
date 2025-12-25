@@ -713,6 +713,7 @@ void UInv_InventoryGrid::DropItem()
 	
 	// TODO : Tell the server to actually drop the item
 	// TODO : 서버에서 실제로 아이템을 떨어뜨리도록 지시하는 일
+	InventoryComponent->Server_DropItem(HoverItem->GetInventoryItem(), HoverItem->GetStackCount()); // 서버에 아이템 드롭 요청
 	
 	ClearHoverItem();
 	ShowCursor();
