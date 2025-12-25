@@ -93,6 +93,30 @@ void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemCom
 	}
 }
 
+//아이템 드롭 상호작용을 누른 뒤 서버에서 어떻게 처리를 할지.
+void UInv_InventoryComponent::Server_DropItem_Implementation(UInv_InventoryItem* Item, int32 StackCount)
+{
+	//단순히 항목을 제거하는지 단순 업데이트를 하는지
+	const int32 NewStackCount = Item->GetTotalStackCount() - StackCount;
+	if (NewStackCount<=0) // 스택 카운트가 0일시.
+	{
+		InventoryList.RemoveEntry(Item);
+	}
+	else
+	{
+		Item->SetTotalStackCount(NewStackCount);
+	}
+	
+	SpawnDroppedItem(Item, StackCount); // 떨어진 아이템 생성 함수 호출
+	
+}
+
+//무언가를 떨어뜨렸기 때문에 아이템도 생성하는 부분의 코드들
+void UInv_InventoryComponent::SpawnDroppedItem(UInv_InventoryItem* Item, int32 StackCount)
+{
+	// TODO : 아이템을 버릴 시 월드에 소환하게 하는 부분 만들기
+}
+
 void UInv_InventoryComponent::ToggleInventoryMenu()
 {
 	if (bInventoryMenuOpen)
