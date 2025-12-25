@@ -693,7 +693,7 @@ void UInv_InventoryGrid::CreateItemPopUp(const int32 GridIndex)
 		ItemPopUp->CollapseSplitButton(); // 분할 버튼 숨기기
 	}
 	
-	ItemPopUp->OnDrop.BindDynamic(this, &ThisClass::OnPopUpMenuDrop); // 드롭 바인딩
+	ItemPopUp->OnDrop.BindDynamic(this, &ThisClass::OnPopUpMenuDrop); // 드롭 바인딩 (바인딩은 키를 등록하는 부분이었나)
 	
 	if (RightClickedItem->IsConsumable())
 	{
@@ -703,6 +703,19 @@ void UInv_InventoryGrid::CreateItemPopUp(const int32 GridIndex)
 	{
 		ItemPopUp->CollapseConsumeButton();
 	}
+}
+
+void UInv_InventoryGrid::DropItem()
+{
+	//위젯 쪽에서 먼저 처리하게 하기
+	if (!IsValid(HoverItem)) return;
+	if (!IsValid(HoverItem->GetInventoryItem())) return;
+	
+	// TODO : Tell the server to actually drop the item
+	// TODO : 서버에서 실제로 아이템을 떨어뜨리도록 지시하는 일
+	
+	ClearHoverItem();
+	ShowCursor();
 }
 
 // 인벤토리 스택 쌓는 부분.
@@ -1059,7 +1072,12 @@ void UInv_InventoryGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index) // 아
 
 void UInv_InventoryGrid::OnPopUpMenuDrop(int32 Index) // 아이템 버리기 함수
 {
+	//어느 서버에서도 통신을 할 수 있게 만드는 부분 (리슨서버, 호스트 서버, 데디서버 등)
+	UInv_InventoryItem* RightClickedItem = GridSlots[Index]->GetInventoryItem().Get();
+	if (!IsValid(RightClickedItem)) return; // 유효한 아이템인지 확인
 	
+	PickUp(RightClickedItem, Index); // 아이템 집기
+	DropItem(); // 아이템 버리기
 }
 
 void UInv_InventoryGrid::OnPopUpMenuConsume(int32 Index) // 아이템 소비 함수

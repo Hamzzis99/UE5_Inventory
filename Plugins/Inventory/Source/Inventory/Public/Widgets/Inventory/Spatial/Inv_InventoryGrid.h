@@ -113,6 +113,7 @@ private:
 	bool ShouldFillInStack(const int32 RoomInClickedSlot, const int32 HoveredStackCount) const; // 클릭된 아이템의 스택을 채워야 하는지 확인하는 함수
 	void FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index); // 스택 채우기 함수
 	void CreateItemPopUp(const int32 GridIndex); // 아이템 팝업 생성 함수
+	void DropItem(); // 아이템 버리기 함수
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_ItemPopUp> ItemPopUpClass; // 아이템 팝업 클래스
