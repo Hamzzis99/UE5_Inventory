@@ -80,7 +80,7 @@ void UInv_InventoryComponent::Server_AddStacksToItem_Implementation(UInv_ItemCom
 	Item->SetTotalStackCount(Item->GetTotalStackCount() + StackCount);
 
 	//0가 되면 아이템 파괴하는 부분
-	//TODO : Destroy the item if the Remainder is zero.
+	// TODO : Destroy the item if the Remainder is zero.
 	// Otherwise, update the stack count for the item pickup.
 
 	if (Remainder == 0)
@@ -117,12 +117,18 @@ void UInv_InventoryComponent::SpawnDroppedItem(UInv_InventoryItem* Item, int32 S
 	// TODO : 아이템을 버릴 시 월드에 소환하게 하는 부분 만들기
 	const APawn* OwningPawn = OWningController->GetPawn();
 	FVector RotatedForward = OwningPawn->GetACtorForwardVector();
-	RotatedForward = RotatedForward.RotateAngleAxis(FMath::FRandRange(DropSpawnAngleMin, DropSpawnAngleMax), UpVector); // 아이템이 빙글빙글 도는 부분
+	RotatedForward = RotatedForward.RotateAngleAxis(FMath::FRandRange(DropSpawnAngleMin, DropSpawnAngleMax), FVector::UpVector); // 아이템이 빙글빙글 도는 부분
 	FVector SpawnLocation = OwningPawn->GetActorLocation() + RotatedForward * FMath::FRandRange(DropSpawnDistanceMin, DropSpawnDistanceMax); // 아이템이 떨어지는 위치 설정
 	SpawnLocation.Z -= RelativeSpawnElevation; // 스폰 위치를 아래로 밀어내는 부분
 	const FRotator SpawnRotation = FRotator::ZeroRotator;
 	
-	
+	// TODO : 아이템 매니패스트가 픽업 액터를 생성하도록 만드는 것 
+	FInv_ItemManifest ItemManifest = Item->GetItemManifestMutable(); // 아이템 매니페스트 가져오기
+	if (FInv_StackableFragment* StackableFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_StackableFragment>()) // 스택 가능 프래그먼트 가져오기
+	{
+		StackableFragment->SetStackCount(StackCount); // 스택 수 설정
+	}
+	ItemManifest.SpawnPickupActor(this,SpawnLocation, SpawnRotation); // 아이템 매니페스트로 픽업 액터 생성
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()
@@ -196,4 +202,3 @@ void UInv_InventoryComponent::CloseInventoryMenu()
 	OwningController->SetInputMode(InputMode);
 	OwningController->SetShowMouseCursor(false);
 }
-

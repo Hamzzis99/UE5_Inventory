@@ -30,6 +30,8 @@ struct INVENTORY_API FInv_ItemManifest
 
 	template <typename T>  requires std::derived_from<T, FInv_ItemFragment>
 	T* GetFragmentOfTypeMutable();
+	
+	void SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation); // 아이템 픽업 액터 생성
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ExcludeBaseStruct)) 
@@ -43,6 +45,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FGameplayTag ItemType;
 
+	// 아이템 픽업 액터 클래스
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<AActor> PickupActorClass;
+	
 };
 
 template <typename T>
