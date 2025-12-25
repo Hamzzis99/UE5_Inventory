@@ -72,4 +72,20 @@ private:
 	bool bInventoryMenuOpen; //인벤토리 메뉴 열림 여부
 	void OpenInventoryMenu();
 	void CloseInventoryMenu();
+	
+	//아이템 드롭 시 빙글빙글 돌아요
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnAngleMin = -85.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnAngleMax = 85.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnDistanceMin = 10.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DropSpawnDistanceMax = 50.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float RelativeSpawnElevation = -70.f; // 스폰위치를 아래로 밀고싶다? 뭔 소리야?
 };

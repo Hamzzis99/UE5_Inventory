@@ -111,10 +111,18 @@ void UInv_InventoryComponent::Server_DropItem_Implementation(UInv_InventoryItem*
 	
 }
 
-//무언가를 떨어뜨렸기 때문에 아이템도 생성하는 부분의 코드들
+//무언가를 떨어뜨렸기 때문에 아이템도 생성 및 이벤트 효과들 보이게 하는 부분의 코드들
 void UInv_InventoryComponent::SpawnDroppedItem(UInv_InventoryItem* Item, int32 StackCount)
 {
 	// TODO : 아이템을 버릴 시 월드에 소환하게 하는 부분 만들기
+	const APawn* OwningPawn = OWningController->GetPawn();
+	FVector RotatedForward = OwningPawn->GetACtorForwardVector();
+	RotatedForward = RotatedForward.RotateAngleAxis(FMath::FRandRange(DropSpawnAngleMin, DropSpawnAngleMax), UpVector); // 아이템이 빙글빙글 도는 부분
+	FVector SpawnLocation = OwningPawn->GetActorLocation() + RotatedForward * FMath::FRandRange(DropSpawnDistanceMin, DropSpawnDistanceMax); // 아이템이 떨어지는 위치 설정
+	SpawnLocation.Z -= RelativeSpawnElevation; // 스폰 위치를 아래로 밀어내는 부분
+	const FRotator SpawnRotation = FRotator::ZeroRotator;
+	
+	
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()
