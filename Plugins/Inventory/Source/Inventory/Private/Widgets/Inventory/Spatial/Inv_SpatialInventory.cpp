@@ -100,10 +100,11 @@ void UInv_SpatialInventory::OnItemHovered(UInv_InventoryItem* Item)
 	GetOwningPlayer()->GetWorldTimerManager().SetTimer(DescriptionTimer, DescriptionTimerDelegate, DescriptionTimerDelay, false);
 }
 
+//아이템에서 마우스에 손을 땔 떄
 void UInv_SpatialInventory::OnItemUnHovered()
 {
 	GetItemDescription()->SetVisibility(ESlateVisibility::Collapsed); // 설명 위젯 숨기기
-	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(DescriptionTimer); //
+	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(DescriptionTimer); // 타이머 클리어
 }
 
 bool UInv_SpatialInventory::HasHoverItem() const // UI 마우스 호버 부분들
