@@ -1,5 +1,6 @@
 #include "Items/Fragments/Inv_ItemFragment.h"
 #include "Widgets/Composite/Inv_CompositeBase.h"
+#include "Widgets/Composite/Inv_Leaf_Image.h"
 
 // 아이템 프래그먼트 동화 (확장 시키는 역할)
 void FInv_InventoryItemFragment::Assimilate(UInv_CompositeBase* Composite) const
@@ -11,6 +12,19 @@ void FInv_InventoryItemFragment::Assimilate(UInv_CompositeBase* Composite) const
 bool FInv_InventoryItemFragment::MatchesWidgetTag(const UInv_CompositeBase* Composite) const
 {
 	return Composite->GetFragmentTag().MatchesTagExact(GetFragmentTag());
+}
+
+void FInv_ImageFragment::Assimilate(UInv_CompositeBase* Composite) const
+{
+	FInv_InventoryItemFragment::Assimilate(Composite); // 위젯 태그가 일치한지 확인하는 법.
+	if (!MatchesWidgetTag(Composite)) return;
+	
+	UInv_Leaf_Image* Image = Cast<UInv_Leaf_Image>(Composite);
+	if (!IsValid(Image)) return;
+	
+	Image->SetImage(Icon); // 아이콘 설정
+	Image->SetBoxSize(IconDimensions); // 박스 크기 설정
+	Image->SetImageSize(IconDimensions); // 이미지 크기 설정
 }
 
 void FInv_HealthPotionFragment::OnConsume(APlayerController* PC)

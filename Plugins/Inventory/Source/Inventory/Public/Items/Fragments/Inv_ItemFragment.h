@@ -70,12 +70,13 @@ protected:
 };
 
 USTRUCT(BlueprintType) 
-struct FInv_ImageFragment : public FInv_ItemFragment
+struct FInv_ImageFragment : public FInv_InventoryItemFragment
 {
 	GENERATED_BODY()
 
 	UTexture2D* GetIcon() const { return Icon; } //아이콘 텍스처 얻기
-
+	virtual void Assimilate(UInv_CompositeBase* Composite) const override;
+	
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TObjectPtr<UTexture2D> Icon = nullptr; //아이콘 텍스처 {nullptr]도 표현 가능
