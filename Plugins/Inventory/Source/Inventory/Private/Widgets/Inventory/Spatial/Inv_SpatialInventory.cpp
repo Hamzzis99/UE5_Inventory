@@ -5,10 +5,13 @@
 
 #include "Inventory.h"
 #include "Components/Button.h"
-#include "Components/CanvasPanel.h"
 #include "Components/WidgetSwitcher.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
+#include "Inventory.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Widgets/ItemDescription/Inv_ItemDescription.h"
 
 //버튼 생성할 때 필요한 것들
@@ -35,6 +38,33 @@ FReply UInv_SpatialInventory::NativeOnMouseButtonDown(const FGeometry& MyGeometr
 	ActiveGrid->DropItem();
 	return FReply::Handled();
 }
+
+// 매 프레임마다 호출되는 틱 함수 (마우스 Hover에 사용)
+void UInv_SpatialInventory::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	
+	if (!IsValid(ItemDescription)) return; // 아이템 설명 위젯이 유효하지 않으면 반환
+	SetItemDescriptionSizeAndPosition(ItemDescription, CanvasPanel); // 아이템 설명 크기 및 위치 설정
+}
+
+// 마우스를 올려둘 때 뜨는 아이템 설명 크기 및 위치 설정
+void UInv_SpatialInventory::SetItemDescriptionSizeAndPosition(UInv_ItemDescription* Description, UCanvasPanel* Canvas) const
+{
+	UCanvasPanelSlot* ItemDescriptionCPS = UWidgetLayoutLibrary::SlotAsCanvasSlot(Description);
+	if (!IsValid(ItemDescriptionCPS)) return;
+
+	const FVector2D ItemDescriptionSize = Description->GetBoxSize();
+	ItemDescriptionCPS->SetSize(ItemDescriptionSize);
+
+	FVector2D ClampedPosition = UInv_WidgetUtils::GetClampedWidgetPosition(
+		UInv_WidgetUtils::GetWidgetSize(Canvas),
+		ItemDescriptionSize,
+		UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer()));
+
+	ItemDescriptionCPS->SetPosition(ClampedPosition);
+}
+
 
 FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemComponent* ItemComponent) const // 아이템 컴포넌트가 있는지 확인
 {
