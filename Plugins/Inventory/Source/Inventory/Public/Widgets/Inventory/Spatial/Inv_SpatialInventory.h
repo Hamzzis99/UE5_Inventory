@@ -28,7 +28,7 @@ public:
 	virtual FInv_SlotAvailabilityResult HasRoomForItem(UInv_ItemComponent* ItemComponent) const override;
 	//아래 호버 부분들은 전부 아이템 설명 (마우스를 위에 올려놨을 때의 가상 함수들)
 	virtual void OnItemHovered(UInv_InventoryItem* Item) override;
-	virtual void OnItemUnhovered() override;
+	virtual void OnItemUnHovered() override;
 	virtual bool HasHoverItem() const override;
 	
 private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함.

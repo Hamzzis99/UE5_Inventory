@@ -27,7 +27,7 @@ void UInv_InventoryStatics::ItemHovered(APlayerController* PC, UInv_InventoryIte
 	UInv_InventoryComponent* IC = GetInventoryComponent(PC);
 	if (!IsValid(IC)) return;
 	
-	UInv_InventoryBase* InventoryBase = IC->GetInventorymenu();
+	UInv_InventoryBase* InventoryBase = IC->GetInventoryMenu();
 	if (!IsValid(InventoryBase)) return;
 	
 	if (InventoryBase->HasHoverItem()) return;
@@ -41,8 +41,8 @@ void UInv_InventoryStatics::ItemUnHovered(APlayerController* PC)
 	UInv_InventoryComponent* IC = GetInventoryComponent(PC);
 	if (!IsValid(IC)) return;
 	
-	UInv_InventoryBase* InventoryBase = IC->GetInventorymenu();
+	UInv_InventoryBase* InventoryBase = IC->GetInventoryMenu();
 	if (!IsValid(InventoryBase)) return;
 	
-	InventoryBase->OnItemUnHovered(Item);
+	InventoryBase->OnItemUnHovered();
 }

@@ -55,9 +55,9 @@ void UInv_SpatialInventory::OnItemHovered(UInv_InventoryItem* Item)
 	Super::OnItemHovered(Item);
 }
 
-void UInv_SpatialInventory::OnItemUnhovered()
+void UInv_SpatialInventory::OnItemUnHovered()
 {
-	Super::OnItemUnhovered();
+	Super::OnItemUnHovered();
 }
 
 bool UInv_SpatialInventory::HasHoverItem() const // UI 마우스 호버 부분들
