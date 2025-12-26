@@ -12,6 +12,7 @@
 */
 class UInv_InventoryItem;
 struct FInv_ItemFragment;
+class UInv_CompositeBase;
 
 USTRUCT(BlueprintType)
 struct INVENTORY_API FInv_ItemManifest
@@ -21,6 +22,7 @@ struct INVENTORY_API FInv_ItemManifest
 	UInv_InventoryItem* Manifest(UObject* NewOuter); //새로운 인벤토리 아이템 만들 때?
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; } // 아이템 카테고리 얻기
 	FGameplayTag GetItemType() const { return ItemType; } // 아이템 타입 얻기
+	void AssimilateInventoryFragments(UInv_CompositeBase* Composite) const; // 인벤토리 구성요소 동화
 
 	template <typename T>  requires std::derived_from<T, FInv_ItemFragment>// T타입만 전달하도록 강제하는 방법은? C++20
 	const T* GetFragmentOfTypeWithTag(const FGameplayTag& FragmentTag) const; // 태그로 구성요소 얻기
@@ -30,6 +32,9 @@ struct INVENTORY_API FInv_ItemManifest
 
 	template <typename T>  requires std::derived_from<T, FInv_ItemFragment>
 	T* GetFragmentOfTypeMutable();
+	
+	template<typename T> requires std::derived_from<T, FInv_ItemFragment>
+	TArray<const T*> GetAllFragmentsOfType() const;
 	
 	void SpawnPickupActor(const UObject* WorldContextObject, const FVector& SpawnLocation, const FRotator& SpawnRotation); // 아이템 픽업 액터 생성
 
@@ -92,4 +97,18 @@ T* FInv_ItemManifest::GetFragmentOfTypeMutable()
 	}
 
 	return nullptr; // 아무것도 찾지 못했을 땐 nullptr 반환
+}
+
+template <typename T> requires std::derived_from<T, FInv_ItemFragment>
+TArray<const T*> FInv_ItemManifest::GetAllFragmentsOfType() const // 여러 조각들을 얻는 방법
+{
+	TArray<const T*> Result; // 결과 배열
+	for (const TInstancedStruct<FInv_ItemFragment>& Fragment : Fragments) // 모든 프래그먼트 반복
+	{
+		if (const T* FragmentPtr = Fragment.GetPtr<T>()) //	 T타입의 포인터 얻기
+		{
+			Result.Add(FragmentPtr); // 결과 배열에 추가
+		}
+	}
+	return Result; // 결과 반환
 }

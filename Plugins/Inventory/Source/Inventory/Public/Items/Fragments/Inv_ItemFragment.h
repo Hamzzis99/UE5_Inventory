@@ -34,6 +34,8 @@ private:
 	FGameplayTag FragmentTag = FGameplayTag::EmptyTag; //조각 태그
 };
 
+
+
 USTRUCT(BlueprintType)
 struct FInv_GridFragment : public FInv_ItemFragment
 {
@@ -50,6 +52,21 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float GridPadding{ 0.f }; //그리드 패딩
+};
+
+/*
+ *  Item fragment specifically for assimilation into a widget.
+ *  아이템 프래그먼트는 위젯에 동화됩니다.
+ */
+class UInv_CompositeBase;
+USTRUCT(BlueprintType)
+struct FInv_InventoryItemFragment : public FInv_ItemFragment
+{
+	GENERATED_BODY()
+	
+	virtual void Assimilate(UInv_CompositeBase* Composite) const;
+protected:
+	bool MatchesWidgetTag(const UInv_CompositeBase* Composite) const;
 };
 
 USTRUCT(BlueprintType) 

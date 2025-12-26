@@ -1,6 +1,9 @@
 #include "Items/Manifest/Inv_ItemManifest.h"
+
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Components/Inv_ItemComponent.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
+#include "Widgets/Composite/Inv_CompositeBase.h"
 
 UInv_InventoryItem* FInv_ItemManifest::Manifest(UObject* NewOuter) // 인벤토리의 인터페이스? 복사본이라고?
 {
@@ -10,6 +13,18 @@ UInv_InventoryItem* FInv_ItemManifest::Manifest(UObject* NewOuter) // 인벤토�
 	Item->SetItemManifest(*this); // 이 매니페스트로 아이템 매니페스트 설정
 
 	return Item;
+}
+
+void FInv_ItemManifest::AssimilateInventoryFragments(UInv_CompositeBase* Composite) const// 인벤토리 구성요소 동화 
+{
+	const auto& InventoryItemFragments = GetAllFragmentsOfType<FInv_InventoryItemFragment>(); // 모든 인벤토리 아이템 프래그먼트 가져오기
+	for (const auto* Fragment : InventoryItemFragments) // 각 프래그먼트에 대해
+	{
+		Composite->ApplyFunction([Fragment](UInv_CompositeBase* Widget)// 이 apply 함수는 람다 뿐만이 아닌 모든 자식 노드(leaf)에도 적용해줌
+		{
+			Fragment->Assimilate(Widget); // 프래그먼트 동화
+		}); 
+	}
 }
 
 

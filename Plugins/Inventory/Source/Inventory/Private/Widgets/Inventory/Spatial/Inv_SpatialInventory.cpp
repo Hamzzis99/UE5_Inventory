@@ -12,6 +12,7 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Items/Inv_InventoryItem.h"
 #include "Widgets/ItemDescription/Inv_ItemDescription.h"
 
 //버튼 생성할 때 필요한 것들
@@ -85,15 +86,19 @@ FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemCompo
 // 아이템이 호버되었을 때 호출되는 함수 (설명 칸 보일 때 쓰는 부분들임)
 void UInv_SpatialInventory::OnItemHovered(UInv_InventoryItem* Item)
 {
+	const auto& Manifest = Item->GetItemManifest(); // 아이템 매니페스트 가져오기
 	UInv_ItemDescription* DescriptionWidget = GetItemDescription();
 	DescriptionWidget->SetVisibility(ESlateVisibility::Collapsed);
 	
 	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(DescriptionTimer); // 기존 타이머 클리어
 	
 	FTimerDelegate DescriptionTimerDelegate;
-	DescriptionTimerDelegate.BindLambda([this]()
+	DescriptionTimerDelegate.BindLambda([this, &Manifest, DescriptionWidget]()
 	{
-		GetItemDescription()->SetVisibility(ESlateVisibility::HitTestInvisible);
+		// Assimalate the manifest into the Item Description widget.
+		// 아이템 설명 위젯에 매니페스트 동화
+		Manifest.AssimilateInventoryFragments(DescriptionWidget);
+		GetItemDescription()->SetVisibility(ESlateVisibility::HitTestInvisible); // 설명 위젯 보이기
 	});
 	
 	// 타이머 설정
