@@ -19,7 +19,9 @@ class INVENTORY_API UInv_SlottedItem : public UUserWidget
 
 public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; //마우스 클릭 상호작용 만들기
-		
+	virtual void NativeOnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override; // 마우스 엔터 상호작용 만들기
+	virtual void NativeOnMouseLeave(const FPointerEvent& MouseEvent) override;
+	
 	bool IsStackable() const { return bIsStackable; } // 스택 가능 여부 가져오기
 	void SetIsStackable(bool bStackable) { bIsStackable = bStackable; } // 스택 가능 여부 설정
 	UImage* GetImageIcon() const {return Image_Icon;} // 아이콘 이미지 가져오기
@@ -46,3 +48,6 @@ private:
 	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;
 	bool bIsStackable{ false };
 };
+
+
+

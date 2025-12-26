@@ -5,11 +5,24 @@
 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 
 FReply UInv_SlottedItem::NativeOnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	OnSlottedItemClicked.Broadcast(GridIndex, MouseEvent); // 슬롯 아이템 클릭 델리게이트 브로드캐스트
 	return FReply::Handled(); // 이벤트가 처리되었음을 나타내는 FReply 반환
+}
+
+// 아이템 Description 설명 부분들 아이템을 마우스 댈 때
+void UInv_SlottedItem::NativeOnMouseEnter(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	UInv_InventoryStatics::ItemHovered(GetOwningPlayer(), InventoryItem.Get());
+}
+
+// 아이템 Description 설명 부분들 아이템을 마우스 땔 때
+void UInv_SlottedItem::NativeOnMouseLeave(const FPointerEvent& MouseEvent)
+{
+	UInv_InventoryStatics::ItemUnHovered(GetOwningPlayer());
 }
 
 void UInv_SlottedItem::SetInventoryItem(UInv_InventoryItem* Item)

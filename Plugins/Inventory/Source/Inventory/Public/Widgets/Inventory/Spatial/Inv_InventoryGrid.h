@@ -38,6 +38,8 @@ public:
 	void HideCursor();
 	void SetOwningCanvas(UCanvasPanel* OwningCanvas); // 장비 튤팁 캔버스 설정 부분
 	void DropItem(); // 아이템 버리기 함수
+	bool HasHoverItem() const; // 호버 아이템이 있는지 확인하는 함수
+	
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item); // 아이템 추가

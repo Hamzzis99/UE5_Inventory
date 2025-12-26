@@ -719,6 +719,11 @@ void UInv_InventoryGrid::DropItem()
 	ShowCursor();
 }
 
+bool UInv_InventoryGrid::HasHoverItem() const // 호버 아이템이 있는지 확인
+{
+	return IsValid(HoverItem); // 호버 아이템이 유효한지 확인
+}
+
 // 인벤토리 스택 쌓는 부분.
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 {

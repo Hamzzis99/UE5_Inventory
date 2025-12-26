@@ -50,7 +50,8 @@ public:
 	void ToggleInventoryMenu(); //인벤토리 메뉴 토글 함수
 	void AddRepSubObj(UObject* SubObj); //복제 하위 객체 추가 함수
 	void SpawnDroppedItem(UInv_InventoryItem* Item, int32 StackCount); // 떨어진 아이템 생성 함수
-
+	UInv_InventoryBase* GetInventoryMenu() const {return InventoryMenu;};
+	
 	FInventoryItemChange OnItemAdded;
 	FInventoryItemChange OnItemRemoved;
 	FNoRoomInInventory NoRoomInInventory;

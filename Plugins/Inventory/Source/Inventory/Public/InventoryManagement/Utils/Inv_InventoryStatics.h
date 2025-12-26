@@ -25,8 +25,16 @@ public:
 	// 2D 배열 순회 알고리즘 (그리드 조각을 for each문으로 돌리는 알고리즘 제작 부분)
 	template<typename T, typename FuncT>
 	static void ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& Range2D, int32 GridColumns, const FuncT& Function); 
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static void ItemHovered(APlayerController* PC, UInv_InventoryItem* Item);
+	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	static void ItemUnHovered(APlayerController* PC);
 };
 
+
+//여기 부분 왜 static 부분이 빨간줄이지? 나중에 분석을 할 필요가 있음.
 template<typename T, typename FuncT>
 static void UInv_InventoryStatics::ForEach2D(TArray<T>& Array, int32 Index, const FIntPoint& Range2D, int32 GridColumns, const FuncT& Function) // 알고리즘 부분.
 {
