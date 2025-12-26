@@ -6,6 +6,7 @@
 #include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 #include "Inv_SpatialInventory.generated.h"
 
+class UInv_ItemDescription;
 class UInv_InventoryGrid;
 class UWidgetSwitcher;
 class UButton;
@@ -59,6 +60,19 @@ private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Button_Craftables;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_ItemDescription> ItemDescriptionClass;
+	
+	UPROPERTY()
+	TObjectPtr<UInv_ItemDescription> ItemDescription;
+	
+	FTimerHandle DescriptionTimer;
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float DescriptionTimerDelay = 0.5f; // 설명 타이머 지연 시간 설정
+	
+	UInv_ItemDescription* GetItemDescription();
 	
 	UFUNCTION()
 	void ShowEquippables();

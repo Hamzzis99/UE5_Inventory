@@ -5,9 +5,11 @@
 
 #include "Inventory.h"
 #include "Components/Button.h"
+#include "Components/CanvasPanel.h"
 #include "Components/WidgetSwitcher.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
+#include "Widgets/ItemDescription/Inv_ItemDescription.h"
 
 //버튼 생성할 때 필요한 것들
 void UInv_SpatialInventory::NativeOnInitialized()
@@ -50,14 +52,28 @@ FInv_SlotAvailabilityResult UInv_SpatialInventory::HasRoomForItem(UInv_ItemCompo
 	}
 }
 
+// 아이템이 호버되었을 때 호출되는 함수 (설명 칸 보일 때 쓰는 부분들임)
 void UInv_SpatialInventory::OnItemHovered(UInv_InventoryItem* Item)
 {
-	Super::OnItemHovered(Item);
+	UInv_ItemDescription* DescriptionWidget = GetItemDescription();
+	DescriptionWidget->SetVisibility(ESlateVisibility::Collapsed);
+	
+	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(DescriptionTimer); // 기존 타이머 클리어
+	
+	FTimerDelegate DescriptionTimerDelegate;
+	DescriptionTimerDelegate.BindLambda([this]()
+	{
+		GetItemDescription()->SetVisibility(ESlateVisibility::HitTestInvisible);
+	});
+	
+	// 타이머 설정
+	GetOwningPlayer()->GetWorldTimerManager().SetTimer(DescriptionTimer, DescriptionTimerDelegate, DescriptionTimerDelay, false);
 }
 
 void UInv_SpatialInventory::OnItemUnHovered()
 {
-	Super::OnItemUnHovered();
+	GetItemDescription()->SetVisibility(ESlateVisibility::Collapsed); // 설명 위젯 숨기기
+	GetOwningPlayer()->GetWorldTimerManager().ClearTimer(DescriptionTimer); //
 }
 
 bool UInv_SpatialInventory::HasHoverItem() const // UI 마우스 호버 부분들
@@ -66,6 +82,16 @@ bool UInv_SpatialInventory::HasHoverItem() const // UI 마우스 호버 부분�
 	if (Grid_Consumables->HasHoverItem()) return true;
 	if (Grid_Craftables->HasHoverItem()) return true;
 	return false;
+}
+
+UInv_ItemDescription* UInv_SpatialInventory::GetItemDescription() // 아이템 설명 위젯 가져오기
+{
+	if (!IsValid(ItemDescription))
+	{
+		ItemDescription = CreateWidget<UInv_ItemDescription>(GetOwningPlayer(), ItemDescriptionClass); // 아이템 설명 위젯 생성
+		CanvasPanel->AddChild(ItemDescription);
+	}
+	return ItemDescription;
 }
 
 void UInv_SpatialInventory::ShowEquippables()
