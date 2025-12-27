@@ -28,6 +28,9 @@ struct FInv_ItemFragment
 
 	FGameplayTag GetFragmentTag() const { return FragmentTag; } // 조각 태그 가져오기
 	void SetFragmentTag(FGameplayTag Tag) { FragmentTag = Tag; } // 조각 태그 설정
+	
+	virtual void Manifest(){}
+	
 private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (Categories = "FragmentTags")) 
@@ -101,6 +104,46 @@ struct FInv_TextFragment : public FInv_InventoryItemFragment
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FText FragmentText;
+};
+
+// LabeledNumberFragment 아이템 정보보기 칸
+USTRUCT(BlueprintType) 
+struct FInv_LabeledNumberFragment : public FInv_InventoryItemFragment
+{
+	GENERATED_BODY()
+	
+	virtual void Assimilate(UInv_CompositeBase* Composite) const override;
+	virtual void Manifest() override;
+	
+	// When manifesting for the first time, this fragment will randomize. However, one equipped
+	// and dropped, an item should retain the same value, so randomization should not occur.
+	// 최초 매니페스트 시 이 프래그먼트는 무작위화됩니다. 그러나 장착 및 드롭된 경우 아이템은 동일한 값을 유지해야 하므로 무작위화가 발생하지 않아야 합니다.
+	bool bRandomizeOnManifest{true}; //매니페스트 시 무작위화?
+	
+private:
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FText Text_Label{};
+	
+	UPROPERTY(VisibleAnywhere, Category = "Inventory")
+	float Value{0.f};
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float Min{0};
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	float Max{0};
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	bool bCollapseLabel{false};	
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	bool bCollapseValue{false};
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	int32 MinFractionalDigits{1};
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	int32 MaxFractionalDigits{1};
 };
 
 

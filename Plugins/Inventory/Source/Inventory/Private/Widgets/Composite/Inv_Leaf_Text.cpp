@@ -18,6 +18,5 @@ void UInv_Leaf_Text::NativePreConstruct()
 	FSlateFontInfo FontInfo = Text_LeafText->GetFont();
 	FontInfo.Size = FontSize;
 	
-	
 	Text_LeafText->SetFont(FontInfo);
 }

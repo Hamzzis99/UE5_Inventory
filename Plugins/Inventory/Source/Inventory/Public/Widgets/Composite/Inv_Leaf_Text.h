@@ -10,6 +10,8 @@
  * 
  */
 
+class UTextBlock;
+
 UCLASS()
 class INVENTORY_API UInv_Leaf_Text : public UInv_Leaf
 {

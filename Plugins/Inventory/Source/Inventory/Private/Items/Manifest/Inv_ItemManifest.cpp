@@ -12,6 +12,13 @@ UInv_InventoryItem* FInv_ItemManifest::Manifest(UObject* NewOuter) // 인벤토�
 	//재고 항목
 	Item->SetItemManifest(*this); // 이 매니페스트로 아이템 매니페스트 설정
 
+	//비어있더라도 호출 해주는 함수
+	for (auto& Fragment : Item->GetItemManifestMutable().GetFragmentsMutable()) // 각 프래그먼트에 대해
+	{
+		Fragment.GetMutable().Manifest(); // 프래그먼트 매니페스트 호출
+	}
+	ClearFragments();
+	
 	return Item;
 }
 
@@ -43,4 +50,13 @@ void FInv_ItemManifest::SpawnPickupActor(const UObject* WorldContextObject, cons
 	check(ItemComp); // ItemComp가 유효한지 확인
 	
 	ItemComp->InitItemManifest(*this); // 아이템 매니페스트 초기화
+}
+
+void FInv_ItemManifest::ClearFragments()
+{
+	for (auto& Fragment : Fragments)
+	{
+		Fragment.Reset();
+	}
+	Fragments.Empty();
 }

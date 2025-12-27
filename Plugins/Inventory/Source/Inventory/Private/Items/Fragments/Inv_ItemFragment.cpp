@@ -1,7 +1,10 @@
 #include "Items/Fragments/Inv_ItemFragment.h"
+
 #include "Widgets/Composite/Inv_CompositeBase.h"
 #include "Widgets/Composite/Inv_Leaf_Image.h"
+#include "Widgets/Composite/Inv_Leaf_LabeledValue.h"
 #include "Widgets/Composite/Inv_Leaf_Text.h"
+#include "Windows/WindowsApplication.h"
 
 // 아이템 프래그먼트 동화 (확장 시키는 역할)
 void FInv_InventoryItemFragment::Assimilate(UInv_CompositeBase* Composite) const
@@ -37,6 +40,35 @@ void FInv_TextFragment::Assimilate(UInv_CompositeBase* Composite) const
 	if (!IsValid(LeafText)) return;
 	
 	LeafText->SetText(FragmentText); // 텍스트 설정
+}
+
+
+// LabeledNumberFragment 라벨이 지정된 숫자를 전달해서 개수와 효과를 나오게 하는 것.
+void FInv_LabeledNumberFragment::Assimilate(UInv_CompositeBase* Composite) const
+{
+	FInv_InventoryItemFragment::Assimilate(Composite);
+	if (!MatchesWidgetTag(Composite)) return;
+	
+	UInv_Leaf_LabeledValue* LabeledValue = Cast<UInv_Leaf_LabeledValue>(Composite);
+	if (!IsValid(LabeledValue)) return;
+
+	LabeledValue->SetText_Label(Text_Label, bCollapseLabel);
+
+	FNumberFormattingOptions Options;
+	Options.MinimumFractionalDigits = MinFractionalDigits;
+	Options.MaximumFractionalDigits = MaxFractionalDigits;
+	
+	LabeledValue->SetText_Value(FText::AsNumber(Value, &Options), bCollapseValue);
+}
+void FInv_LabeledNumberFragment::Manifest()
+{
+	FInv_InventoryItemFragment::Manifest();
+	
+	if (bRandomizeOnManifest)
+	{
+		Value = FMath::FRandRange(Min, Max); // 무작위 값 설정
+	}
+	bRandomizeOnManifest = false;
 }
 
 void FInv_HealthPotionFragment::OnConsume(APlayerController* PC)
