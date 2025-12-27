@@ -69,6 +69,7 @@ protected:
 	bool MatchesWidgetTag(const UInv_CompositeBase* Composite) const;
 };
 
+// Image Fragment 아이템 정보보기 칸
 USTRUCT(BlueprintType) 
 struct FInv_ImageFragment : public FInv_InventoryItemFragment
 {
@@ -84,6 +85,24 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FVector2D IconDimensions{ 44.f, 44.f }; //아이콘 크기
 };
+
+// Text Fragment 아이템 정보보기 칸
+USTRUCT(BlueprintType) 
+struct FInv_TextFragment : public FInv_InventoryItemFragment
+{
+	GENERATED_BODY()
+
+	FText GetText() const {return FragmentText;} // 텍스트 얻기
+	void SetText(const FText& Text) {FragmentText = Text;} // 텍스트 받아오기 지정
+	
+	// 동화 함수 재정의 이거는 정말 중요한 역할. 인벤토리 Fragment 기반으로 정보를 얻어와주니까. UI를 받아오는데 정말 중요함.
+	virtual void Assimilate(UInv_CompositeBase* Composite) const override; 
+	
+private:
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FText FragmentText;
+};
+
 
 USTRUCT(BlueprintType)
 struct FInv_StackableFragment : public FInv_ItemFragment

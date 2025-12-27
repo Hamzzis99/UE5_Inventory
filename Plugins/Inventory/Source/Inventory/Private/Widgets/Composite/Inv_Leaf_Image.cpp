@@ -1,5 +1,5 @@
 // Gihyeon's Inventory Project
-
+// Leaf Image란? UI에서 딸려오는 이미지 부분이다. 트리 구조라 생각하자.
 
 #include "Widgets/Composite/Inv_Leaf_Image.h"
 

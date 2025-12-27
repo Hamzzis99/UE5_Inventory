@@ -1,6 +1,7 @@
 #include "Items/Fragments/Inv_ItemFragment.h"
 #include "Widgets/Composite/Inv_CompositeBase.h"
 #include "Widgets/Composite/Inv_Leaf_Image.h"
+#include "Widgets/Composite/Inv_Leaf_Text.h"
 
 // 아이템 프래그먼트 동화 (확장 시키는 역할)
 void FInv_InventoryItemFragment::Assimilate(UInv_CompositeBase* Composite) const
@@ -25,6 +26,17 @@ void FInv_ImageFragment::Assimilate(UInv_CompositeBase* Composite) const
 	Image->SetImage(Icon); // 아이콘 설정
 	Image->SetBoxSize(IconDimensions); // 박스 크기 설정
 	Image->SetImageSize(IconDimensions); // 이미지 크기 설정
+}
+
+void FInv_TextFragment::Assimilate(UInv_CompositeBase* Composite) const
+{
+	FInv_InventoryItemFragment::Assimilate(Composite);
+	if (!MatchesWidgetTag(Composite)) return;
+	
+	UInv_Leaf_Text* LeafText = Cast<UInv_Leaf_Text>(Composite);
+	if (!IsValid(LeafText)) return;
+	
+	LeafText->SetText(FragmentText); // 텍스트 설정
 }
 
 void FInv_HealthPotionFragment::OnConsume(APlayerController* PC)
