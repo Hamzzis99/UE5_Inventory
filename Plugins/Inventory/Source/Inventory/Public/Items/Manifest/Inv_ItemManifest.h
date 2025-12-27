@@ -19,7 +19,7 @@ struct INVENTORY_API FInv_ItemManifest
 {
 	GENERATED_BODY()
 
-	TArray<TInstancedStruct<FInv_ItemFragment>> GetFragmentsMutable() { return Fragments; } // 인벤토리 아이템 배열 공간들 얻기
+	TArray<TInstancedStruct<FInv_ItemFragment>>& GetFragmentsMutable() { return Fragments; } // 인벤토리 아이템 배열 공간들 얻기
 	
 	UInv_InventoryItem* Manifest(UObject* NewOuter); //새로운 인벤토리 아이템 만들 때?
 	EInv_ItemCategory GetItemCategory() const { return ItemCategory; } // 아이템 카테고리 얻기
