@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "StructUtils/InstancedStruct.h"
 
 #include "Inv_ItemFragment.generated.h"
 
@@ -164,14 +165,30 @@ private:
 	int32 StackCount{ 1 }; //최대 아이템 스택 개수
 };
 
+
+
+
+// Consume Fragments 
 //아이템 사용 프래그먼트
 USTRUCT(BlueprintType)
-struct FInv_ConsumableFragment : public FInv_ItemFragment
+struct FInv_ConsumeModifier : public FInv_LabeledNumberFragment
+{
+	GENERATED_BODY()
+	
+	virtual void OnConsume(APlayerController* PC){}
+};
+
+USTRUCT(BlueprintType)
+struct FInv_ConsumableFragment : public FInv_InventoryItemFragment
 {
 	GENERATED_BODY()
 	
 	//소비 호출?
 	virtual void OnConsume(APlayerController* PC) {}
+	virtual void Assimilate(UInv_CompositeBase* Composite) const override; // 
+private:
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ExcludeBaseStruct))
+	TArray<TInstancedStruct<FInv_ConsumeModifier>> ConsumeModifiers; // 입력 받은 랜덤 지정 값 적용 부분
 };
 
 USTRUCT(BlueprintType)

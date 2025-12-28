@@ -60,6 +60,7 @@ void FInv_LabeledNumberFragment::Assimilate(UInv_CompositeBase* Composite) const
 	
 	LabeledValue->SetText_Value(FText::AsNumber(Value, &Options), bCollapseValue);
 }
+
 void FInv_LabeledNumberFragment::Manifest()
 {
 	FInv_InventoryItemFragment::Manifest();
@@ -69,6 +70,17 @@ void FInv_LabeledNumberFragment::Manifest()
 		Value = FMath::FRandRange(Min, Max); // 무작위 값 설정
 	}
 	bRandomizeOnManifest = false;
+}
+
+// 소모품 사용에 있어서 고정 값 사용이 아닌 동시에 값을 사용할 수 있게 동기화 해주는 부분
+void FInv_ConsumableFragment::Assimilate(UInv_CompositeBase* Composite) const
+{
+	FInv_InventoryItemFragment::Assimilate(Composite);
+	for (const auto& Modifier : ConsumeModifiers)
+	{
+		const auto& ModRef = Modifier.Get();
+		ModRef.Assimilate(Composite);
+	}
 }
 
 void FInv_HealthPotionFragment::OnConsume(APlayerController* PC)
