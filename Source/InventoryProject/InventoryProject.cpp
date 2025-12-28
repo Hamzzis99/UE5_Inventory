@@ -6,3 +6,4 @@
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, InventoryProject, "InventoryProject" );
 
 DEFINE_LOG_CATEGORY(LogInventoryProject)
+
