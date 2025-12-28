@@ -12,8 +12,8 @@ namespace FragmentTags
 	
 	namespace StatMod // 아이템 능력치를 변경해주는 역할.
 	{
-		UE_DEFINE_GAMEPLAY_TAG(StatMod_1, "StatMod.1")
-		UE_DEFINE_GAMEPLAY_TAG(StatMod_2, "StatMod.2")
-		UE_DEFINE_GAMEPLAY_TAG(StatMod_3, "StatMod.3")
+		UE_DEFINE_GAMEPLAY_TAG(StatMod_1, "FragmentTags.StatMod.1")
+		UE_DEFINE_GAMEPLAY_TAG(StatMod_2, "FragmentTags.StatMod.2")
+		UE_DEFINE_GAMEPLAY_TAG(StatMod_3, "FragmentTags.StatMod.3")
 	}
 }
