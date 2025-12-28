@@ -35,6 +35,10 @@ public:
 	
 private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함.
 	
+	//장착 슬롯 늘리는 부분
+	UPROPERTY()
+	TArray<TObjectPtr<UInv_EquippedGridSlot>> EquippedGridSlots;
+	
 	//어떤 캔버스 패널일까? 아 아이템 튤팁 공간
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCanvasPanel> CanvasPanel;
@@ -83,6 +87,9 @@ private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함
 
 	UFUNCTION()
 	void ShowCraftables();
+	
+	UFUNCTION()
+	void EquippedGridSlotClicked(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag); // 마우스를 갖다댈 시 백함수 
 	
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button);

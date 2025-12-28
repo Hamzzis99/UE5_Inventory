@@ -14,6 +14,8 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Items/Inv_InventoryItem.h"
 #include "Widgets/ItemDescription/Inv_ItemDescription.h"
+#include "Blueprint/WidgetTree.h"
+#include "Widgets/Inventory/GridSlots/Inv_EquippedGridSlot.h"
 
 //버튼 생성할 때 필요한 것들
 void UInv_SpatialInventory::NativeOnInitialized()
@@ -31,6 +33,22 @@ void UInv_SpatialInventory::NativeOnInitialized()
 	Grid_Craftables->SetOwningCanvas(CanvasPanel);
 
 	ShowEquippables(); // 기본값으로 장비창을 보여주자.
+	
+	WidgetTree->ForEachWidget([this](UWidget* Widget) // 위젯 트리의 각 위젯에 대해 반복
+	{
+		UInv_EquippedGridSlot* EquippedGridSlot = Cast<UInv_EquippedGridSlot>(Widget); // 장착된 그리드 슬롯으로 캐스팅
+		if (IsValid(EquippedGridSlot))
+		{
+			EquippedGridSlots.Add(EquippedGridSlot); // 장착된 그리드 슬롯을 배열에 추가
+			EquippedGridSlot->EquippedGridSlotClicked.AddDynamic(this, &ThisClass::EquippedGridSlotClicked); // 클릭 이벤트 바인딩
+		}
+	});
+}
+
+// 장착된 그리드 슬롯이 클릭되었을 때 호출되는 함수
+void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* EquippedGridSlot,const FGameplayTag& EquipmentTypeTag) // 콜백함수 
+{
+	
 }
 
 // 마우스 버튼 다운 이벤트 처리 인벤토리 아이템 드롭
@@ -144,6 +162,8 @@ void UInv_SpatialInventory::ShowCraftables()
 {
 	SetActiveGrid(Grid_Craftables, Button_Craftables);
 }
+
+
 
 //리펙토링을 이렇게 하네 신기하다. 일단 버튼 비활성화 부분
 void UInv_SpatialInventory::DisableButton(UButton* Button)
