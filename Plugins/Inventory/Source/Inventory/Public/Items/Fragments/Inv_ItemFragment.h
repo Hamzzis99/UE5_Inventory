@@ -115,6 +115,7 @@ struct FInv_LabeledNumberFragment : public FInv_InventoryItemFragment
 	
 	virtual void Assimilate(UInv_CompositeBase* Composite) const override;
 	virtual void Manifest() override;
+	float GetValue() const { return Value; } // UI에서 지정 한 값 얻기
 	
 	// When manifesting for the first time, this fragment will randomize. However, one equipped
 	// and dropped, an item should retain the same value, so randomization should not occur.
@@ -124,22 +125,22 @@ struct FInv_LabeledNumberFragment : public FInv_InventoryItemFragment
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FText Text_Label{};
-	
+
 	UPROPERTY(VisibleAnywhere, Category = "Inventory")
 	float Value{0.f};
-	
+
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float Min{0};
-	
+
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	float Max{0};
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	bool bCollapseLabel{false};	
-	
+	bool bCollapseLabel{false};
+
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	bool bCollapseValue{false};
-	
+
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	int32 MinFractionalDigits{1};
 	
@@ -184,33 +185,31 @@ struct FInv_ConsumableFragment : public FInv_InventoryItemFragment
 	GENERATED_BODY()
 	
 	//소비 호출?
-	virtual void OnConsume(APlayerController* PC) {}
+	virtual void OnConsume(APlayerController* PC);
 	virtual void Assimilate(UInv_CompositeBase* Composite) const override; // 
+	virtual void Manifest() override;
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ExcludeBaseStruct))
 	TArray<TInstancedStruct<FInv_ConsumeModifier>> ConsumeModifiers; // 입력 받은 랜덤 지정 값 적용 부분
 };
 
 USTRUCT(BlueprintType)
-struct FInv_HealthPotionFragment : public FInv_ConsumableFragment
+struct FInv_HealthPotionFragment : public FInv_ConsumeModifier
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float HealAmount = 20.f; //회복량	
-	
+	// 기존에 사용하던 고정값 참조 방식
+	// UPROPERTY(EditAnywhere, Category = "Inventory")
+	// float HealAmount = 20.f; //회복량	
+
 	//소비 호출?
 	virtual void OnConsume(APlayerController* PC) override;
 };
 
 USTRUCT(BlueprintType)
-struct FInv_ManaPotionFragment : public FInv_ConsumableFragment
+struct FInv_ManaPotionFragment : public FInv_ConsumeModifier
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	float ManaAmount = 20.f; //회복량	
-	
-	//소비 호출?
 	virtual void OnConsume(APlayerController* PC) override;
 };

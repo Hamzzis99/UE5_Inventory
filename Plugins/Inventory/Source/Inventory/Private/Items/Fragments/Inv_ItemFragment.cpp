@@ -6,6 +6,7 @@
 #include "Widgets/Composite/Inv_Leaf_Text.h"
 #include "Windows/WindowsApplication.h"
 
+
 // 아이템 프래그먼트 동화 (확장 시키는 역할)
 void FInv_InventoryItemFragment::Assimilate(UInv_CompositeBase* Composite) const
 {
@@ -72,6 +73,15 @@ void FInv_LabeledNumberFragment::Manifest()
 	bRandomizeOnManifest = false;
 }
 
+void FInv_ConsumableFragment::OnConsume(APlayerController* PC)
+{
+	for (auto& Modifier : ConsumeModifiers)
+	{
+		auto& ModRef = Modifier.GetMutable();
+		ModRef.OnConsume(PC);
+	}
+}
+
 // 소모품 사용에 있어서 고정 값 사용이 아닌 동시에 값을 사용할 수 있게 동기화 해주는 부분
 void FInv_ConsumableFragment::Assimilate(UInv_CompositeBase* Composite) const
 {
@@ -80,6 +90,16 @@ void FInv_ConsumableFragment::Assimilate(UInv_CompositeBase* Composite) const
 	{
 		const auto& ModRef = Modifier.Get();
 		ModRef.Assimilate(Composite);
+	}
+}
+
+void FInv_ConsumableFragment::Manifest() // 모든 자식 Fragment를 불러주는 역할.
+{
+	FInv_InventoryItemFragment::Manifest();
+	for (auto& Modifier : ConsumeModifiers)
+	{
+		auto& ModRef = Modifier.GetMutable();
+		ModRef.Manifest();
 	}
 }
 
@@ -93,8 +113,8 @@ void FInv_HealthPotionFragment::OnConsume(APlayerController* PC)
 	// 힐링을 위한 인터페이스 함수 호출
 	
 	//디버그 메시지
-	GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Green,
-		FString::Printf(TEXT("Consumed Health Potion! Healed for %f HP"), HealAmount));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, 
+		FString::Printf(TEXT("Health Potion consumed! Healing by: %f"), GetValue()));
 }
 
 void FInv_ManaPotionFragment::OnConsume(APlayerController* PC)
@@ -103,5 +123,5 @@ void FInv_ManaPotionFragment::OnConsume(APlayerController* PC)
 	
 	//디버그 메시지
 	GEngine->AddOnScreenDebugMessage(-1,5.f,FColor::Blue,
-		FString::Printf(TEXT("Consumed Mana Potion! Healed for %f HP"), ManaAmount));
+		FString::Printf(TEXT("Consumed Mana Potion! Healed for %f HP"), GetValue()));
 }

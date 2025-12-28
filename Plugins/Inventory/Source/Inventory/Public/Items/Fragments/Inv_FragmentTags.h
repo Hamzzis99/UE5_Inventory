@@ -13,4 +13,11 @@ namespace FragmentTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemNameFragment)
 	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PrimaryStatFragment)
+	
+	namespace StatMod // 아이템 능력치를 변경해주는 역할.
+	{
+		UE_DECLARE_GAMEPLAY_TAG_EXTERN(StatMod_1)	
+		UE_DECLARE_GAMEPLAY_TAG_EXTERN(StatMod_2)	
+		UE_DECLARE_GAMEPLAY_TAG_EXTERN(StatMod_3)	
+	}
 }
