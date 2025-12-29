@@ -727,6 +727,12 @@ bool UInv_InventoryGrid::HasHoverItem() const // 호버 아이템이 있는지 �
 	return IsValid(HoverItem); // 호버 아이템이 유효한지 확인
 }
 
+// 호버 아이템 반환 <- 장비 슬롯
+UInv_HoverItem* UInv_InventoryGrid::GetHoverItem() const 
+{
+	return HoverItem;
+}
+
 // 인벤토리 스택 쌓는 부분.
 void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 {

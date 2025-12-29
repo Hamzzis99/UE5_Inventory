@@ -11,6 +11,7 @@ class UInv_InventoryGrid;
 class UWidgetSwitcher;
 class UButton;
 class UCanvasPanel;
+class UInv_HoverItem;
 // UI 연동 부분들
 
 /**
@@ -32,6 +33,7 @@ public:
 	virtual void OnItemHovered(UInv_InventoryItem* Item) override;
 	virtual void OnItemUnHovered() override;
 	virtual bool HasHoverItem() const override;
+	virtual UInv_HoverItem* GetHoverItem() const override;
 	
 private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함.
 	

@@ -138,6 +138,14 @@ bool UInv_SpatialInventory::HasHoverItem() const // UI 마우스 호버 부분�
 	return false;
 }
 
+// 활성 그리드가 유효한 경우 호버 아이템 반환.
+UInv_HoverItem* UInv_SpatialInventory::GetHoverItem() const
+{
+	if (!ActiveGrid.IsValid()) return nullptr; // 액터 그리드가 유효하지 않으면 nullptr 반환
+	
+	return ActiveGrid->GetHoverItem(); // 활성 그리드에서 호버 아이템 반환
+}
+
 UInv_ItemDescription* UInv_SpatialInventory::GetItemDescription() // 아이템 설명 위젯 가져오기
 {
 	if (!IsValid(ItemDescription))

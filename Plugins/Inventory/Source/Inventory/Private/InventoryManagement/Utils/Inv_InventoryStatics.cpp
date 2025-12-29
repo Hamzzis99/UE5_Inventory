@@ -46,3 +46,15 @@ void UInv_InventoryStatics::ItemUnHovered(APlayerController* PC)
 	
 	InventoryBase->OnItemUnHovered();
 }
+
+// 인벤토리 그리드의 통계 부분을 확인해주는 것 (?) <- 추후 분석 필요
+UInv_HoverItem* UInv_InventoryStatics::GetHoverItem(APlayerController* PC)
+{
+	UInv_InventoryComponent* IC = GetInventoryComponent(PC);
+	if (!IsValid(IC)) return nullptr;
+	
+	UInv_InventoryBase* InventoryBase = IC->GetInventoryMenu();
+	if (!IsValid(InventoryBase)) return nullptr;
+	
+	return InventoryBase->GetHoverItem();
+}
