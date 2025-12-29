@@ -13,7 +13,8 @@ class UButton;
 class UCanvasPanel;
 class UInv_HoverItem;
 class UInv_EquippedGridSlot;
-class FGameplayTag;
+struct FGameplayTag;
+
 // UI 연동 부분들
 
 /**
