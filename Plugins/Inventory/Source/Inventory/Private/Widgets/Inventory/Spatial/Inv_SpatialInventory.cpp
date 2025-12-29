@@ -17,6 +17,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "Widgets/Inventory/GridSlots/Inv_EquippedGridSlot.h"
 #include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
+#include "Widgets/Inventory/SlottedItems/Inv_EquippedSlottedItem.h"
 
 //버튼 생성할 때 필요한 것들
 void UInv_SpatialInventory::NativeOnInitialized()
@@ -53,14 +54,30 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 	// 호버 아이템을 장착할 수 있는지 확인
 	if (!CanEquipHoverItem(EquippedGridSlot, EquipmentTypeTag)) return; // 장착할 수 없으면 반환
 	
+	UInv_HoverItem* HoverItem = GetHoverItem();
+	
 	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot (call EquippedGridSlot->OnItemEquipped())
 	// 장착된 슬롯 아이템을 만들고 장착된 그리드 슬롯에 (EquippedGridSlot->OnItemEquipped()) 추가
+	const float TileSize = UInv_InventoryStatics::GetInventoryWidget(GetOwningPlayer())->GetTileSize();
 	
+	// 장착시킨 그리드 슬롯에 실제 아이템 장착
+	UInv_EquippedSlottedItem* EquippedSlottedItem = EquippedGridSlot->OnItemEquipped(
+		HoverItem->GetInventoryItem(),
+		EquipmentTypeTag,
+		TileSize
+	);
+	EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &ThisClass::EquippedSlottedItemClicked);
 	// Clear the Hover item
 	// 호버 아이템 지우기
 	
 	// Inform the server that we've equipped an item (potentially unequipping an item as well)
 	// 아이템을 장착했음을 서버에 알리기(잠재적으로 아이템을 해제하기도 함)
+	
+}
+
+// 장착된 슬롯 아이템 클릭 시 호출되는 함수
+void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem* SlottedItem)
+{
 	
 }
 
@@ -176,6 +193,11 @@ UInv_HoverItem* UInv_SpatialInventory::GetHoverItem() const
 	if (!ActiveGrid.IsValid()) return nullptr; // 액터 그리드가 유효하지 않으면 nullptr 반환
 	
 	return ActiveGrid->GetHoverItem(); // 활성 그리드에서 호버 아이템 반환
+}
+
+float UInv_SpatialInventory::GetTileSize() const
+{
+	return Grid_Equippables->GetTileSize(); // 장비 그리드의 타일 크기 반환
 }
 
 UInv_ItemDescription* UInv_SpatialInventory::GetItemDescription() // 아이템 설명 위젯 가져오기

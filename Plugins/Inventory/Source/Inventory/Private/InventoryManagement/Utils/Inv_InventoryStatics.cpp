@@ -58,3 +58,12 @@ UInv_HoverItem* UInv_InventoryStatics::GetHoverItem(APlayerController* PC)
 	
 	return InventoryBase->GetHoverItem();
 }
+
+// 인벤토리 위젯 가져오기
+UInv_InventoryBase* UInv_InventoryStatics::GetInventoryWidget(APlayerController* PC)
+{
+	UInv_InventoryComponent* IC = GetInventoryComponent(PC);
+	if (!IsValid(IC)) return nullptr;
+	
+	return IC->GetInventoryMenu();
+}

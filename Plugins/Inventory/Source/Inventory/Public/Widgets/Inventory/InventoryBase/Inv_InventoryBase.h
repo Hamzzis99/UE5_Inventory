@@ -21,5 +21,5 @@ public:
 	virtual void OnItemUnHovered() {} // 아이템 언호버 시 호출되는 가상 함수
 	virtual bool HasHoverItem() const {return false;} // 호버된 아이템이 있는지 확인하는 가상 함수
 	virtual UInv_HoverItem* GetHoverItem() const {return nullptr;} // 호버된 아이템을 반환하는 가상 함수
-	
+	virtual float GetTileSize() const {return 0.f;} // 타일 크기를 반환하는 가상 함수
 };

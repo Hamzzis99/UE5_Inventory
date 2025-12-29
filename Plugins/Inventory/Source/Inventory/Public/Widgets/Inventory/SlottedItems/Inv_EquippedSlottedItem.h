@@ -22,7 +22,6 @@ class INVENTORY_API UInv_EquippedSlottedItem : public UInv_SlottedItem
 public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	
-	
 	// 장착된 장비 유형 태그 설정 및 가져오기
 	void SetEquipmentTypeTag(const FGameplayTag& Tag) { EquipmentTypeTag = Tag;}
 	FGameplayTag GetEquipmentTypeTag() const { return EquipmentTypeTag; }

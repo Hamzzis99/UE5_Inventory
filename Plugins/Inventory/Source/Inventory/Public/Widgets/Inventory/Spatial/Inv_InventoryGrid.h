@@ -40,6 +40,7 @@ public:
 	void DropItem(); // 아이템 버리기 함수
 	bool HasHoverItem() const; // 호버 아이템이 있는지 확인하는 함수
 	UInv_HoverItem* GetHoverItem() const; // 호버 아이템 가져오기 함수
+	float GetTileSize() const{return TileSize;}; // 타일 크기 가져오기 함수
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item); // 아이템 추가
