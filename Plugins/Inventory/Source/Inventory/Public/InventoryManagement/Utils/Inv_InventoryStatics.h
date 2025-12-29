@@ -33,7 +33,7 @@ public:
 	static void ItemHovered(APlayerController* PC, UInv_InventoryItem* Item);
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	static void ItemUnHovered(APlayerController* PC);
+	static void ItemUnhovered(APlayerController* PC);
 	
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	static UInv_HoverItem* GetHoverItem(APlayerController* PC);

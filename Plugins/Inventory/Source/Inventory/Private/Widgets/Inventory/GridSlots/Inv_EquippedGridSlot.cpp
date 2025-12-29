@@ -6,13 +6,13 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Image.h"
 #include "Components/Overlay.h"
-#include "Components/OverlaySlot.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Fragments/Inv_FragmentTags.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
 #include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
 #include "Widgets/Inventory/SlottedItems/Inv_EquippedSlottedItem.h"
+#include "Components/OverlaySlot.h"
 
 
 void UInv_EquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -20,10 +20,10 @@ void UInv_EquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, cons
 	if (!IsAvailable()) return;
 	UInv_HoverItem* HoverItem = UInv_InventoryStatics::GetHoverItem(GetOwningPlayer());
 	if (!IsValid(HoverItem)) return;
-	
+
 	if (HoverItem->GetItemType().MatchesTag(EquipmentTypeTag))
 	{
-		SetOccupiedTexture(); // 슬롯이 사용 가능한 상태일 때만 텍스처 변경
+		SetOccupiedTexture();
 		Image_GrayedOutIcon->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
@@ -33,10 +33,10 @@ void UInv_EquippedGridSlot::NativeOnMouseLeave(const FPointerEvent& InMouseEvent
 	if (!IsAvailable()) return;
 	UInv_HoverItem* HoverItem = UInv_InventoryStatics::GetHoverItem(GetOwningPlayer());
 	if (!IsValid(HoverItem)) return;
-	
+
 	if (HoverItem->GetItemType().MatchesTag(EquipmentTypeTag))
 	{
-		SetUnoccupiedTexture(); // 슬롯이 사용 가능한 상태일 때만 텍스처 변경
+		SetUnoccupiedTexture();
 		Image_GrayedOutIcon->SetVisibility(ESlateVisibility::Visible);
 	}
 }
@@ -75,7 +75,7 @@ UInv_EquippedSlottedItem* UInv_EquippedGridSlot::OnItemEquipped(UInv_InventoryIt
 	
 	// Set the Slotted Item's Equipment Type Tag
 	// 슬롯 아이템의 장비 유형 태그 설정
-	EquippedSlottedItem->SetEquipmentTypeTag(EquipmentTypeTag);
+	EquippedSlottedItem->SetEquipmentTypeTag(EquipmentTag);
 	
 	// Hide the Stack Count widget on the Slotted Item
 	// 슬롯 아이템에서 스택 수량 위젯 숨기기
@@ -89,7 +89,7 @@ UInv_EquippedSlottedItem* UInv_EquippedGridSlot::OnItemEquipped(UInv_InventoryIt
 	// 장착된 슬롯 아이템칸에 이미지 브러시 설정
 	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(Item, FragmentTags::IconFragment);
 	if (!ImageFragment) return nullptr;
-	
+
 	FSlateBrush Brush;
 	Brush.SetResourceObject(ImageFragment->GetIcon());
 	Brush.DrawAs = ESlateBrushDrawType::Image;
@@ -103,10 +103,10 @@ UInv_EquippedSlottedItem* UInv_EquippedGridSlot::OnItemEquipped(UInv_InventoryIt
 	FGeometry OverlayGeometry = Overlay_Root->GetCachedGeometry();
 	auto OverlayPos = OverlayGeometry.Position;
 	auto OverlaySize = OverlayGeometry.Size;
-	
+
 	const float LeftPadding = OverlaySize.X / 2.f - DrawSize.X / 2.f;
 	const float TopPadding = OverlaySize.Y / 2.f - DrawSize.Y / 2.f;
-	
+
 	UOverlaySlot* OverlaySlot = UWidgetLayoutLibrary::SlotAsOverlaySlot(EquippedSlottedItem);
 	OverlaySlot->SetPadding(FMargin(LeftPadding, TopPadding));
 	

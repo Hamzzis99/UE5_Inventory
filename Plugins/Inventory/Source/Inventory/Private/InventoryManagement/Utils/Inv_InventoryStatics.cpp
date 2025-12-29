@@ -36,14 +36,14 @@ void UInv_InventoryStatics::ItemHovered(APlayerController* PC, UInv_InventoryIte
 }
 
 
-void UInv_InventoryStatics::ItemUnHovered(APlayerController* PC)
+void UInv_InventoryStatics::ItemUnhovered(APlayerController* PC)
 {
 	UInv_InventoryComponent* IC = GetInventoryComponent(PC);
 	if (!IsValid(IC)) return;
-	
+
 	UInv_InventoryBase* InventoryBase = IC->GetInventoryMenu();
 	if (!IsValid(InventoryBase)) return;
-	
+
 	InventoryBase->OnItemUnHovered();
 }
 
