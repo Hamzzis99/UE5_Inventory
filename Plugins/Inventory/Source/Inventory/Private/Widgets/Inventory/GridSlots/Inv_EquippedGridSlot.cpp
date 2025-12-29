@@ -3,13 +3,17 @@
 
 #include "Widgets/Inventory/GridSlots/Inv_EquippedGridSlot.h"
 
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Image.h"
+#include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Fragments/Inv_FragmentTags.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
 #include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
 #include "Widgets/Inventory/SlottedItems/Inv_EquippedSlottedItem.h"
+
 
 void UInv_EquippedGridSlot::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
@@ -43,7 +47,7 @@ FReply UInv_EquippedGridSlot::NativeOnMouseButtonDown(const FGeometry& InGeometr
 	return FReply::Handled();
 }
 
-// 아이템 장착 시 호출되는 함수
+// 아이템 장착 시 호출되는 상황들. 단계별로.
 UInv_EquippedSlottedItem* UInv_EquippedGridSlot::OnItemEquipped(UInv_InventoryItem* Item, const FGameplayTag& EquipmentTag, float TileSize)
 {
 	// Check the Equipment Type Tag
@@ -82,12 +86,31 @@ UInv_EquippedSlottedItem* UInv_EquippedGridSlot::OnItemEquipped(UInv_InventoryIt
 	SetInventoryItem(Item);
 	
 	// Set the Image Brush on the Equipped Slotted Item
-	// 장착된 슬롯 아이템에 이미지 브러시 설정
+	// 장착된 슬롯 아이템칸에 이미지 브러시 설정
+	const FInv_ImageFragment* ImageFragment = GetFragment<FInv_ImageFragment>(Item, FragmentTags::IconFragment);
+	if (!ImageFragment) return nullptr;
+	
+	FSlateBrush Brush;
+	Brush.SetResourceObject(ImageFragment->GetIcon());
+	Brush.DrawAs = ESlateBrushDrawType::Image;
+	Brush.ImageSize = DrawSize;
+	
+	EquippedSlottedItem->SetImageBrush(Brush);
 	
 	// Add the Slotted Item as a child to this widget's Overlay
 	// 이 위젯의 오버레이에 슬롯 아이템을 자식으로 추가
+	Overlay_Root->AddChildToOverlay(EquippedSlottedItem);
+	FGeometry OverlayGeometry = Overlay_Root->GetCachedGeometry();
+	auto OverlayPos = OverlayGeometry.Position;
+	auto OverlaySize = OverlayGeometry.Size;
+	
+	const float LeftPadding = OverlaySize.X / 2.f - DrawSize.X / 2.f;
+	const float TopPadding = OverlaySize.Y / 2.f - DrawSize.Y / 2.f;
+	
+	UOverlaySlot* OverlaySlot = UWidgetLayoutLibrary::SlotAsOverlaySlot(EquippedSlottedItem);
+	OverlaySlot->SetPadding(FMargin(LeftPadding, TopPadding));
 	
 	// Return the Equipped Slotted Item
 	// 장착된 슬롯 아이템 반환
-	return nullptr;
+	return EquippedSlottedItem;
 }

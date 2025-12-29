@@ -11,7 +11,9 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquippedGridSlotClicked, UInv_EquippedGridSlot*, GridSlot, const FGameplayTag&, EquipmentTypeTag);
 
 class UImage;
+class UOverlay;
 class UInv_EquippedSlottedItem;
+
 
 UCLASS()
 class INVENTORY_API UInv_EquippedGridSlot : public UInv_GridSlot
@@ -38,4 +40,7 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UInv_EquippedSlottedItem> EquippedSlottedItem; // 장착된 슬롯 아이템 인스턴스
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UOverlay> Overlay_Root; // 오버레이 루트 위젯
 };
