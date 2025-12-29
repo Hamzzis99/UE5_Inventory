@@ -53,8 +53,8 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 	// 호버 아이템을 장착할 수 있는지 확인
 	if (!CanEquipHoverItem(EquippedGridSlot, EquipmentTypeTag)) return; // 장착할 수 없으면 반환
 	
-	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot
-	// 장착된 슬롯 아이템을 만들고 장착된 그리드 슬롯에
+	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot (call EquippedGridSlot->OnItemEquipped())
+	// 장착된 슬롯 아이템을 만들고 장착된 그리드 슬롯에 (EquippedGridSlot->OnItemEquipped()) 추가
 	
 	// Clear the Hover item
 	// 호버 아이템 지우기
