@@ -32,4 +32,10 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Image_GrayedOutIcon; // 호버했을 때 상황
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<UInv_EquippedSlottedItem> EquippedSlottedItemClass; // 장착된 슬롯 아이템의 클래스 타입
+	
+	UPROPERTY()
+	TObjectPtr<UInv_EquippedSlottedItem> EquippedSlottedItem; // 장착된 슬롯 아이템 인스턴스
 };
