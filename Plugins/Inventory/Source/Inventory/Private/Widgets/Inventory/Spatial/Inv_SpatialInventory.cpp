@@ -16,6 +16,7 @@
 #include "Widgets/ItemDescription/Inv_ItemDescription.h"
 #include "Blueprint/WidgetTree.h"
 #include "Widgets/Inventory/GridSlots/Inv_EquippedGridSlot.h"
+#include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
 
 //버튼 생성할 때 필요한 것들
 void UInv_SpatialInventory::NativeOnInitialized()
@@ -48,6 +49,18 @@ void UInv_SpatialInventory::NativeOnInitialized()
 // 장착된 그리드 슬롯이 클릭되었을 때 호출되는 함수
 void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* EquippedGridSlot,const FGameplayTag& EquipmentTypeTag) // 콜백함수 
 {
+	// Check to see if we can equip the Hover Item
+	// 호버 아이템을 장착할 수 있는지 확인
+	if (!CanEquipHoverItem(EquippedGridSlot, EquipmentTypeTag)) return; // 장착할 수 없으면 반환
+	
+	// Create an Equipped Slotted Item and add it to the Equipped Grid Slot
+	// 장착된 슬롯 아이템을 만들고 장착된 그리드 슬롯에
+	
+	// Clear the Hover item
+	// 호버 아이템 지우기
+	
+	// Inform the server that we've equipped an item (potentially unequipping an item as well)
+	// 아이템을 장착했음을 서버에 알리기(잠재적으로 아이템을 해제하기도 함)
 	
 }
 
@@ -82,6 +95,25 @@ void UInv_SpatialInventory::SetItemDescriptionSizeAndPosition(UInv_ItemDescripti
 		UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer()));
 
 	ItemDescriptionCPS->SetPosition(ClampedPosition);
+}
+
+// 호버 아이템 장착 가능 여부 확인 게임태그도 참조해야 낄 수 있게.
+bool UInv_SpatialInventory::CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const 
+{
+	if (!IsValid(EquippedGridSlot) || !EquippedGridSlot->GetInventoryItem().IsValid()) return false; // 장착된 그리드 슬롯이 유효하지 않거나 인벤토리 아이템이 유효하지 않으면 false 반환
+
+	UInv_HoverItem* HoverItem = GetHoverItem();
+	if (!IsValid(HoverItem)) return false; // 호버 아이템이 유효하지 않으면 false 반환
+	
+	UInv_InventoryItem* HeldItem = HoverItem->GetInventoryItem(); // 호버 아이템에서 인벤토리 아이템 가져오기
+	
+	// Check if the held item is non-stackable and equippable
+	// 들고 있는 아이템이 스택 불가능하고 장착 가능한지 확인
+	return HasHoverItem() && 
+		IsValid(HeldItem) && 
+			!HoverItem->IsStackable() && 
+				HeldItem->GetItemManifest().GetItemCategory() == EInv_ItemCategory::Equippable &&
+					HeldItem->GetItemManifest().GetItemType().MatchesTag(EquipmentTypeTag);
 }
 
 

@@ -12,6 +12,8 @@ class UWidgetSwitcher;
 class UButton;
 class UCanvasPanel;
 class UInv_HoverItem;
+class UInv_EquippedGridSlot;
+class FGameplayTag;
 // UI 연동 부분들
 
 /**
@@ -35,7 +37,8 @@ public:
 	virtual bool HasHoverItem() const override;
 	virtual UInv_HoverItem* GetHoverItem() const override;
 	
-private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함.
+private: 
+	// 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함.
 	
 	//장착 슬롯 늘리는 부분
 	UPROPERTY()
@@ -96,6 +99,7 @@ private: // 여기 있는 UPROPERTY와 위젯과의 이름이 동일해야만함
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button);
 	void SetItemDescriptionSizeAndPosition(UInv_ItemDescription* Description, UCanvasPanel* Canvas) const; // 아이템 설명 크기 및 위치 설정
+	bool CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
 	
 	TWeakObjectPtr<UInv_InventoryGrid> ActiveGrid; // 활성 그리드가 생기면 늘 활성해주는 포인터.
 };
