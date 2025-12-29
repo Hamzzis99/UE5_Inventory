@@ -41,6 +41,7 @@ public:
 	bool HasHoverItem() const; // 호버 아이템이 있는지 확인하는 함수
 	UInv_HoverItem* GetHoverItem() const; // 호버 아이템 가져오기 함수
 	float GetTileSize() const{return TileSize;}; // 타일 크기 가져오기 함수
+	void ClearHoverItem(); // 호버 아이템 지우기
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item); // 아이템 추가
@@ -106,7 +107,6 @@ private:
 	void UnHighlightSlots(const int32 Index, const FIntPoint& Dimensions); // 슬롯 숨기기
 	void ChangeHoverType(const int32 Index, const FIntPoint& Dimensions, EInv_GridSlotState GridSlotState);
 	void PutDownOnIndex(const int32 Index); // 인덱스에 내려놓기
-	void ClearHoverItem(); // 호버 아이템 지우기
 	UUserWidget* GetHiddenCursorWidget(); // 마우스 커서 비활성화 하는 함수
 	bool IsSameStackable(const UInv_InventoryItem* ClickedInventoryItem) const; // 같은 아이템이라 스택 가능한지 확인하는 함수
 	void SwapWithHoverItem(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex); // 호버 아이템과 교체하는 함수

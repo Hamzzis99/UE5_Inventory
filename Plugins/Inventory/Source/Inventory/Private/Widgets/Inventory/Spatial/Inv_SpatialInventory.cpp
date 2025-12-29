@@ -15,6 +15,7 @@
 #include "Items/Inv_InventoryItem.h"
 #include "Widgets/ItemDescription/Inv_ItemDescription.h"
 #include "Blueprint/WidgetTree.h"
+#include "InventoryManagement/Components/Inv_InventoryComponent.h"
 #include "Widgets/Inventory/GridSlots/Inv_EquippedGridSlot.h"
 #include "Widgets/Inventory/HoverItem/Inv_HoverItem.h"
 #include "Widgets/Inventory/SlottedItems/Inv_EquippedSlottedItem.h"
@@ -52,7 +53,7 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 {
 	// Check to see if we can equip the Hover Item
 	// 호버 아이템을 장착할 수 있는지 확인
-	if (!CanEquipHoverItem(EquippedGridSlot, EquipmentTypeTag)) return; // 장착할 수 없으면 반환
+	if (!CanEquipHoverItem(EquippedGridSlot, EquipmentTypeTag)) return; // 장착할 수 없으면 반환 (아이템이 없는 경우에 끌어당길 시.)
 	
 	UInv_HoverItem* HoverItem = GetHoverItem();
 	
@@ -67,12 +68,24 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 		TileSize
 	);
 	EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &ThisClass::EquippedSlottedItemClicked);
+	
 	// Clear the Hover item
 	// 호버 아이템 지우기
+	Grid_Equippables->ClearHoverItem();
 	
 	// Inform the server that we've equipped an item (potentially unequipping an item as well)
 	// 아이템을 장착했음을 서버에 알리기(잠재적으로 아이템을 해제하기도 함)
+	UInv_InventoryComponent* InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer()); // 인벤토리 컴포넌트 가져오기
+	check(IsValid(InventoryComponent));
 	
+	//장착된 곳에 서버RPC를 생성하는 부분
+	InventoryComponent->Server_EquipSlotClicked(HoverItem->GetInventoryItem(), nullptr);
+	
+	//데디케이티드 서버 제약 조건 설정 (민우님에게도 알려줄 것.)
+	if (GetOwningPlayer()->GetNetMode() != NM_DedicatedServer)
+	{
+		InventoryComponent->OnItemEquipped.Broadcast(HoverItem->GetInventoryItem()); // 아이템 장착을 방송 호출하기
+	}
 }
 
 // 장착된 슬롯 아이템 클릭 시 호출되는 함수
