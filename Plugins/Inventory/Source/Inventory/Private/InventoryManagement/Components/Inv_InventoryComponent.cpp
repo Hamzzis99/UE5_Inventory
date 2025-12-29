@@ -163,12 +163,12 @@ void UInv_InventoryComponent::Server_EquipSlotClicked_Implementation(UInv_Invent
 }
 
 // 멀티캐스트로 아이템 장착 상호작용을 모든 클라이언트에 알리는 부분.
-void UInv_InventoryComponent::Multicast_EquipSlotClicked_Implementation(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnEquip)
+void UInv_InventoryComponent::Multicast_EquipSlotClicked_Implementation(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip)
 {
 	// Equipment Component will listen to these delegates
 	// 장비 컴포넌트가 이 델리게이트를 수신 대기합니다.
 	OnItemEquipped.Broadcast(ItemToEquip);
-	OnItemUnEquipped.Broadcast(ItemToEquip);
+	OnItemUnequipped.Broadcast(ItemToUnequip);
 }
 
 void UInv_InventoryComponent::ToggleInventoryMenu()

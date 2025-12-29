@@ -47,10 +47,10 @@ public:
 	void Server_ConsumeItem(UInv_InventoryItem* Item);
 	
 	UFUNCTION(Server, Reliable) // 신뢰하는 것? 서버에 전달하는 것?
-	void Server_EquipSlotClicked(UInv_InventoryItem* ItemToEquip,UInv_InventoryItem* ItemToUnEquip);
+	void Server_EquipSlotClicked(UInv_InventoryItem* ItemToEquip,UInv_InventoryItem* ItemToUnequip);
 	
 	UFUNCTION(NetMulticast, Reliable) // 멀티캐스트 함수 (서버에서 모든 클라이언트로 호출)
-	void Multicast_EquipSlotClicked(UInv_InventoryItem* ItemToEquip,UInv_InventoryItem* ItemToUnEquip);
+	void Multicast_EquipSlotClicked(UInv_InventoryItem* ItemToEquip,UInv_InventoryItem* ItemToUnequip);
 	
 	
 	//서버 RPC 전송하는 부분 함수들
@@ -66,7 +66,7 @@ public:
 	FNoRoomInInventory NoRoomInInventory;
 	FStackChange OnStackChange;
 	FItemEquipStatusChanged OnItemEquipped;
-	FItemEquipStatusChanged OnItemUnEquipped;
+	FItemEquipStatusChanged OnItemUnequipped;
 	
 protected:
 	// Called when the game starts

@@ -8,7 +8,6 @@
 #include "Components/WidgetSwitcher.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"
-#include "Inventory.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
@@ -130,7 +129,7 @@ void UInv_SpatialInventory::SetItemDescriptionSizeAndPosition(UInv_ItemDescripti
 // 호버 아이템 장착 가능 여부 확인 게임태그도 참조해야 낄 수 있게.
 bool UInv_SpatialInventory::CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const 
 {
-	if (!IsValid(EquippedGridSlot) || !EquippedGridSlot->GetInventoryItem().IsValid()) return false; // 장착된 그리드 슬롯이 유효하지 않거나 인벤토리 아이템이 유효하지 않으면 false 반환
+	if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid()) return false; // 슬롯에 이미 아이템이 있으면 false 반환 (수정됨)
 
 	UInv_HoverItem* HoverItem = GetHoverItem();
 	if (!IsValid(HoverItem)) return false; // 호버 아이템이 유효하지 않으면 false 반환
