@@ -10,7 +10,8 @@
 AInv_ProxyMesh::AInv_ProxyMesh()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
+	SetReplicates(false); // 프록시 메시는 복제할 필요가 없습니다. (개인마다니까)
+	
 	RootComponent = CreateDefaultSubobject<USceneComponent>("Root");
 
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
