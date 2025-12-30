@@ -56,6 +56,25 @@ AInv_EquipActor* UInv_EquipmentComponent::SpawnEquippedActor(FInv_EquipmentFragm
 	return SpawnedEquipActor;
 }
 
+AInv_EquipActor* UInv_EquipmentComponent::FindEquippedActor(const FGameplayTag& EquipmentTypeTag)
+{
+	auto FoundActor = EquippedActors.FindByPredicate([&EquipmentTypeTag](const AInv_EquipActor* EquippedActor)
+	{
+		return EquippedActor->GetEquipmentType().MatchesTagExact(EquipmentTypeTag);
+	});
+	return FoundActor ? *FoundActor : nullptr; // 액터를 찾았으면? 찾아서 제거를 시킨다. (에러 날 수도 있음.)
+}
+
+// 이거는 하나에만 있다는 가정하에 있는 것. 만약 무기를 두 개 만들 시 왼손 오른손 두 개로 나워야함.
+void UInv_EquipmentComponent::RemoveEquippedActor(const FGameplayTag& EquipmentTypeTag)
+{
+	if (AInv_EquipActor* EquippedActor = FindEquippedActor(EquipmentTypeTag); IsValid(EquippedActor)) // 이걸 잘 활용해서 무기를 두 개 장착할 수 있게 해보자.
+	{
+		EquippedActors.Remove(EquippedActor);
+		EquippedActor->Destroy();
+	}
+}
+
 // 아이템 장착 시 호출되는 함수
 void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 {
@@ -71,7 +90,7 @@ void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 	if (!OwningSkeletalMesh.IsValid()) return;
 	AInv_EquipActor* SpawnedEquipActor = SpawnEquippedActor(EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get()); // 장비 아이템을 장착하면서 필요 조건들 
 	
-	EquippedActors.Add(SpawnedEquipActor); // 장착된 액터 배열에 추가
+	EquippedActors.Add(SpawnedEquipActor); // 장착된 장비를 착용시켜주는 것. (태그를 찾고)
 }
 
 // 아이템 해제 시 호출되는 함수
@@ -85,6 +104,9 @@ void UInv_EquipmentComponent::OnItemUnequipped(UInv_InventoryItem* UnequippedIte
 	if (!EquipmentFragment) return;
 
 	EquipmentFragment->OnUnequip(OwningPlayerController.Get());
+	
+	//장비 제거하는 부분
+	RemoveEquippedActor(EquipmentFragment->GetEquipmentType());
 }
 
 
