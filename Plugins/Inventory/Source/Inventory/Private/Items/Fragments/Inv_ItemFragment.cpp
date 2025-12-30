@@ -1,5 +1,6 @@
 #include "Items/Fragments/Inv_ItemFragment.h"
 
+#include "EquipmentManagement/EquipActor/Inv_EquipActor.h"
 #include "Widgets/Composite/Inv_CompositeBase.h"
 #include "Widgets/Composite/Inv_Leaf_Image.h"
 #include "Widgets/Composite/Inv_Leaf_LabeledValue.h"
@@ -190,5 +191,24 @@ void FInv_EquipmentFragment::Manifest()
 	{
 		auto& ModRef = Modifier.GetMutable();
 		ModRef.Manifest();
+	}
+}
+
+// 장비 아이템을 장착 시 캐릭터에 장착 시켜주는 것.
+AInv_EquipActor* FInv_EquipmentFragment::SpawnAttachedActor(USkeletalMeshComponent* AttachMesh) const
+{
+	if (!IsValid(EquipActorClass) || !IsValid(AttachMesh)) return nullptr;
+	
+	AInv_EquipActor* SpawnedActor = AttachMesh->GetWorld()->SpawnActor<AInv_EquipActor>(EquipActorClass);
+	SpawnedActor->AttachToComponent(AttachMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketAttachPoint);
+	
+	return SpawnedActor;
+}
+
+void FInv_EquipmentFragment::DestroyAttachedActor() const
+{
+	if (EquippedActor.IsValid())
+	{
+		EquippedActor->Destroy();
 	}
 }

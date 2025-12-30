@@ -7,6 +7,7 @@
 #include "Inv_ItemFragment.generated.h"
 
 class APlayerController;
+class AInv_EquipActor;
 
 USTRUCT(BlueprintType)
 struct FInv_ItemFragment
@@ -248,7 +249,20 @@ struct FInv_EquipmentFragment : public FInv_InventoryItemFragment
 	virtual void Assimilate(UInv_CompositeBase* Composite) const override;
 	virtual void Manifest() override;
 	
+	AInv_EquipActor* SpawnAttachedActor(USkeletalMeshComponent* AttachMesh) const;
+	void DestroyAttachedActor() const;
+	
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory") // 인벤토리 장착 아이템
 	TArray<TInstancedStruct<FInv_EquipModifier>> EquipModifiers;
+	
+	//장착장비 변수들
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<AInv_EquipActor> EquipActorClass = nullptr; // 장착 장비 클래스
+	
+	TWeakObjectPtr<AInv_EquipActor> EquippedActor = nullptr; // 장착 장비 포인터 (플레이어 Pawn을 말하는 것인가)
+	
+	//장비 부착물 지정?
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FName SocketAttachPoint{NAME_None};
 };
