@@ -16,16 +16,36 @@ void UInv_EquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	OwningPlayerController = Cast<APlayerController>(GetOwner());
-	if (OwningPlayerController.IsValid())
+	InitPlayerController();
+}
+
+// 플레이어 컨트롤러 초기화
+void UInv_EquipmentComponent::InitPlayerController()
+{
+	
+	if (OwningPlayerController = Cast<APlayerController>(GetOwner()); OwningPlayerController.IsValid()) // 소유자가 플레이어 컨트롤러인지 확인
 	{
-		if (ACharacter* OwnerCharacter = Cast<ACharacter>(OwningPlayerController->GetPawn()); IsValid(OwnerCharacter))
+		if (ACharacter* OwnerCharacter = Cast<ACharacter>(OwningPlayerController->GetPawn()); IsValid(OwnerCharacter)) // 플레이어 컨트롤러의 폰이 캐릭터인지 확인
 		{
-			OwningSkeletalMesh = OwnerCharacter->GetMesh();
+			OnPossessedPawnChange(nullptr, OwnerCharacter); // 이미 폰이 소유된 경우 즉시 호출
 		}
-		InitInventoryComponent();// 컨트롤러에 컴포넌트를 등록한 것을 받게 되면 바로 들어감.
+		else
+		{
+			OwningPlayerController->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::OnPossessedPawnChange);  //컨트롤러를 멀티캐스트 델리게이트 식으로. 위임하는 부분. (이미 완료 됐을 경우 이걸 호출 안 하니 깔끔해진다.)
+		}
 	}
 }
+
+// 폰 변경 시 호출되는 함수 (컨트롤러 소유권?) <- 아이템을 장착하면 Pawn이 바뀌니까 그 것을 이제 다시 절차적으로 검증 시키는 역할 (말투 정교화가 필요하다.)
+void UInv_EquipmentComponent::OnPossessedPawnChange(APawn* OldPawn, APawn* NewPawn)
+{
+	if (ACharacter* OwnerCharacter = Cast<ACharacter>(OwningPlayerController->GetPawn()); IsValid(OwnerCharacter)) // 플레이어 컨트롤러의 폰이 캐릭터인지 확인
+	{
+		OwningSkeletalMesh = OwnerCharacter->GetMesh(); // 멀티플레이를 코딩할 때 이 부분이 중요함. (지금 InitInventoryComponent) 부분을 보면 Nullptr이 반환 되잖아. (멀티플레이에 고려해야 할 것은 Controller 부분이구나.)
+	}
+	InitInventoryComponent();
+}
+
 
 void UInv_EquipmentComponent::InitInventoryComponent()
 {
@@ -108,6 +128,8 @@ void UInv_EquipmentComponent::OnItemUnequipped(UInv_InventoryItem* UnequippedIte
 	//장비 제거하는 부분
 	RemoveEquippedActor(EquipmentFragment->GetEquipmentType());
 }
+
+
 
 
 
