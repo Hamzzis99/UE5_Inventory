@@ -181,6 +181,7 @@ void UInv_InventoryComponent::ToggleInventoryMenu()
 	{
 		OpenInventoryMenu();
 	}
+	OnInventoryMenuToggled.Broadcast(bInventoryMenuOpen); // 인벤토리 메뉴 토글 방송
 }
 
 void UInv_InventoryComponent::AddRepSubObj(UObject* SubObj)

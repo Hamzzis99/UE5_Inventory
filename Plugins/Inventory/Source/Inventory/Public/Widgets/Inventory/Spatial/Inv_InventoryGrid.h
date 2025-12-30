@@ -163,6 +163,9 @@ private:
 	UFUNCTION()
 	void OnPopUpMenuConsume(int32 Index);
 	
+	UFUNCTION()
+	void OnInventoryMenuToggled(bool bOpen); // 인벤토리 메뉴 토글 (내가 뭔가 들 때 bool 값 반환하는 함수)
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Inventory")
 	EInv_ItemCategory ItemCategory;
 	UUserWidget* GetVisibleCursorWidget(); // 마우스 커서 보이게 하는 함수
