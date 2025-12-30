@@ -663,9 +663,17 @@ void UInv_InventoryGrid::OnSlottedItemClicked(int32 GridIndex, const FPointerEve
 			return;
 		}
 	}
-	// 호버 아이템과 교체(Swap)하기
-	// Swap with the hover item.
-	SwapWithHoverItem(ClickedInventoryItem, GridIndex);
+	
+	// Make sure we can swap with a valid item
+	// 유효한 항목과 교체할 수 있는지 확인
+	if (CurrentQueryResult.ValidItem.IsValid())
+	{
+		// 호버 아이템과 교체(Swap)하기
+		// Swap with the hover item.
+		SwapWithHoverItem(ClickedInventoryItem, GridIndex);
+	}
+	
+
 }
 
 //우클릭 팝업을 생성하는 함수를 만드는 부분. (아이템 디테일 부분들) 
