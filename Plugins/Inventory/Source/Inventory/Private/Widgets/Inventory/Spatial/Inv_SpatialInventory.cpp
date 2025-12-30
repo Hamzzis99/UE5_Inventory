@@ -125,7 +125,7 @@ void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem*
 	
 	// Broadcast delegates for OnItemEquipped/OnItemUnequipped (from the IC)
 	// IC에서 OnItemEquipped/OnItemUnequipped에 대한 델리게이트 방송
-	
+	BroadcastSlotClickedDelegates(ItemToEquip, ItemToUnequip);
 }
 
 // 마우스 버튼 다운 이벤트 처리 인벤토리 아이템 드롭
@@ -225,6 +225,20 @@ void UInv_SpatialInventory::MakeEquippedSlottedItem(UInv_EquippedSlottedItem* Eq
 	
 	//새로 아이템을 장착할 바인딩 되길 바람
 	EquippedGridSlot->SetEquippedSlottedItem(SlottedItem);
+}
+
+void UInv_SpatialInventory::BroadcastSlotClickedDelegates(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip) const
+{
+	UInv_InventoryComponent* InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	check(IsValid(InventoryComponent));
+	InventoryComponent->Server_EquipSlotClicked(ItemToEquip, ItemToUnequip);
+	
+	// 데디서버일경우는 이런 걸 걱정 할 필요 없다.
+	if (GetOwningPlayer()->GetNetMode() != NM_DedicatedServer)
+	{
+		InventoryComponent->OnItemEquipped.Broadcast(ItemToEquip);
+		InventoryComponent->OnItemUnequipped.Broadcast(ItemToUnequip);
+	}
 }
 
 
