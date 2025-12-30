@@ -3,11 +3,11 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
-public class InventoryProjectEditorTarget : TargetRules
+public class InventoryProjectServerTarget : TargetRules
 {
-	public InventoryProjectEditorTarget(TargetInfo Target) : base(Target)
+	public InventoryProjectServerTarget(TargetInfo Target) : base(Target)
 	{
-		Type = TargetType.Editor;
+		Type = TargetType.Server;
 		
 		// 5.7 버전에 최적화된 빌드 설정 적용
 		DefaultBuildSettings = BuildSettingsVersion.V6;
