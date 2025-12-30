@@ -43,6 +43,7 @@ public:
 	float GetTileSize() const{return TileSize;}; // 타일 크기 가져오기 함수
 	void ClearHoverItem(); // 호버 아이템 지우기
 	void AssignHoverItem(UInv_InventoryItem* InventoryItem); // 장착 아이템 기반 호버 아이템 할당
+	void OnHide(); // 인벤토리 숨기기 처리 함수
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item); // 아이템 추가
@@ -53,8 +54,8 @@ private:
 	TWeakObjectPtr<UCanvasPanel> OwningCanvasPanel;
 	
 	void ConstructGrid();
-	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* Item); // 인벤토리 항목으로 item이 있는 공간이 있을 수 있어서 만드는 것?
-	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest); // 나중에 Builds 만들 때 사용하는 공간인가?
+	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* Item, const int32 StackAmountOverride = -1); // 인벤토리 항목으로 item이 있는 공간이 있을 수 있어서 만드는 것?
+	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest, const int32 StackAmountOverride = -1); // 나중에 Builds 만들 때 사용하는 공간인가?
 	void AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* NewItem); // 아이템을 인덱스에 추가
 	bool MatchesCategory(const UInv_InventoryItem* Item) const; // 카테고리 일치 여부 확인
 	FVector2D GetDrawSize(const FInv_GridFragment* GridFragment) const; // 그리드 조각의 그리기 크기 가져오기
@@ -117,6 +118,7 @@ private:
 	bool ShouldFillInStack(const int32 RoomInClickedSlot, const int32 HoveredStackCount) const; // 클릭된 아이템의 스택을 채워야 하는지 확인하는 함수
 	void FillInStack(const int32 FillAmount, const int32 Remainder, const int32 Index); // 스택 채우기 함수
 	void CreateItemPopUp(const int32 GridIndex); // 아이템 팝업 생성 함수
+	void PutHoverItemBack(); // 호버 아이템 다시 놓기 함수
 	
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<UInv_ItemPopUp> ItemPopUpClass; // 아이템 팝업 클래스
