@@ -68,10 +68,6 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 	);
 	EquippedSlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &ThisClass::EquippedSlottedItemClicked);
 	
-	// Clear the Hover item
-	// 호버 아이템 지우기
-	Grid_Equippables->ClearHoverItem();
-	
 	// Inform the server that we've equipped an item (potentially unequipping an item as well)
 	// 아이템을 장착했음을 서버에 알리기(잠재적으로 아이템을 해제하기도 함)
 	UInv_InventoryComponent* InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer());
@@ -85,6 +81,10 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 	{
 		InventoryComponent->OnItemEquipped.Broadcast(HoverItem->GetInventoryItem()); // 아이템 장착 델리게이트 방송
 	}
+	
+	// Clear the Hover item
+	// 호버 아이템 지우기
+	Grid_Equippables->ClearHoverItem();
 }
 
 // 장착된 슬롯 아이템 클릭 시 호출되는 함수

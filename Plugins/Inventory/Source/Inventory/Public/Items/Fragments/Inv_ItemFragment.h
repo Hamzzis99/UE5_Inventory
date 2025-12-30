@@ -222,6 +222,7 @@ struct FInv_EquipModifier : public FInv_LabeledNumberFragment // 장비를 안 �
 {
 	GENERATED_BODY()
 
+	// 장착과 해제 가상함수들
 	virtual void OnEquip(APlayerController* PC) {}
 	virtual void OnUnequip(APlayerController* PC) {}
 };
@@ -245,6 +246,7 @@ struct FInv_EquipmentFragment : public FInv_InventoryItemFragment
 	void OnEquip(APlayerController* PC);
 	void OnUnequip(APlayerController* PC);
 	virtual void Assimilate(UInv_CompositeBase* Composite) const override;
+	virtual void Manifest() override;
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory") // 인벤토리 장착 아이템

@@ -8,20 +8,21 @@
 #include "GameFramework/PlayerController.h"
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
+#include "Items/Inv_InventoryItem.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
 
 void UInv_EquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+	OwningPlayerController = Cast<APlayerController>(GetOwner());
 	if (OwningPlayerController.IsValid())
 	{
-		if (ACharacter* OwnerCharacter = Cast<ACharacter>(OwningPlayerController->GetPawn()); IsValid(OwnerCharacter)) // 소유한 캐릭터가 본인 것이 맞는지 확인하는 과정
-		if (IsValid(OwnerCharacter))
+		if (ACharacter* OwnerCharacter = Cast<ACharacter>(OwningPlayerController->GetPawn()); IsValid(OwnerCharacter))
 		{
 			OwningSkeletalMesh = OwnerCharacter->GetMesh();
 		}
-		InitInventoryComponent();
+		InitInventoryComponent();// 컨트롤러에 컴포넌트를 등록한 것을 받게 되면 바로 들어감.
 	}
 }
 
@@ -36,20 +37,38 @@ void UInv_EquipmentComponent::InitInventoryComponent()
 		InventoryComponent->OnItemEquipped.AddDynamic(this, &ThisClass::OnItemEquipped);
 	}
 	// 델리게이트 바인딩
-	if (!InventoryComponent->OnItemUnequipped.IsAlreadyBound(this, &ThisClass::OnItemUnEquipped))
+	if (!InventoryComponent->OnItemUnequipped.IsAlreadyBound(this, &ThisClass::OnItemUnequipped))
 	{
-		InventoryComponent->OnItemUnequipped.AddDynamic(this, &ThisClass::OnItemUnEquipped);
+		InventoryComponent->OnItemUnequipped.AddDynamic(this, &ThisClass::OnItemUnequipped);
 	}
 }
 
-
+// 아이템 장착 시 호출되는 함수
 void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 {
+	if (!IsValid(EquippedItem)) return;
+	if (!OwningPlayerController->HasAuthority()) return;
+
+	FInv_ItemManifest& ItemManifest = EquippedItem->GetItemManifestMutable();
+	FInv_EquipmentFragment* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_EquipmentFragment>();
+	if (!EquipmentFragment) return;
+
+	EquipmentFragment->OnEquip(OwningPlayerController.Get());
 }
 
-void UInv_EquipmentComponent::OnItemUnEquipped(UInv_InventoryItem* EquippedItem)
+// 아이템 해제 시 호출되는 함수
+void UInv_EquipmentComponent::OnItemUnequipped(UInv_InventoryItem* UnequippedItem)
 {
+	if (!IsValid(UnequippedItem)) return;
+	if (!OwningPlayerController->HasAuthority()) return;
+
+	FInv_ItemManifest& ItemManifest = UnequippedItem->GetItemManifestMutable();
+	FInv_EquipmentFragment* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_EquipmentFragment>();
+	if (!EquipmentFragment) return;
+
+	EquipmentFragment->OnUnequip(OwningPlayerController.Get());
 }
+
 
 
 

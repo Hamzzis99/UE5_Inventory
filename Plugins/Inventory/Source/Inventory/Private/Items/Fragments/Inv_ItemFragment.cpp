@@ -130,15 +130,23 @@ void FInv_ManaPotionFragment::OnConsume(APlayerController* PC)
 void FInv_StrengthModifier::OnEquip(APlayerController* PC)
 {
 	//디버그 메시지
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, 
-		FString::Printf(TEXT("장비를 장착한 아이템 힘 증가 테스트ㅣ (Strength increased by : %f"), GetValue()));
+	GEngine->AddOnScreenDebugMessage(
+		-1,
+		5.f,
+		FColor::Green,
+		FString::Printf(TEXT("Strength increased by: %f"),
+			GetValue()));
 }
 
 void FInv_StrengthModifier::OnUnequip(APlayerController* PC)
 {
 	//디버그 메시지
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, 
-		FString::Printf(TEXT("장비를 해제한 아이템 힘 증가 테스트 (Item unequipped. Strength decreased by : %f"), GetValue()));
+	GEngine->AddOnScreenDebugMessage(
+		-1,
+		5.f,
+		FColor::Red,
+		FString::Printf(TEXT("Item unequipped. Strength decreased by: %f"),
+			GetValue()));
 }
 
 // 장착 해제 부분들
@@ -172,5 +180,15 @@ void FInv_EquipmentFragment::Assimilate(UInv_CompositeBase* Composite) const
 	{
 		const auto& ModRef = Modifier.Get(); // 수정 가능한 참조 얻기
 		ModRef.Assimilate(Composite);
+	}
+}
+
+void FInv_EquipmentFragment::Manifest()
+{
+	FInv_InventoryItemFragment::Manifest();
+	for (auto& Modifier : EquipModifiers)
+	{
+		auto& ModRef = Modifier.GetMutable();
+		ModRef.Manifest();
 	}
 }
