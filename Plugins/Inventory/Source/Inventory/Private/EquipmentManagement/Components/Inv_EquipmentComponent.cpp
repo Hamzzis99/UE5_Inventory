@@ -12,10 +12,27 @@
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
 
+//프록시 매시 부분
+void UInv_EquipmentComponent::SetOwningSkeletalMesh(USkeletalMeshComponent* OwningMesh)
+{
+	OwningSkeletalMesh = OwningMesh;
+}
+
+void UInv_EquipmentComponent::InitializeOwner(APlayerController* PlayerController)
+{
+	if (IsValid(PlayerController))
+	{
+		OwningPlayerController = PlayerController;
+	}
+	InitInventoryComponent();
+}
+
+//프록시 매시 부분
+
 void UInv_EquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	InitPlayerController();
 }
 
@@ -104,9 +121,12 @@ void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 	FInv_ItemManifest& ItemManifest = EquippedItem->GetItemManifestMutable();
 	FInv_EquipmentFragment* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_EquipmentFragment>();
 	if (!EquipmentFragment) return;
-
-	EquipmentFragment->OnEquip(OwningPlayerController.Get());
-
+	
+	if (!bIsProxy) // 프록시 부분
+	{
+		EquipmentFragment->OnEquip(OwningPlayerController.Get());
+	}
+	
 	if (!OwningSkeletalMesh.IsValid()) return;
 	AInv_EquipActor* SpawnedEquipActor = SpawnEquippedActor(EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get()); // 장비 아이템을 장착하면서 필요 조건들 
 	
@@ -123,7 +143,10 @@ void UInv_EquipmentComponent::OnItemUnequipped(UInv_InventoryItem* UnequippedIte
 	FInv_EquipmentFragment* EquipmentFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_EquipmentFragment>();
 	if (!EquipmentFragment) return;
 
-	EquipmentFragment->OnUnequip(OwningPlayerController.Get());
+	if (!bIsProxy) // 프록시 부분
+	{
+		EquipmentFragment->OnUnequip(OwningPlayerController.Get());
+	}
 	
 	//장비 제거하는 부분
 	RemoveEquippedActor(EquipmentFragment->GetEquipmentType());

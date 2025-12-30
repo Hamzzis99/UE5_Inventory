@@ -21,8 +21,10 @@ class INVENTORY_API UInv_EquipmentComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	void SetOwningSkeletalMesh(USkeletalMeshComponent* OwningMesh);
+	void SetIsProxy(bool bProxy) { bIsProxy = bProxy; }
+	void InitializeOwner(APlayerController* PlayerController);
 	
-
 protected:
 	
 	virtual void BeginPlay() override;
@@ -52,4 +54,5 @@ private:
 	UFUNCTION()
 	void OnPossessedPawnChange(APawn* OldPawn, APawn* NewPawn); // 멀티플레이 장착 아이템 변경 할 떄 폰 변경 시 호출되는 함수
 	
+	bool bIsProxy{false};
 };
