@@ -272,8 +272,8 @@ void UInv_SpatialInventory::OnItemHovered(UInv_InventoryItem* Item)
 	{
 		// Assimalate the manifest into the Item Description widget.
 		// 아이템 설명 위젯에 매니페스트 동화
-		Manifest.AssimilateInventoryFragments(DescriptionWidget);
 		GetItemDescription()->SetVisibility(ESlateVisibility::HitTestInvisible); // 설명 위젯 보이기
+		Manifest.AssimilateInventoryFragments(DescriptionWidget);
 	});
 	
 	// 타이머 설정
