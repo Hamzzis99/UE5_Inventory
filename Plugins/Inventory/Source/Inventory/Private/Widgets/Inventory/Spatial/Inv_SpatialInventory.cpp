@@ -88,7 +88,7 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 }
 
 // 장착된 슬롯 아이템 클릭 시 호출되는 함수
-void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem* SlottedItem)
+void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem* EquippedSlottedItem)
 {
 	// Remove the Item Description
 	// 아이템 설명 제거
@@ -101,7 +101,7 @@ void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem*
 	
 	//Get item to Unequip
 	// 해제할 아이템 가져오기
-	UInv_InventoryItem* ItemToUnequip = SlottedItem->GetInventoryItem(); // 해제할 아이템
+	UInv_InventoryItem* ItemToUnequip = EquippedSlottedItem->GetInventoryItem(); // 해제할 아이템
 	
 	// Get the Equipped Grid Slot holding this item
 	// 이 아이템을 보유한 장착된 그리드 슬롯 가져오기
@@ -117,13 +117,15 @@ void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem*
 	
 	// Remove of the equipped slotted item from the equipped grid slot (unbind from the OnEquippedSlottedItemClicked)
 	// 장착된 그리드 슬롯에서 장착된 슬롯 아이템 제거 (OnEquippedSlottedItemClicked에서 바인딩 해제)
-	RemoveEquippedSlottedItem(SlottedItem);
+	RemoveEquippedSlottedItem(EquippedSlottedItem);
 	
 	// Make a new equipped slotted item (for the item we held in HoverItem)
 	// 호버 아이템에 들고 있던 아이템을 위한 새로운 장착된 슬롯 아이템 만들기
+	MakeEquippedSlottedItem(EquippedSlottedItem, EquippedGridSlot, ItemToEquip);
 	
 	// Broadcast delegates for OnItemEquipped/OnItemUnequipped (from the IC)
 	// IC에서 OnItemEquipped/OnItemUnequipped에 대한 델리게이트 방송
+	
 }
 
 // 마우스 버튼 다운 이벤트 처리 인벤토리 아이템 드롭
@@ -208,6 +210,21 @@ void UInv_SpatialInventory::RemoveEquippedSlottedItem(UInv_EquippedSlottedItem* 
 	}
 	
 	EquippedSlottedItem->RemoveFromParent(); // 부모에서 장착된 슬롯 아이템 제거
+}
+
+// 장착된 슬롯에 아이템 만들기
+void UInv_SpatialInventory::MakeEquippedSlottedItem(UInv_EquippedSlottedItem* EquippedSlottedItem, UInv_EquippedGridSlot* EquippedGridSlot, UInv_InventoryItem* ItemToEquip) 
+{
+	if (!IsValid(EquippedGridSlot)) return;
+	
+	UInv_EquippedSlottedItem* SlottedItem = EquippedGridSlot->OnItemEquipped(
+		ItemToEquip, 
+		EquippedSlottedItem->GetEquipmentTypeTag(), 
+		UInv_InventoryStatics::GetInventoryWidget(GetOwningPlayer())->GetTileSize());
+	SlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &ThisClass::EquippedSlottedItemClicked);
+	
+	//새로 아이템을 장착할 바인딩 되길 바람
+	EquippedGridSlot->SetEquippedSlottedItem(SlottedItem);
 }
 
 

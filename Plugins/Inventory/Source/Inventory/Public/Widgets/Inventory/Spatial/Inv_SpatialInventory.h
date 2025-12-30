@@ -99,7 +99,7 @@ private:
 	void EquippedGridSlotClicked(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag); // 마우스를 갖다댈 시 백함수 
 	
 	UFUNCTION()
-	void EquippedSlottedItemClicked(UInv_EquippedSlottedItem* SlottedItem); // 장착된 슬롯 아이템 클릭 시 호출되는 함수
+	void EquippedSlottedItemClicked(UInv_EquippedSlottedItem* EquippedSlottedItem); // 장착된 슬롯 아이템 클릭 시 호출되는 함수
 	
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button);
@@ -108,6 +108,7 @@ private:
 	UInv_EquippedGridSlot* FindSlotWithEquippedItem(UInv_InventoryItem* EquippedItem) const; // 캡처한 포인터와 동일한 인벤토리 항목에 있는지 확인하는 것.
 	void ClearSlotOfItem(UInv_EquippedGridSlot* EquippedGridSlot); // 장착된 아이템을 그리드 슬롯에서 제거
 	void RemoveEquippedSlottedItem(UInv_EquippedSlottedItem* EquippedSlottedItem); // 장착된 슬롯 아이템 제거
+	void MakeEquippedSlottedItem(UInv_EquippedSlottedItem* EquippedSlottedItem, UInv_EquippedGridSlot* EquippedGridSlot, UInv_InventoryItem* ItemToEquip); // 장착된 슬롯 아이템 만들기
 	
 	TWeakObjectPtr<UInv_InventoryGrid> ActiveGrid; // 활성 그리드가 생기면 늘 활성해주는 포인터.
 };
