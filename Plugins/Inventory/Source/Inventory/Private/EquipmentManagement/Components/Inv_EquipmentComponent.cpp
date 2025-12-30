@@ -15,7 +15,7 @@
 void UInv_EquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	OwningPlayerController = Cast<APlayerController>(GetOwner());
 	if (OwningPlayerController.IsValid())
 	{
@@ -48,6 +48,8 @@ void UInv_EquipmentComponent::InitInventoryComponent()
 AInv_EquipActor* UInv_EquipmentComponent::SpawnEquippedActor(FInv_EquipmentFragment* EquipmentFragment, const FInv_ItemManifest& Manifest, USkeletalMeshComponent* AttachMesh)
 {
 	AInv_EquipActor* SpawnedEquipActor = EquipmentFragment->SpawnAttachedActor(AttachMesh); // 장착된 액터 스폰
+	if (!IsValid(SpawnedEquipActor)) return nullptr; // 장착 아이템이 없을 시 크래쉬 예외 처리 제거
+	
 	SpawnedEquipActor->SetEquipmentType(EquipmentFragment->GetEquipmentType()); // 장비 타입 설정 (게임플레이 태그)
 	SpawnedEquipActor->SetOwner(GetOwner()); // 소유자 설정
 	EquipmentFragment->SetEquippedActor(SpawnedEquipActor); // 장착된 액터 설정
@@ -65,7 +67,7 @@ void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 	if (!EquipmentFragment) return;
 
 	EquipmentFragment->OnEquip(OwningPlayerController.Get());
-	
+
 	if (!OwningSkeletalMesh.IsValid()) return;
 	AInv_EquipActor* SpawnedEquipActor = SpawnEquippedActor(EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get()); // 장비 아이템을 장착하면서 필요 조건들 
 	

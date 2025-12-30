@@ -14,10 +14,11 @@ class INVENTORY_API AInv_EquipActor : public AActor
 
 public:
 	AInv_EquipActor();
-	FGameplayTag GetEquipmentType() const {return EquipmentType;}
-	void SetEquipmentType(FGameplayTag Type){EquipmentType = Type;}
-	
+	FGameplayTag GetEquipmentType() const { return EquipmentType; }
+	void SetEquipmentType(FGameplayTag Type) { EquipmentType = Type; }
+
 private:
+
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FGameplayTag EquipmentType;
 };

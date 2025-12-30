@@ -19,7 +19,8 @@ class INVENTORY_API UInv_EquipmentComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-
+public:
+	
 
 protected:
 	
@@ -33,7 +34,7 @@ private:
 	// 델리게이트 바인딩을 대비하기 위한 함수들 콜백 함수들 
 	UFUNCTION()
 	void OnItemEquipped(UInv_InventoryItem* EquippedItem);
-	
+
 	UFUNCTION()
 	void OnItemUnequipped(UInv_InventoryItem* UnequippedItem);
 	

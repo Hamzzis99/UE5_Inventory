@@ -198,10 +198,12 @@ void FInv_EquipmentFragment::Manifest()
 AInv_EquipActor* FInv_EquipmentFragment::SpawnAttachedActor(USkeletalMeshComponent* AttachMesh) const
 {
 	if (!IsValid(EquipActorClass) || !IsValid(AttachMesh)) return nullptr;
-	
+
 	AInv_EquipActor* SpawnedActor = AttachMesh->GetWorld()->SpawnActor<AInv_EquipActor>(EquipActorClass);
-	SpawnedActor->AttachToComponent(AttachMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketAttachPoint);
+	if (!IsValid(SpawnedActor)) return nullptr; // 장착 아이템이 없을 시 크래쉬 예외 처리 제거
 	
+	SpawnedActor->AttachToComponent(AttachMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketAttachPoint);
+
 	return SpawnedActor;
 }
 
