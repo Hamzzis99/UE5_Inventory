@@ -6,6 +6,7 @@
 #include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 #include "Inv_SpatialInventory.generated.h"
 
+struct FGameplayTag;
 class UInv_ItemDescription;
 class UInv_InventoryGrid;
 class UWidgetSwitcher;
@@ -13,7 +14,6 @@ class UButton;
 class UCanvasPanel;
 class UInv_HoverItem;
 class UInv_EquippedGridSlot;
-struct FGameplayTag;
 
 // UI 연동 부분들
 
@@ -104,7 +104,10 @@ private:
 	void DisableButton(UButton* Button);
 	void SetActiveGrid(UInv_InventoryGrid* Grid, UButton* Button);
 	void SetItemDescriptionSizeAndPosition(UInv_ItemDescription* Description, UCanvasPanel* Canvas) const; // 아이템 설명 크기 및 위치 설정
-	bool CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const;
+	bool CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const; // 호버 아이템 장착 가능 여부 확인 게임태그도 참조해야 낄 수 있게.
+	UInv_EquippedGridSlot* FindSlotWithEquippedItem(UInv_InventoryItem* EquippedItem) const; // 캡처한 포인터와 동일한 인벤토리 항목에 있는지 확인하는 것.
+	void ClearSlotOfItem(UInv_EquippedGridSlot* EquippedGridSlot); // 장착된 아이템을 그리드 슬롯에서 제거
+	void RemoveEquippedSlottedItem(UInv_EquippedSlottedItem* EquippedSlottedItem); // 장착된 슬롯 아이템 제거
 	
 	TWeakObjectPtr<UInv_InventoryGrid> ActiveGrid; // 활성 그리드가 생기면 늘 활성해주는 포인터.
 };

@@ -221,18 +221,16 @@ USTRUCT(BlueprintType)
 struct FInv_EquipModifier : public FInv_LabeledNumberFragment // 장비를 안 보이게 해주는 역할인가? 나중에 분석 필요.
 {
 	GENERATED_BODY()
-	
-	virtual void OnEquip(APlayerController* PC){}
-	virtual void OnUnequip(APlayerController* PC){}
-	
-	
+
+	virtual void OnEquip(APlayerController* PC) {}
+	virtual void OnUnequip(APlayerController* PC) {}
 };
 
 USTRUCT(BlueprintType)
 struct FInv_StrengthModifier : public FInv_EquipModifier // 힘 스탯 관련 <- 이거 나중에 쓸 수 있곘다
 {
 	GENERATED_BODY()
-	
+
 	virtual void OnEquip(APlayerController* PC) override;
 	virtual void OnUnequip(APlayerController* PC) override;
 };

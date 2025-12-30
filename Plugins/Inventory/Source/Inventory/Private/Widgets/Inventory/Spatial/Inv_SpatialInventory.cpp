@@ -48,7 +48,7 @@ void UInv_SpatialInventory::NativeOnInitialized()
 }
 
 // 장착된 그리드 슬롯이 클릭되었을 때 호출되는 함수
-void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* EquippedGridSlot,const FGameplayTag& EquipmentTypeTag) // 콜백함수 
+void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) // 콜백함수 
 {
 	// Check to see if we can equip the Hover Item
 	// 호버 아이템을 장착할 수 있는지 확인
@@ -74,8 +74,8 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 	
 	// Inform the server that we've equipped an item (potentially unequipping an item as well)
 	// 아이템을 장착했음을 서버에 알리기(잠재적으로 아이템을 해제하기도 함)
-	UInv_InventoryComponent* InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer()); // 인벤토리 컴포넌트 가져오기
-	check(IsValid(InventoryComponent));
+	UInv_InventoryComponent* InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer());
+	check(IsValid(InventoryComponent)); 
 	
 	//장착된 곳에 서버RPC를 생성하는 부분
 	InventoryComponent->Server_EquipSlotClicked(HoverItem->GetInventoryItem(), nullptr);
@@ -83,14 +83,47 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 	//데디케이티드 서버 제약 조건 설정 (민우님에게도 알려줄 것.)
 	if (GetOwningPlayer()->GetNetMode() != NM_DedicatedServer)
 	{
-		InventoryComponent->OnItemEquipped.Broadcast(HoverItem->GetInventoryItem()); // 아이템 장착을 방송 호출하기
+		InventoryComponent->OnItemEquipped.Broadcast(HoverItem->GetInventoryItem()); // 아이템 장착 델리게이트 방송
 	}
 }
 
 // 장착된 슬롯 아이템 클릭 시 호출되는 함수
 void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem* SlottedItem)
 {
+	// Remove the Item Description
+	// 아이템 설명 제거
+	UInv_InventoryStatics::ItemUnhovered(GetOwningPlayer());
+	if (IsValid(GetHoverItem()) && GetHoverItem()->IsStackable()) return; // 호버 아이템이 유효하고 스택 가능하면 반환 (수정됨)
 	
+	//Get Item to Equip
+	// 장착할 아이템 가져오기
+	UInv_InventoryItem* ItemToEquip = IsValid(GetHoverItem()) ? GetHoverItem()->GetInventoryItem() : nullptr; // 장착할 아이템
+	
+	//Get item to Unequip
+	// 해제할 아이템 가져오기
+	UInv_InventoryItem* ItemToUnequip = SlottedItem->GetInventoryItem(); // 해제할 아이템
+	
+	// Get the Equipped Grid Slot holding this item
+	// 이 아이템을 보유한 장착된 그리드 슬롯 가져오기
+	UInv_EquippedGridSlot* EquippedGridSlot = FindSlotWithEquippedItem(ItemToUnequip);
+	
+	// Clear the equipped slot of this item (set it's inventory item to nullptr)
+	// 이 아이템의 슬롯을 지우기
+	ClearSlotOfItem(EquippedGridSlot);
+	
+	// Assign previously equipped item as the hover item
+	// 이전에 장착된 아이템을 호버 아이템으로 지정	
+	Grid_Equippables->AssignHoverItem(ItemToUnequip);
+	
+	// Remove of the equipped slotted item from the equipped grid slot (unbind from the OnEquippedSlottedItemClicked)
+	// 장착된 그리드 슬롯에서 장착된 슬롯 아이템 제거 (OnEquippedSlottedItemClicked에서 바인딩 해제)
+	RemoveEquippedSlottedItem(SlottedItem);
+	
+	// Make a new equipped slotted item (for the item we held in HoverItem)
+	// 호버 아이템에 들고 있던 아이템을 위한 새로운 장착된 슬롯 아이템 만들기
+	
+	// Broadcast delegates for OnItemEquipped/OnItemUnequipped (from the IC)
+	// IC에서 OnItemEquipped/OnItemUnequipped에 대한 델리게이트 방송
 }
 
 // 마우스 버튼 다운 이벤트 처리 인벤토리 아이템 드롭
@@ -127,9 +160,9 @@ void UInv_SpatialInventory::SetItemDescriptionSizeAndPosition(UInv_ItemDescripti
 }
 
 // 호버 아이템 장착 가능 여부 확인 게임태그도 참조해야 낄 수 있게.
-bool UInv_SpatialInventory::CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const 
+bool UInv_SpatialInventory::CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGridSlot, const FGameplayTag& EquipmentTypeTag) const
 {
-	if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid()) return false; // 슬롯에 이미 아이템이 있으면 false 반환 (수정됨)
+		if (!IsValid(EquippedGridSlot) || EquippedGridSlot->GetInventoryItem().IsValid()) return false; // 슬롯에 이미 아이템이 있으면 false 반환 (수정됨)
 
 	UInv_HoverItem* HoverItem = GetHoverItem();
 	if (!IsValid(HoverItem)) return false; // 호버 아이템이 유효하지 않으면 false 반환
@@ -138,11 +171,43 @@ bool UInv_SpatialInventory::CanEquipHoverItem(UInv_EquippedGridSlot* EquippedGri
 	
 	// Check if the held item is non-stackable and equippable
 	// 들고 있는 아이템이 스택 불가능하고 장착 가능한지 확인
-	return HasHoverItem() && 
-		IsValid(HeldItem) && 
-			!HoverItem->IsStackable() && 
-				HeldItem->GetItemManifest().GetItemCategory() == EInv_ItemCategory::Equippable &&
-					HeldItem->GetItemManifest().GetItemType().MatchesTag(EquipmentTypeTag);
+	return HasHoverItem() && IsValid(HeldItem) &&
+		!HoverItem->IsStackable() &&
+			HeldItem->GetItemManifest().GetItemCategory() == EInv_ItemCategory::Equippable &&
+				HeldItem->GetItemManifest().GetItemType().MatchesTag(EquipmentTypeTag);
+}
+
+// 캡처한 포인터와 동일한 인벤토리 항목에 있는지 확인하는 것.
+UInv_EquippedGridSlot* UInv_SpatialInventory::FindSlotWithEquippedItem(UInv_InventoryItem* EquippedItem) const
+{
+	auto* FoundEquippedGridSlot = EquippedGridSlots.FindByPredicate([EquippedItem](const UInv_EquippedGridSlot* GridSlot)
+	{
+		return GridSlot->GetInventoryItem() == EquippedItem; // 장착된 아이템과 슬롯의 아이템이 같은지 비교
+	});
+	
+	return FoundEquippedGridSlot ? *FoundEquippedGridSlot : nullptr;
+}
+
+// 장착된 아이템을 그리드 슬롯에서 제거  
+void UInv_SpatialInventory::ClearSlotOfItem(UInv_EquippedGridSlot* EquippedGridSlot)
+{
+	if (IsValid(EquippedGridSlot)) // 슬롯이 유효한 경우
+	{
+		EquippedGridSlot->SetEquippedSlottedItem(nullptr); // 장착된 슬롯 아이템을 nullptr로 설정하여 제거
+		EquippedGridSlot->SetInventoryItem(nullptr); // 슬롯의 인벤토리 아이템을 nullptr로 설정하여 제거
+	}
+}
+
+void UInv_SpatialInventory::RemoveEquippedSlottedItem(UInv_EquippedSlottedItem* EquippedSlottedItem)
+{
+	if (!IsValid(EquippedSlottedItem)) return; // 장착된 슬롯 아이템이 유효하지 않으면 반환
+	
+	if (EquippedSlottedItem->OnEquippedSlottedItemClicked.IsAlreadyBound(this, &ThisClass::EquippedSlottedItemClicked)) // 델리게이트가 이미 바인딩되어 있는지 확인
+	{
+		EquippedSlottedItem->OnEquippedSlottedItemClicked.RemoveDynamic(this, &ThisClass::EquippedSlottedItemClicked); // 델리게이트 바인딩 해제
+	}
+	
+	EquippedSlottedItem->RemoveFromParent(); // 부모에서 장착된 슬롯 아이템 제거
 }
 
 

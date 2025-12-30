@@ -23,6 +23,7 @@ public:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	
 	UInv_EquippedSlottedItem* OnItemEquipped(UInv_InventoryItem* Item, const FGameplayTag& EquipmentTag, float TileSize); // 아이템 장착 시 호출되는 함수
+	void SetEquippedSlottedItem(UInv_EquippedSlottedItem* Item) {EquippedSlottedItem = Item; } // 장착된 슬롯 아이템 설정
 
 	FEquippedGridSlotClicked EquippedGridSlotClicked; // 장착된 그리드 슬롯 클릭 이벤트 델리게이트
 

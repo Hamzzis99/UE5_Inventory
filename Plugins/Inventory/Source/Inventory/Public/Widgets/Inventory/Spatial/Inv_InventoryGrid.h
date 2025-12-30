@@ -42,6 +42,7 @@ public:
 	UInv_HoverItem* GetHoverItem() const; // 호버 아이템 가져오기 함수
 	float GetTileSize() const{return TileSize;}; // 타일 크기 가져오기 함수
 	void ClearHoverItem(); // 호버 아이템 지우기
+	void AssignHoverItem(UInv_InventoryItem* InventoryItem); // 장착 아이템 기반 호버 아이템 할당
 	
 	UFUNCTION()
 	void AddItem(UInv_InventoryItem* Item); // 아이템 추가
@@ -93,7 +94,6 @@ private:
 	bool IsRightClick(const FPointerEvent& MouseEvent) const;
 	bool IsLeftClick(const FPointerEvent& MouseEvent) const;
 	void PickUp(UInv_InventoryItem* ClickedInventoryItem, const int32 GridIndex); // 이 픽업은 마우스로 아이템을 잡을 때
-	void AssignHoverItem(UInv_InventoryItem* InventoryItem); // 아이템 기반 호버 아이템 할당
 	void AssignHoverItem(UInv_InventoryItem* InventoryItem, const int32 GridIndex, const int32 PreviousGridIndex); // 인덱스 기반 호버 아이템 할당
 	void RemoveItemFromGrid(UInv_InventoryItem* InventoryItem, const int32 GridIndex); // 그리드에서 아이템 제거
 	void UpdateTileParameters(const FVector2D& CanvasPosition, const FVector2D& MousePosition); // 타일 매개변수 업데이트
