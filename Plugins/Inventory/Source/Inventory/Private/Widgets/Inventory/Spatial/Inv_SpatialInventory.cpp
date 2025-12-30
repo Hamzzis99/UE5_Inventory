@@ -221,7 +221,7 @@ void UInv_SpatialInventory::MakeEquippedSlottedItem(UInv_EquippedSlottedItem* Eq
 		ItemToEquip, 
 		EquippedSlottedItem->GetEquipmentTypeTag(), 
 		UInv_InventoryStatics::GetInventoryWidget(GetOwningPlayer())->GetTileSize());
-	SlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &ThisClass::EquippedSlottedItemClicked);
+	if (IsValid(SlottedItem))SlottedItem->OnEquippedSlottedItemClicked.AddDynamic(this, &ThisClass::EquippedSlottedItemClicked);
 	
 	//새로 아이템을 장착할 바인딩 되길 바람
 	EquippedGridSlot->SetEquippedSlottedItem(SlottedItem);
