@@ -1,0 +1,38 @@
+// Gihyeon's Inventory Project
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "Inv_EquipmentComponent.generated.h"
+
+class UInv_InventoryItem;
+class UInv_InventoryComponent;
+class APlayerController;
+class USkeletalMeshComponent;
+
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), Blueprintable)
+class INVENTORY_API UInv_EquipmentComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+
+
+protected:
+	
+	virtual void BeginPlay() override;
+
+private:
+	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
+	TWeakObjectPtr<APlayerController> OwningPlayerController;
+	TWeakObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh; // 아이템 장착 골격
+	
+	// 델리게이트 바인딩을 대비하기 위한 함수들 콜백 함수들 
+	UFUNCTION()
+	void OnItemEquipped(UInv_InventoryItem* EquippedItem);
+	
+	UFUNCTION()
+	void OnItemUnEquipped(UInv_InventoryItem* EquippedItem);
+	
+	void InitInventoryComponent();
+};
