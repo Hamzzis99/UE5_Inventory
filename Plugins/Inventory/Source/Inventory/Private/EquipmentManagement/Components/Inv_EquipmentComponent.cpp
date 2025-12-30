@@ -4,6 +4,7 @@
 
 #include "EquipmentManagement/Components/Inv_EquipmentComponent.h"
 
+#include "EquipmentManagement/EquipActor/Inv_EquipActor.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
@@ -43,6 +44,16 @@ void UInv_EquipmentComponent::InitInventoryComponent()
 	}
 }
 
+// 장착된 액터 스폰
+AInv_EquipActor* UInv_EquipmentComponent::SpawnEquippedActor(FInv_EquipmentFragment* EquipmentFragment, const FInv_ItemManifest& Manifest, USkeletalMeshComponent* AttachMesh)
+{
+	AInv_EquipActor* SpawnedEquipActor = EquipmentFragment->SpawnAttachedActor(AttachMesh); // 장착된 액터 스폰
+	SpawnedEquipActor->SetEquipmentType(EquipmentFragment->GetEquipmentType()); // 장비 타입 설정 (게임플레이 태그)
+	SpawnedEquipActor->SetOwner(GetOwner()); // 소유자 설정
+	EquipmentFragment->SetEquippedActor(SpawnedEquipActor); // 장착된 액터 설정
+	return SpawnedEquipActor;
+}
+
 // 아이템 장착 시 호출되는 함수
 void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 {
@@ -54,6 +65,11 @@ void UInv_EquipmentComponent::OnItemEquipped(UInv_InventoryItem* EquippedItem)
 	if (!EquipmentFragment) return;
 
 	EquipmentFragment->OnEquip(OwningPlayerController.Get());
+	
+	if (!OwningSkeletalMesh.IsValid()) return;
+	AInv_EquipActor* SpawnedEquipActor = SpawnEquippedActor(EquipmentFragment, ItemManifest, OwningSkeletalMesh.Get()); // 장비 아이템을 장착하면서 필요 조건들 
+	
+	EquippedActors.Add(SpawnedEquipActor); // 장착된 액터 배열에 추가
 }
 
 // 아이템 해제 시 호출되는 함수

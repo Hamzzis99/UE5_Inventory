@@ -249,8 +249,10 @@ struct FInv_EquipmentFragment : public FInv_InventoryItemFragment
 	virtual void Assimilate(UInv_CompositeBase* Composite) const override;
 	virtual void Manifest() override;
 	
-	AInv_EquipActor* SpawnAttachedActor(USkeletalMeshComponent* AttachMesh) const;
-	void DestroyAttachedActor() const;
+	AInv_EquipActor* SpawnAttachedActor(USkeletalMeshComponent* AttachMesh) const; // 장착 장비 스폰
+	void DestroyAttachedActor() const; // 장착 장비 파괴 (해제)
+	FGameplayTag GetEquipmentType() const {return EquipmentType;}
+	void SetEquippedActor(AInv_EquipActor* EquipActor);
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory") // 인벤토리 장착 아이템
@@ -264,5 +266,8 @@ private:
 	
 	//장비 부착물 지정?
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	FName SocketAttachPoint{NAME_None};
+	FName SocketAttachPoint{NAME_None}; // Mesh의 소켓 부착 지점
+	
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	FGameplayTag EquipmentType = FGameplayTag::EmptyTag; // 장비 타입 태그
 };
