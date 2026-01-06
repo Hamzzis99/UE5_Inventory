@@ -76,12 +76,20 @@ private:
 
 	// === 재료 정보 ===
 
-	// 필요한 재료 태그 (Craftables 중 선택)
+	// 필요한 재료 1 태그 (Craftables 중 선택)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Materials", meta = (AllowPrivateAccess = "true", Categories = "GameItems.Craftables"))
 	FGameplayTag RequiredMaterialTag;
 
-	// 필요한 재료 개수
+	// 필요한 재료 1 개수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Materials", meta = (AllowPrivateAccess = "true"))
 	int32 RequiredAmount = 0;
+
+	// 필요한 재료 2 태그 (Craftables 중 선택, None이면 미사용)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Materials", meta = (AllowPrivateAccess = "true", Categories = "GameItems.Craftables"))
+	FGameplayTag RequiredMaterialTag2;
+
+	// 필요한 재료 2 개수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Materials", meta = (AllowPrivateAccess = "true"))
+	int32 RequiredAmount2 = 0;
 };
 

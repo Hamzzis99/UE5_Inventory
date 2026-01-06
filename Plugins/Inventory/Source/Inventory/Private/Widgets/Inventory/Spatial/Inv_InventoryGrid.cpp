@@ -1052,9 +1052,27 @@ void UInv_InventoryGrid::ConsumeHoverItemStacks(const int32 ClickedStackCount, c
 	const int32 AmountToTransfer = HoveredStackCount;
 	const int32 NewClickedStackCount = ClickedStackCount + AmountToTransfer;
 	
-	//인덱스 격자 슬롯의 스택 수 확인
+	// UI 업데이트
 	GridSlots[Index]->SetStackCount(NewClickedStackCount); // 그리드 슬롯 스택 수 업데이트
 	SlottedItems.FindChecked(Index)->UpdateStackCount(NewClickedStackCount); // 슬로티드 아이템 스택 수 업데이트
+	
+	// 서버에 스택 변경 알림
+	if (InventoryComponent.IsValid())
+	{
+		UInv_InventoryItem* ClickedItem = GridSlots[Index]->GetInventoryItem().Get();
+		if (IsValid(ClickedItem))
+		{
+			if (GetOwningPlayer()->HasAuthority())
+			{
+				// ListenServer: 직접 설정
+				ClickedItem->SetTotalStackCount(NewClickedStackCount);
+				UE_LOG(LogTemp, Warning, TEXT("ConsumeHoverStacks (Authority): 스택 %d로 설정"), NewClickedStackCount);
+			}
+			// Client는 리플리케이션으로 자동 업데이트됨
+			// (HoverItem을 소비했으므로 추가 RPC 불필요)
+		}
+	}
+	
 	ClearHoverItem(); // 호버 아이템 초기화
 	ShowCursor(); // 마우스 커서 보이게 하기
 	
@@ -1081,6 +1099,22 @@ void UInv_InventoryGrid::FillInStack(const int32 FillAmount, const int32 Remaind
 	ClickedSlottedItem->UpdateStackCount(NewStackCount); // 클릭된 슬로티드 아이템 스택 수 업데이트
 	
 	HoverItem->UpdateStackCount(Remainder); // 호버 아이템 스택 수 업데이트
+	
+	// 서버에 스택 변경 알림
+	if (InventoryComponent.IsValid())
+	{
+		UInv_InventoryItem* ClickedItem = GridSlot->GetInventoryItem().Get();
+		if (IsValid(ClickedItem))
+		{
+			if (GetOwningPlayer()->HasAuthority())
+			{
+				// ListenServer: 직접 설정
+				ClickedItem->SetTotalStackCount(NewStackCount);
+				UE_LOG(LogTemp, Warning, TEXT("FillInStack (Authority): 스택 %d로 설정"), NewStackCount);
+			}
+			// Client는 리플리케이션으로 자동 업데이트
+		}
+	}
 }
 
 // 마우스 커서 켜기 끄기 함수들
@@ -1136,11 +1170,37 @@ void UInv_InventoryGrid::OnPopUpMenuSplit(int32 SplitAmount, int32 Index) // 아
 	const int32 StackCount = UpperLeftGridSlot -> GetStackCount(); // 스택 수 가져오기
 	const int32 NewStackCount = StackCount - SplitAmount; // 새로운 스택 수 계산 <- 분할된 양을 빼주는 것
 	
+	// UI 먼저 업데이트 (빠른 반응성)
 	UpperLeftGridSlot->SetStackCount(NewStackCount); // 그리드 슬롯 스택 수 업데이트
 	SlottedItems.FindChecked(UpperLeftIndex)->UpdateStackCount(NewStackCount); // 슬로티드 아이템 스택 수 업데이트
 	
 	AssignHoverItem(RightClickedItem, UpperLeftIndex, UpperLeftIndex); // 호버 아이템 할당
 	HoverItem->UpdateStackCount(SplitAmount); // 호버 아이템 스택 수 업데이트
+	
+	// 서버에 스택 변경 알림
+	if (InventoryComponent.IsValid())
+	{
+		// 서버에서 실제 아이템의 TotalStackCount 업데이트
+		// Server_ConsumeMaterials 대신 직접 SetTotalStackCount를 서버에서 호출
+		// 하지만 더 안전하게 하려면 새로운 RPC를 만들거나
+		// 기존 로직을 활용할 수 있음
+		
+		// 간단한 방법: GetOwningPlayer()가 Authority를 가지고 있으면 직접 설정
+		// 그렇지 않으면 서버 RPC 호출 필요
+		if (GetOwningPlayer()->HasAuthority())
+		{
+			// ListenServer: 직접 설정
+			RightClickedItem->SetTotalStackCount(NewStackCount);
+			UE_LOG(LogTemp, Warning, TEXT("Split (Authority): 아이템 스택 %d로 설정"), NewStackCount);
+		}
+		else
+		{
+			// Client: 서버 RPC로 알림 (Server_ConsumeMaterials 재활용)
+			const FGameplayTag& ItemType = RightClickedItem->GetItemManifest().GetItemType();
+			InventoryComponent->Server_ConsumeMaterials(ItemType, SplitAmount);
+			UE_LOG(LogTemp, Warning, TEXT("Split (Client): 서버에 %d 소비 알림"), SplitAmount);
+		}
+	}
 }
 
 void UInv_InventoryGrid::OnPopUpMenuDrop(int32 Index) // 아이템 버리기 함수

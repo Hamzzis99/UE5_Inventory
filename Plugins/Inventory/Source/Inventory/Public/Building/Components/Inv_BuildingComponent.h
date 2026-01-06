@@ -30,7 +30,15 @@ public:
 public:
 	// 블루프린트에서 호출 가능: 위젯에서 건물 선택 시
 	UFUNCTION(BlueprintCallable, Category = "Building")
-	void OnBuildingSelectedFromWidget(TSubclassOf<AActor> GhostClass, TSubclassOf<AActor> ActualBuildingClass, int32 BuildingID, FGameplayTag MaterialTag, int32 MaterialAmount);
+	void OnBuildingSelectedFromWidget(
+		TSubclassOf<AActor> GhostClass, 
+		TSubclassOf<AActor> ActualBuildingClass, 
+		int32 BuildingID, 
+		FGameplayTag MaterialTag1, 
+		int32 MaterialAmount1,
+		FGameplayTag MaterialTag2,
+		int32 MaterialAmount2
+	);
 
 private:
 	// 빌드 모드 시작/종료 함수
@@ -52,7 +60,15 @@ private:
 
 	// 서버 RPC: 건물 배치 요청
 	UFUNCTION(Server, Reliable)
-	void Server_PlaceBuilding(TSubclassOf<AActor> BuildingClass, FVector Location, FRotator Rotation, FGameplayTag MaterialTag, int32 MaterialAmount);
+	void Server_PlaceBuilding(
+		TSubclassOf<AActor> BuildingClass, 
+		FVector Location, 
+		FRotator Rotation, 
+		FGameplayTag MaterialTag1, 
+		int32 MaterialAmount1,
+		FGameplayTag MaterialTag2,
+		int32 MaterialAmount2
+	);
 
 	// 멀티캐스트 RPC: 모든 클라이언트에게 건물 배치 알림
 	UFUNCTION(NetMulticast, Reliable)
@@ -91,6 +107,13 @@ private:
 
 	UPROPERTY()
 	int32 CurrentMaterialAmount = 0;
+
+	// 두 번째 재료 정보
+	UPROPERTY()
+	FGameplayTag CurrentMaterialTag2;
+
+	UPROPERTY()
+	int32 CurrentMaterialAmount2 = 0;
 
 	// === Input Mapping Context ===
 

@@ -307,7 +307,14 @@ void UInv_BuildingComponent::CloseBuildMenu()
 	UE_LOG(LogTemp, Warning, TEXT("Build Menu closed."));
 }
 
-void UInv_BuildingComponent::OnBuildingSelectedFromWidget(TSubclassOf<AActor> GhostClass, TSubclassOf<AActor> ActualBuildingClass, int32 BuildingID, FGameplayTag MaterialTag, int32 MaterialAmount)
+void UInv_BuildingComponent::OnBuildingSelectedFromWidget(
+	TSubclassOf<AActor> GhostClass, 
+	TSubclassOf<AActor> ActualBuildingClass, 
+	int32 BuildingID, 
+	FGameplayTag MaterialTag1, 
+	int32 MaterialAmount1,
+	FGameplayTag MaterialTag2,
+	int32 MaterialAmount2)
 {
 	if (!GhostClass || !ActualBuildingClass)
 	{
@@ -317,14 +324,24 @@ void UInv_BuildingComponent::OnBuildingSelectedFromWidget(TSubclassOf<AActor> Gh
 
 	UE_LOG(LogTemp, Warning, TEXT("=== BUILDING SELECTED FROM WIDGET ==="));
 	UE_LOG(LogTemp, Warning, TEXT("BuildingID: %d"), BuildingID);
-	UE_LOG(LogTemp, Warning, TEXT("Required Material: %s x %d"), *MaterialTag.ToString(), MaterialAmount);
+	
+	if (MaterialTag1.IsValid() && MaterialAmount1 > 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Required Material 1: %s x %d"), *MaterialTag1.ToString(), MaterialAmount1);
+	}
+	if (MaterialTag2.IsValid() && MaterialAmount2 > 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Required Material 2: %s x %d"), *MaterialTag2.ToString(), MaterialAmount2);
+	}
 
 	// 선택된 건물 정보 저장
 	SelectedGhostClass = GhostClass;
 	SelectedBuildingClass = ActualBuildingClass;
 	CurrentBuildingID = BuildingID;
-	CurrentMaterialTag = MaterialTag;
-	CurrentMaterialAmount = MaterialAmount;
+	CurrentMaterialTag = MaterialTag1;
+	CurrentMaterialAmount = MaterialAmount1;
+	CurrentMaterialTag2 = MaterialTag2;
+	CurrentMaterialAmount2 = MaterialAmount2;
 
 	// 빌드 메뉴 닫기
 	CloseBuildMenu();
@@ -369,12 +386,25 @@ void UInv_BuildingComponent::TryPlaceBuilding()
 	}
 
 	// 재료 다시 체크 (빌드 모드 중에 소비됐을 수 있음!)
+	// 재료 1 체크
 	if (CurrentMaterialTag.IsValid() && CurrentMaterialAmount > 0)
 	{
 		if (!HasRequiredMaterials(CurrentMaterialTag, CurrentMaterialAmount))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("=== 배치 실패: 재료가 부족합니다! ==="));
-			UE_LOG(LogTemp, Warning, TEXT("필요한 재료: %s x %d"), *CurrentMaterialTag.ToString(), CurrentMaterialAmount);
+			UE_LOG(LogTemp, Warning, TEXT("=== 배치 실패: 재료1이 부족합니다! ==="));
+			UE_LOG(LogTemp, Warning, TEXT("필요한 재료1: %s x %d"), *CurrentMaterialTag.ToString(), CurrentMaterialAmount);
+			EndBuildMode(); // 빌드 모드 종료
+			return;
+		}
+	}
+
+	// 재료 2 체크
+	if (CurrentMaterialTag2.IsValid() && CurrentMaterialAmount2 > 0)
+	{
+		if (!HasRequiredMaterials(CurrentMaterialTag2, CurrentMaterialAmount2))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("=== 배치 실패: 재료2가 부족합니다! ==="));
+			UE_LOG(LogTemp, Warning, TEXT("필요한 재료2: %s x %d"), *CurrentMaterialTag2.ToString(), CurrentMaterialAmount2);
 			EndBuildMode(); // 빌드 모드 종료
 			return;
 		}
@@ -388,14 +418,21 @@ void UInv_BuildingComponent::TryPlaceBuilding()
 	const FRotator BuildingRotation = GhostActorInstance->GetActorRotation();
 	
 	// 서버에 실제 건물 배치 요청 (재료 정보도 함께 전달!)
-	Server_PlaceBuilding(SelectedBuildingClass, BuildingLocation, BuildingRotation, CurrentMaterialTag, CurrentMaterialAmount);
+	Server_PlaceBuilding(SelectedBuildingClass, BuildingLocation, BuildingRotation, CurrentMaterialTag, CurrentMaterialAmount, CurrentMaterialTag2, CurrentMaterialAmount2);
 
 	// 건물 배치 성공 시 빌드 모드 종료
 	EndBuildMode();
 	UE_LOG(LogTemp, Warning, TEXT("Building placed! Exiting build mode."));
 }
 
-void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AActor> BuildingClass, FVector Location, FRotator Rotation, FGameplayTag MaterialTag, int32 MaterialAmount)
+void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(
+	TSubclassOf<AActor> BuildingClass, 
+	FVector Location, 
+	FRotator Rotation, 
+	FGameplayTag MaterialTag1, 
+	int32 MaterialAmount1,
+	FGameplayTag MaterialTag2,
+	int32 MaterialAmount2)
 {
 	if (!GetWorld())
 	{
@@ -412,11 +449,22 @@ void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AAc
 	UE_LOG(LogTemp, Warning, TEXT("=== SERVER PLACING BUILDING ==="));
 
 	// 서버에서 재료 다시 체크 (보안 - 클라이언트 조작 방지)
-	if (MaterialTag.IsValid() && MaterialAmount > 0)
+	// 재료 1 체크
+	if (MaterialTag1.IsValid() && MaterialAmount1 > 0)
 	{
-		if (!HasRequiredMaterials(MaterialTag, MaterialAmount))
+		if (!HasRequiredMaterials(MaterialTag1, MaterialAmount1))
 		{
-			UE_LOG(LogTemp, Error, TEXT("Server: 재료 부족! 배치 차단."));
+			UE_LOG(LogTemp, Error, TEXT("Server: 재료1 부족! 배치 차단."));
+			return; // 재료 없으면 배치 차단!
+		}
+	}
+
+	// 재료 2 체크
+	if (MaterialTag2.IsValid() && MaterialAmount2 > 0)
+	{
+		if (!HasRequiredMaterials(MaterialTag2, MaterialAmount2))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Server: 재료2 부족! 배치 차단."));
 			return; // 재료 없으면 배치 차단!
 		}
 	}
@@ -434,20 +482,28 @@ void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AAc
 		PlacedBuilding->SetActorEnableCollision(true);
 
 		UE_LOG(LogTemp, Warning, TEXT("건물 스폰 성공! 재료 차감 시도..."));
-		UE_LOG(LogTemp, Warning, TEXT("MaterialTag.IsValid(): %s"), MaterialTag.IsValid() ? TEXT("TRUE") : TEXT("FALSE"));
-		UE_LOG(LogTemp, Warning, TEXT("MaterialAmount: %d"), MaterialAmount);
 
 		// 건물 배치 성공! 재료 차감 (여기서만!)
-		if (MaterialTag.IsValid() && MaterialAmount > 0)
+		// 재료 1 차감
+		if (MaterialTag1.IsValid() && MaterialAmount1 > 0)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("재료 차감 조건 만족! ConsumeMaterials 호출..."));
-			ConsumeMaterials(MaterialTag, MaterialAmount);
-			UE_LOG(LogTemp, Warning, TEXT("Server: 재료 차감 완료! (%s x %d)"), *MaterialTag.ToString(), MaterialAmount);
+			UE_LOG(LogTemp, Warning, TEXT("재료1 차감 조건 만족! ConsumeMaterials 호출..."));
+			ConsumeMaterials(MaterialTag1, MaterialAmount1);
+			UE_LOG(LogTemp, Warning, TEXT("Server: 재료1 차감 완료! (%s x %d)"), *MaterialTag1.ToString(), MaterialAmount1);
 		}
-		else
+
+		// 재료 2 차감
+		if (MaterialTag2.IsValid() && MaterialAmount2 > 0)
 		{
-			UE_LOG(LogTemp, Error, TEXT("재료 차감 조건 불만족! MaterialTag.IsValid=%s, MaterialAmount=%d"), 
-				MaterialTag.IsValid() ? TEXT("TRUE") : TEXT("FALSE"), MaterialAmount);
+			UE_LOG(LogTemp, Warning, TEXT("재료2 차감 조건 만족! ConsumeMaterials 호출..."));
+			ConsumeMaterials(MaterialTag2, MaterialAmount2);
+			UE_LOG(LogTemp, Warning, TEXT("Server: 재료2 차감 완료! (%s x %d)"), *MaterialTag2.ToString(), MaterialAmount2);
+		}
+		
+		// 재료가 하나도 설정되지 않은 경우 로그
+		if (!MaterialTag1.IsValid() && !MaterialTag2.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("재료가 필요 없는 건물입니다."));
 		}
 		
 		// 리플리케이션 활성화 (중요!)

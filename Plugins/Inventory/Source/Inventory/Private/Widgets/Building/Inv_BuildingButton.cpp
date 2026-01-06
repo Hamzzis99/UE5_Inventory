@@ -97,7 +97,15 @@ void UInv_BuildingButton::OnButtonClicked()
 	}
 
 	// Component에 건물 선택 알림 (재료 정보 포함!)
-	BuildingComp->OnBuildingSelectedFromWidget(GhostActorClass, ActualBuildingClass, BuildingID, RequiredMaterialTag, RequiredAmount);
+	BuildingComp->OnBuildingSelectedFromWidget(
+		GhostActorClass, 
+		ActualBuildingClass, 
+		BuildingID, 
+		RequiredMaterialTag, 
+		RequiredAmount,
+		RequiredMaterialTag2,
+		RequiredAmount2
+	);
 }
 
 void UInv_BuildingButton::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -110,12 +118,6 @@ void UInv_BuildingButton::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 
 bool UInv_BuildingButton::HasRequiredMaterials()
 {
-	// 재료가 설정되지 않았으면 true (재료 필요 없음)
-	if (!RequiredMaterialTag.IsValid() || RequiredAmount <= 0)
-	{
-		return true;
-	}
-
 	// PlayerController 가져오기
 	APlayerController* PC = GetOwningPlayer();
 	if (!IsValid(PC)) return false;
@@ -124,14 +126,47 @@ bool UInv_BuildingButton::HasRequiredMaterials()
 	UInv_InventoryComponent* InvComp = PC->FindComponentByClass<UInv_InventoryComponent>();
 	if (!IsValid(InvComp)) return false;
 
-	// 재료 찾기
 	FInv_InventoryFastArray& InventoryList = InvComp->GetInventoryList();
-	UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(RequiredMaterialTag);
-	if (!Item) return false; // 재료 없음
 
-	// GetTotalStackCount() 사용 (Server_DropItem과 동일!)
-	int32 CurrentAmount = Item->GetTotalStackCount();
-	return CurrentAmount >= RequiredAmount;
+	// === 재료 1 체크 ===
+	if (RequiredMaterialTag.IsValid() && RequiredAmount > 0)
+	{
+		UInv_InventoryItem* Item1 = InventoryList.FindFirstItemByType(RequiredMaterialTag);
+		if (!Item1) 
+		{
+			UE_LOG(LogTemp, Warning, TEXT("재료1 부족: %s"), *RequiredMaterialTag.ToString());
+			return false; // 재료1 없음
+		}
+
+		int32 CurrentAmount1 = Item1->GetTotalStackCount();
+		if (CurrentAmount1 < RequiredAmount)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("재료1 개수 부족: %d/%d"), CurrentAmount1, RequiredAmount);
+			return false; // 재료1 개수 부족
+		}
+	}
+
+	// === 재료 2 체크 (태그가 None이 아니고, 개수가 0보다 클 때만) ===
+	if (RequiredMaterialTag2.IsValid() && RequiredAmount2 > 0)
+	{
+		UInv_InventoryItem* Item2 = InventoryList.FindFirstItemByType(RequiredMaterialTag2);
+		if (!Item2) 
+		{
+			UE_LOG(LogTemp, Warning, TEXT("재료2 부족: %s"), *RequiredMaterialTag2.ToString());
+			return false; // 재료2 없음
+		}
+
+		int32 CurrentAmount2 = Item2->GetTotalStackCount();
+		if (CurrentAmount2 < RequiredAmount2)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("재료2 개수 부족: %d/%d"), CurrentAmount2, RequiredAmount2);
+			return false; // 재료2 개수 부족
+		}
+	}
+
+	// 모든 재료 충족!
+	UE_LOG(LogTemp, Log, TEXT("모든 재료 충족!"));
+	return true;
 }
 
 void UInv_BuildingButton::UpdateButtonState()
