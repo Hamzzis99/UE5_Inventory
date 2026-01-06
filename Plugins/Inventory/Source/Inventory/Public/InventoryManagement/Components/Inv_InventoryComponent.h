@@ -46,6 +46,9 @@ public:
 	
 	UFUNCTION(Server, Reliable) // 신뢰하는 것? 서버에 전달하는 것?
 	void Server_ConsumeItem(UInv_InventoryItem* Item);
+
+	UFUNCTION(Server, Reliable) // 재료 소비 (Building 시스템용)
+	void Server_ConsumeMaterials(const FGameplayTag& MaterialTag, int32 Amount);
 	
 	UFUNCTION(Server, Reliable) // 신뢰하는 것? 서버에 전달하는 것?
 	void Server_EquipSlotClicked(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip);

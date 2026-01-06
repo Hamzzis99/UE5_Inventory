@@ -10,6 +10,10 @@
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "InventoryManagement/Components/Inv_InventoryComponent.h"
+#include "InventoryManagement/FastArray/Inv_FastArray.h"
+#include "Items/Inv_InventoryItem.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
 
 
 // Sets default values for this component's properties
@@ -303,7 +307,7 @@ void UInv_BuildingComponent::CloseBuildMenu()
 	UE_LOG(LogTemp, Warning, TEXT("Build Menu closed."));
 }
 
-void UInv_BuildingComponent::OnBuildingSelectedFromWidget(TSubclassOf<AActor> GhostClass, TSubclassOf<AActor> ActualBuildingClass, int32 BuildingID)
+void UInv_BuildingComponent::OnBuildingSelectedFromWidget(TSubclassOf<AActor> GhostClass, TSubclassOf<AActor> ActualBuildingClass, int32 BuildingID, FGameplayTag MaterialTag, int32 MaterialAmount)
 {
 	if (!GhostClass || !ActualBuildingClass)
 	{
@@ -313,11 +317,14 @@ void UInv_BuildingComponent::OnBuildingSelectedFromWidget(TSubclassOf<AActor> Gh
 
 	UE_LOG(LogTemp, Warning, TEXT("=== BUILDING SELECTED FROM WIDGET ==="));
 	UE_LOG(LogTemp, Warning, TEXT("BuildingID: %d"), BuildingID);
+	UE_LOG(LogTemp, Warning, TEXT("Required Material: %s x %d"), *MaterialTag.ToString(), MaterialAmount);
 
 	// 선택된 건물 정보 저장
 	SelectedGhostClass = GhostClass;
 	SelectedBuildingClass = ActualBuildingClass;
 	CurrentBuildingID = BuildingID;
+	CurrentMaterialTag = MaterialTag;
+	CurrentMaterialAmount = MaterialAmount;
 
 	// 빌드 메뉴 닫기
 	CloseBuildMenu();
@@ -361,6 +368,18 @@ void UInv_BuildingComponent::TryPlaceBuilding()
 		return;
 	}
 
+	// 재료 다시 체크 (빌드 모드 중에 소비됐을 수 있음!)
+	if (CurrentMaterialTag.IsValid() && CurrentMaterialAmount > 0)
+	{
+		if (!HasRequiredMaterials(CurrentMaterialTag, CurrentMaterialAmount))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("=== 배치 실패: 재료가 부족합니다! ==="));
+			UE_LOG(LogTemp, Warning, TEXT("필요한 재료: %s x %d"), *CurrentMaterialTag.ToString(), CurrentMaterialAmount);
+			EndBuildMode(); // 빌드 모드 종료
+			return;
+		}
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("=== TRY PLACING BUILDING (Client Request) ==="));
 	UE_LOG(LogTemp, Warning, TEXT("BuildingID: %d"), CurrentBuildingID);
 	
@@ -368,15 +387,15 @@ void UInv_BuildingComponent::TryPlaceBuilding()
 	const FVector BuildingLocation = GhostActorInstance->GetActorLocation();
 	const FRotator BuildingRotation = GhostActorInstance->GetActorRotation();
 	
-	// 서버에 실제 건물 배치 요청
-	Server_PlaceBuilding(SelectedBuildingClass, BuildingLocation, BuildingRotation);
+	// 서버에 실제 건물 배치 요청 (재료 정보도 함께 전달!)
+	Server_PlaceBuilding(SelectedBuildingClass, BuildingLocation, BuildingRotation, CurrentMaterialTag, CurrentMaterialAmount);
 
 	// 건물 배치 성공 시 빌드 모드 종료
 	EndBuildMode();
 	UE_LOG(LogTemp, Warning, TEXT("Building placed! Exiting build mode."));
 }
 
-void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AActor> BuildingClass, FVector Location, FRotator Rotation)
+void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AActor> BuildingClass, FVector Location, FRotator Rotation, FGameplayTag MaterialTag, int32 MaterialAmount)
 {
 	if (!GetWorld())
 	{
@@ -391,6 +410,16 @@ void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AAc
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("=== SERVER PLACING BUILDING ==="));
+
+	// 서버에서 재료 다시 체크 (보안 - 클라이언트 조작 방지)
+	if (MaterialTag.IsValid() && MaterialAmount > 0)
+	{
+		if (!HasRequiredMaterials(MaterialTag, MaterialAmount))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Server: 재료 부족! 배치 차단."));
+			return; // 재료 없으면 배치 차단!
+		}
+	}
 	
 	// 서버에서 실제 건물 액터 스폰
 	FActorSpawnParameters SpawnParams;
@@ -403,6 +432,23 @@ void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AAc
 	{
 		// 실제 건물이므로 충돌 활성화
 		PlacedBuilding->SetActorEnableCollision(true);
+
+		UE_LOG(LogTemp, Warning, TEXT("건물 스폰 성공! 재료 차감 시도..."));
+		UE_LOG(LogTemp, Warning, TEXT("MaterialTag.IsValid(): %s"), MaterialTag.IsValid() ? TEXT("TRUE") : TEXT("FALSE"));
+		UE_LOG(LogTemp, Warning, TEXT("MaterialAmount: %d"), MaterialAmount);
+
+		// 건물 배치 성공! 재료 차감 (여기서만!)
+		if (MaterialTag.IsValid() && MaterialAmount > 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("재료 차감 조건 만족! ConsumeMaterials 호출..."));
+			ConsumeMaterials(MaterialTag, MaterialAmount);
+			UE_LOG(LogTemp, Warning, TEXT("Server: 재료 차감 완료! (%s x %d)"), *MaterialTag.ToString(), MaterialAmount);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("재료 차감 조건 불만족! MaterialTag.IsValid=%s, MaterialAmount=%d"), 
+				MaterialTag.IsValid() ? TEXT("TRUE") : TEXT("FALSE"), MaterialAmount);
+		}
 		
 		// 리플리케이션 활성화 (중요!)
 		PlacedBuilding->SetReplicates(true);
@@ -427,3 +473,61 @@ void UInv_BuildingComponent::Multicast_OnBuildingPlaced_Implementation(AActor* P
 	
 	// 여기에 건물 배치 후 추가 로직 (이펙트, 사운드 등) 추가 가능
 }
+
+bool UInv_BuildingComponent::HasRequiredMaterials(const FGameplayTag& MaterialTag, int32 RequiredAmount) const
+{
+	// 재료가 필요 없으면 true
+	if (!MaterialTag.IsValid() || RequiredAmount <= 0)
+	{
+		return true;
+	}
+
+	if (!OwningPC.IsValid()) return false;
+
+	// InventoryComponent 가져오기
+	UInv_InventoryComponent* InvComp = OwningPC->FindComponentByClass<UInv_InventoryComponent>();
+	if (!IsValid(InvComp)) return false;
+
+	// 재료 찾기
+	FInv_InventoryFastArray& InventoryList = InvComp->GetInventoryList();
+	UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(MaterialTag);
+	if (!Item) return false; // 재료 없음
+
+	// GetTotalStackCount() 사용 (Server_DropItem과 동일!)
+	int32 CurrentAmount = Item->GetTotalStackCount();
+	return CurrentAmount >= RequiredAmount;
+}
+
+void UInv_BuildingComponent::ConsumeMaterials(const FGameplayTag& MaterialTag, int32 Amount)
+{
+	UE_LOG(LogTemp, Warning, TEXT("=== ConsumeMaterials 호출됨 ==="));
+	UE_LOG(LogTemp, Warning, TEXT("MaterialTag: %s, Amount: %d"), *MaterialTag.ToString(), Amount);
+
+	if (!MaterialTag.IsValid() || Amount <= 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ConsumeMaterials: Invalid MaterialTag or Amount <= 0"));
+		return;
+	}
+
+	if (!OwningPC.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("ConsumeMaterials: OwningPC is invalid!"));
+		return;
+	}
+
+	// InventoryComponent 가져오기
+	UInv_InventoryComponent* InvComp = OwningPC->FindComponentByClass<UInv_InventoryComponent>();
+	if (!IsValid(InvComp))
+	{
+		UE_LOG(LogTemp, Error, TEXT("ConsumeMaterials: InventoryComponent not found!"));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("InventoryComponent 찾음! Server_ConsumeMaterials RPC 호출..."));
+
+	// InventoryComponent의 Server RPC로 위임 (FastArray 리플리케이션 지원!)
+	InvComp->Server_ConsumeMaterials(MaterialTag, Amount);
+
+	UE_LOG(LogTemp, Warning, TEXT("=== ConsumeMaterials 완료 ==="));
+}
+

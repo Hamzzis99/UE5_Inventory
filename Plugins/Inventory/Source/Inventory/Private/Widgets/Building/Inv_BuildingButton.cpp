@@ -8,6 +8,7 @@
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
 #include "InventoryManagement/FastArray/Inv_FastArray.h"
 #include "Items/Inv_InventoryItem.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
 #include "GameFramework/PlayerController.h"
 
 void UInv_BuildingButton::NativeOnInitialized()
@@ -95,8 +96,8 @@ void UInv_BuildingButton::OnButtonClicked()
 		return;
 	}
 
-	// Component에 건물 선택 알림
-	BuildingComp->OnBuildingSelectedFromWidget(GhostActorClass, ActualBuildingClass, BuildingID);
+	// Component에 건물 선택 알림 (재료 정보 포함!)
+	BuildingComp->OnBuildingSelectedFromWidget(GhostActorClass, ActualBuildingClass, BuildingID, RequiredMaterialTag, RequiredAmount);
 }
 
 void UInv_BuildingButton::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -128,7 +129,7 @@ bool UInv_BuildingButton::HasRequiredMaterials()
 	UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(RequiredMaterialTag);
 	if (!Item) return false; // 재료 없음
 
-	// 개수 확인
+	// GetTotalStackCount() 사용 (Server_DropItem과 동일!)
 	int32 CurrentAmount = Item->GetTotalStackCount();
 	return CurrentAmount >= RequiredAmount;
 }

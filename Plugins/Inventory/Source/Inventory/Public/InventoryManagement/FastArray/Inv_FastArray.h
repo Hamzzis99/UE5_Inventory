@@ -48,6 +48,7 @@ struct FInv_InventoryFastArray : public FFastArraySerializer
 	// FFastArraySerializer contract
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize); // 제거 전 처리
 	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
+	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize); // 변경 후 처리
 	// End of FFastArraySerializer contract
 	
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)

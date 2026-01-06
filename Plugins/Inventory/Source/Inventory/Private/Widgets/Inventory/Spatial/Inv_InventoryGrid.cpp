@@ -582,6 +582,32 @@ void UInv_InventoryGrid::AddStacks(const FInv_SlotAvailabilityResult& Result)
 {
 	if (!MatchesCategory(Result.Item.Get())) return;
 
+	// SlotAvailabilities가 비어있으면 Item으로 슬롯을 직접 찾아서 업데이트
+	if (Result.SlotAvailabilities.Num() == 0 && Result.Item.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AddStacks: SlotAvailabilities 비어있음. Item으로 슬롯 검색..."));
+		
+		// SlottedItems에서 해당 Item을 가진 슬롯 찾기
+		for (const auto& [Index, SlottedItem] : SlottedItems)
+		{
+			if (GridSlots.IsValidIndex(Index) && GridSlots[Index]->GetInventoryItem() == Result.Item)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("슬롯 찾음! Index: %d, 새로운 스택 개수: %d"), Index, Result.TotalRoomToFill);
+				
+				// GridSlot과 SlottedItem 둘 다 업데이트
+				GridSlots[Index]->SetStackCount(Result.TotalRoomToFill);
+				SlottedItem->UpdateStackCount(Result.TotalRoomToFill);
+				
+				UE_LOG(LogTemp, Warning, TEXT("UI 스택 개수 업데이트 완료!"));
+				return; // 찾았으면 종료
+			}
+		}
+		
+		UE_LOG(LogTemp, Error, TEXT("AddStacks: Item에 해당하는 슬롯을 찾지 못함!"));
+		return;
+	}
+
+	// 기존 로직: SlotAvailabilities가 있을 때
 	for (const auto& Availability : Result.SlotAvailabilities)
 	{
 		if (Availability.bItemAtIndex) // 해당 인덱스에 아이템이 있는 경우

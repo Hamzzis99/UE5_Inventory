@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayTagContainer.h"
 #include "Inv_BuildingComponent.generated.h"
 
 class UInputMappingContext;
@@ -29,7 +30,7 @@ public:
 public:
 	// 블루프린트에서 호출 가능: 위젯에서 건물 선택 시
 	UFUNCTION(BlueprintCallable, Category = "Building")
-	void OnBuildingSelectedFromWidget(TSubclassOf<AActor> GhostClass, TSubclassOf<AActor> ActualBuildingClass, int32 BuildingID);
+	void OnBuildingSelectedFromWidget(TSubclassOf<AActor> GhostClass, TSubclassOf<AActor> ActualBuildingClass, int32 BuildingID, FGameplayTag MaterialTag, int32 MaterialAmount);
 
 private:
 	// 빌드 모드 시작/종료 함수
@@ -45,9 +46,13 @@ private:
 	// 설치 액션 함수
 	void TryPlaceBuilding();
 
+	// 재료 체크 및 차감 함수
+	bool HasRequiredMaterials(const FGameplayTag& MaterialTag, int32 RequiredAmount) const;
+	void ConsumeMaterials(const FGameplayTag& MaterialTag, int32 Amount);
+
 	// 서버 RPC: 건물 배치 요청
 	UFUNCTION(Server, Reliable)
-	void Server_PlaceBuilding(TSubclassOf<AActor> BuildingClass, FVector Location, FRotator Rotation);
+	void Server_PlaceBuilding(TSubclassOf<AActor> BuildingClass, FVector Location, FRotator Rotation, FGameplayTag MaterialTag, int32 MaterialAmount);
 
 	// 멀티캐스트 RPC: 모든 클라이언트에게 건물 배치 알림
 	UFUNCTION(NetMulticast, Reliable)
@@ -79,6 +84,13 @@ private:
 	// 현재 선택된 건물 ID
 	UPROPERTY()
 	int32 CurrentBuildingID = -1;
+
+	// 현재 선택된 건물의 재료 정보
+	UPROPERTY()
+	FGameplayTag CurrentMaterialTag;
+
+	UPROPERTY()
+	int32 CurrentMaterialAmount = 0;
 
 	// === Input Mapping Context ===
 

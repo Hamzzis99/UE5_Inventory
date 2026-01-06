@@ -164,6 +164,83 @@ void UInv_InventoryComponent::Server_ConsumeItem_Implementation(UInv_InventoryIt
 	}
 }
 
+// 재료 소비 (Building 시스템용) - Server_DropItem과 동일한 로직 사용
+void UInv_InventoryComponent::Server_ConsumeMaterials_Implementation(const FGameplayTag& MaterialTag, int32 Amount)
+{
+	if (!MaterialTag.IsValid() || Amount <= 0) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("=== Server_ConsumeMaterials 호출됨 ==="));
+	UE_LOG(LogTemp, Warning, TEXT("MaterialTag: %s, Amount: %d"), *MaterialTag.ToString(), Amount);
+
+	// 재료 찾기
+	UInv_InventoryItem* Item = InventoryList.FindFirstItemByType(MaterialTag);
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Server_ConsumeMaterials: Item not found! (%s)"), *MaterialTag.ToString());
+		return;
+	}
+
+	// GetTotalStackCount() 사용 (Server_DropItem과 동일!)
+	int32 CurrentCount = Item->GetTotalStackCount();
+	int32 NewCount = CurrentCount - Amount;
+
+	UE_LOG(LogTemp, Warning, TEXT("Server: 재료 차감 (%d → %d)"), CurrentCount, NewCount);
+
+	if (NewCount <= 0)
+	{
+		// 재료를 다 썼으면 인벤토리에서 제거 (Server_DropItem과 동일!)
+		InventoryList.RemoveEntry(Item);
+		UE_LOG(LogTemp, Warning, TEXT("Server: 재료 전부 소비! 인벤토리에서 제거됨: %s"), *MaterialTag.ToString());
+	}
+	else
+	{
+		// SetTotalStackCount() 사용 (Server_DropItem과 동일!)
+		Item->SetTotalStackCount(NewCount);
+
+		// StackableFragment도 업데이트 (완전한 동기화!)
+		FInv_ItemManifest& ItemManifest = Item->GetItemManifestMutable();
+		if (FInv_StackableFragment* StackableFragment = ItemManifest.GetFragmentOfTypeMutable<FInv_StackableFragment>())
+		{
+			StackableFragment->SetStackCount(NewCount);
+			UE_LOG(LogTemp, Warning, TEXT("Server: StackableFragment도 업데이트됨!"));
+		}
+
+		// FastArray에 변경 사항 알림 (리플리케이션 활성화!)
+		for (auto& Entry : InventoryList.Entries)
+		{
+			if (Entry.Item == Item)
+			{
+				InventoryList.MarkItemDirty(Entry);
+				UE_LOG(LogTemp, Warning, TEXT("Server: MarkItemDirty 호출 완료! 리플리케이션 활성화!"));
+				break;
+			}
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Server: 재료 차감 완료: %s (%d → %d)"), *MaterialTag.ToString(), CurrentCount, NewCount);
+	}
+
+	// UI 업데이트를 위해 델리게이트 브로드캐스트 (모든 클라이언트에서 실행)
+	// 리플리케이션이 작동하면 각 클라이언트에서도 호출됨
+	if (NewCount <= 0)
+	{
+		// 아이템 제거됨
+		OnItemRemoved.Broadcast(Item);
+		UE_LOG(LogTemp, Warning, TEXT("OnItemRemoved 브로드캐스트 완료"));
+	}
+	else
+	{
+		// 스택 개수만 변경됨 - OnStackChange 브로드캐스트
+		FInv_SlotAvailabilityResult Result;
+		Result.Item = Item;
+		Result.bStackable = true;
+		Result.TotalRoomToFill = NewCount;
+		
+		// 슬롯 정보는 비워두고 (InventoryGrid가 Item으로 슬롯을 찾음)
+		OnStackChange.Broadcast(Result);
+		UE_LOG(LogTemp, Warning, TEXT("OnStackChange 브로드캐스트 완료 (NewCount: %d)"), NewCount);
+	}
+}
+
 // 아이템 장착 상호작용을 누른 뒤 서버에서 어떻게 처리를 할지.
 void UInv_InventoryComponent::Server_EquipSlotClicked_Implementation(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip)
 {
