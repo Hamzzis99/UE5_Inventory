@@ -29,6 +29,7 @@ void UInv_InventoryGrid::NativeOnInitialized()
 	InventoryComponent->OnItemAdded.AddDynamic(this, &ThisClass::AddItem); // 델리게이트 바인딩 
 	InventoryComponent->OnStackChange.AddDynamic(this, &ThisClass::AddStacks); // 스택 변경 델리게이트 바인딩
 	InventoryComponent->OnInventoryMenuToggled.AddDynamic(this, &ThisClass::OnInventoryMenuToggled);
+	InventoryComponent->OnItemRemoved.AddDynamic(this, &ThisClass::RemoveItem); // 아이템 제거 델리게이트 바인딩
 }
 
 // 매 프레임마다 호출되는 틱 함수 (마우스 Hover에 사용)
@@ -802,6 +803,48 @@ void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item)
 	AddItemToIndices(Result, Item);
 
 }
+
+// 인벤토리에서 아이템 제거 시 UI에서도 삭제
+void UInv_InventoryGrid::RemoveItem(UInv_InventoryItem* Item)
+{
+	if (!IsValid(Item))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("RemoveItem: Item is invalid!"));
+		return;
+	}
+
+	// 이 그리드 카테고리와 맞는지 확인
+	if (!MatchesCategory(Item))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("RemoveItem: Item category doesn't match this grid."));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("RemoveItem: 아이템 제거 시작 - %s"), *Item->GetItemManifest().GetItemType().ToString());
+
+	// SlottedItems에서 해당 Item을 가진 슬롯 찾기
+	int32 FoundIndex = INDEX_NONE;
+	for (const auto& [Index, SlottedItem] : SlottedItems)
+	{
+		if (GridSlots.IsValidIndex(Index) && GridSlots[Index]->GetInventoryItem() == Item)
+		{
+			FoundIndex = Index;
+			UE_LOG(LogTemp, Warning, TEXT("RemoveItem: 슬롯 찾음! Index: %d"), Index);
+			break;
+		}
+	}
+
+	if (FoundIndex == INDEX_NONE)
+	{
+		UE_LOG(LogTemp, Error, TEXT("RemoveItem: Item에 해당하는 슬롯을 찾지 못함!"));
+		return;
+	}
+
+	// RemoveItemFromGrid 함수로 UI 삭제
+	RemoveItemFromGrid(Item, FoundIndex);
+	UE_LOG(LogTemp, Warning, TEXT("RemoveItem: UI에서 아이템 제거 완료!"));
+}
+
 
 void UInv_InventoryGrid::AddItemToIndices(const FInv_SlotAvailabilityResult& Result, UInv_InventoryItem* NewItem) 
 {
