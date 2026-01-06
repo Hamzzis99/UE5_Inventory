@@ -35,6 +35,7 @@ private:
 	// 빌드 모드 시작/종료 함수
 	void StartBuildMode();
 	void EndBuildMode();
+	void CancelBuildMode(); // 우클릭으로 빌드 모드 취소
 	
 	// 빌드 메뉴 토글 함수
 	void ToggleBuildMenu();
@@ -92,6 +93,10 @@ private:
 	// 설치 액션 (실제 배치)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building|Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> IA_BuildingAction;
+
+	// 빌드 모드 취소 액션 (우클릭)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building|Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> IA_CancelBuilding;
 
 	// === 고스트 액터 ===
 

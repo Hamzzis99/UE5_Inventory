@@ -77,6 +77,17 @@ void UInv_BuildingComponent::BeginPlay()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("IA_BuildingAction is not set."));
 		}
+
+		if (IsValid(IA_CancelBuilding))
+		{
+			// 우클릭: 빌드 모드 취소
+			EnhancedInputComponent->BindAction(IA_CancelBuilding, ETriggerEvent::Started, this, &UInv_BuildingComponent::CancelBuildMode);
+			UE_LOG(LogTemp, Warning, TEXT("IA_CancelBuilding bound to CancelBuildMode."));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("IA_CancelBuilding is not set."));
+		}
 	}
 	else
 	{
@@ -198,6 +209,23 @@ void UInv_BuildingComponent::EndBuildMode()
 	}
 }
 
+void UInv_BuildingComponent::CancelBuildMode()
+{
+	UE_LOG(LogTemp, Warning, TEXT("CancelBuildMode called. bIsInBuildMode: %s"), bIsInBuildMode ? TEXT("TRUE") : TEXT("FALSE"));
+
+	// 빌드 모드일 때만 취소
+	if (!bIsInBuildMode)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not in build mode - ignoring cancel request."));
+		return; // 빌드 모드가 아니면 무시
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("=== BUILD MODE CANCELLED (Right Click) ==="));
+	
+	// 빌드 모드 종료
+	EndBuildMode();
+}
+
 void UInv_BuildingComponent::ToggleBuildMenu()
 {
 	if (!OwningPC.IsValid()) return;
@@ -300,10 +328,13 @@ void UInv_BuildingComponent::OnBuildingSelectedFromWidget(TSubclassOf<AActor> Gh
 
 void UInv_BuildingComponent::TryPlaceBuilding()
 {
+	UE_LOG(LogTemp, Warning, TEXT("TryPlaceBuilding called. bIsInBuildMode: %s"), bIsInBuildMode ? TEXT("TRUE") : TEXT("FALSE"));
+
+	// 빌드 모드가 아니면 무시 (버그 방지)
 	if (!bIsInBuildMode)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Cannot place building - not in build mode!"));
-		return;
+		UE_LOG(LogTemp, Warning, TEXT("Not in build mode - ignoring placement request."));
+		return; // 로그 추가
 	}
 
 	if (!bCanPlaceBuilding)
@@ -339,6 +370,10 @@ void UInv_BuildingComponent::TryPlaceBuilding()
 	
 	// 서버에 실제 건물 배치 요청
 	Server_PlaceBuilding(SelectedBuildingClass, BuildingLocation, BuildingRotation);
+
+	// 건물 배치 성공 시 빌드 모드 종료
+	EndBuildMode();
+	UE_LOG(LogTemp, Warning, TEXT("Building placed! Exiting build mode."));
 }
 
 void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AActor> BuildingClass, FVector Location, FRotator Rotation)
