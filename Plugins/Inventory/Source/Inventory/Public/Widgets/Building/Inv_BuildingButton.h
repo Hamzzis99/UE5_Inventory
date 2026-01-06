@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameplayTagContainer.h"
 #include "Inv_BuildingButton.generated.h"
 
 class UButton;
@@ -26,11 +27,16 @@ public:
 protected:
 	virtual void NativeOnInitialized() override;
 	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
 	// 버튼 클릭 이벤트
 	UFUNCTION()
 	void OnButtonClicked();
+
+	// 재료 체크 함수
+	bool HasRequiredMaterials(); // const 제거
+	void UpdateButtonState();
 
 	// === 블루프린트에서 바인딩할 위젯들 (meta = (BindWidget)) ===
 	
@@ -67,5 +73,15 @@ private:
 	// 건물 ID
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building", meta = (AllowPrivateAccess = "true"))
 	int32 BuildingID = 0;
+
+	// === 재료 정보 ===
+
+	// 필요한 재료 태그 (Craftables 중 선택)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Materials", meta = (AllowPrivateAccess = "true", Categories = "GameItems.Craftables"))
+	FGameplayTag RequiredMaterialTag;
+
+	// 필요한 재료 개수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Materials", meta = (AllowPrivateAccess = "true"))
+	int32 RequiredAmount = 0;
 };
 
