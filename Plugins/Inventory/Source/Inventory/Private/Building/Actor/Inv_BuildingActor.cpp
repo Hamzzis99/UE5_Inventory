@@ -2,7 +2,6 @@
 
 #include "Building/Actor/Inv_BuildingActor.h"
 #include "Components/StaticMeshComponent.h"
-#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AInv_BuildingActor::AInv_BuildingActor()
@@ -13,7 +12,6 @@ AInv_BuildingActor::AInv_BuildingActor()
 	// 리플리케이션 활성화
 	bReplicates = true;
 	bAlwaysRelevant = true; // 모든 클라이언트에게 항상 관련성 있음
-	SetReplicateMovement(true);
 
 	// 건물 메시 컴포넌트 생성
 	BuildingMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingMesh"));
@@ -29,6 +27,9 @@ AInv_BuildingActor::AInv_BuildingActor()
 void AInv_BuildingActor::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// 리플리케이션 설정 (BeginPlay에서 호출)
+	SetReplicateMovement(true);
 	
 	// 서버에서만 OnBuildingPlaced 호출
 	if (HasAuthority())

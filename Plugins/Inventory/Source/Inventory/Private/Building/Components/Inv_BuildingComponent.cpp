@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "Blueprint/UserWidget.h"
 
 
 // Sets default values for this component's properties
@@ -58,9 +59,9 @@ void UInv_BuildingComponent::BeginPlay()
 	{
 		if (IsValid(IA_Building))
 		{
-			EnhancedInputComponent->BindAction(IA_Building, ETriggerEvent::Started, this, &UInv_BuildingComponent::StartBuildMode);
-			EnhancedInputComponent->BindAction(IA_Building, ETriggerEvent::Completed, this, &UInv_BuildingComponent::EndBuildMode);
-			UE_LOG(LogTemp, Warning, TEXT("IA_Building action bound successfully."));
+			// B키: 빌드 메뉴 토글
+			EnhancedInputComponent->BindAction(IA_Building, ETriggerEvent::Started, this, &UInv_BuildingComponent::ToggleBuildMenu);
+			UE_LOG(LogTemp, Warning, TEXT("IA_Building bound to ToggleBuildMenu."));
 		}
 		else
 		{
@@ -145,10 +146,10 @@ void UInv_BuildingComponent::StartBuildMode()
 	bIsInBuildMode = true;
 	UE_LOG(LogTemp, Warning, TEXT("=== Build Mode STARTED ==="));
 
-	// 고스트 액터 클래스가 설정되어 있는지 확인
-	if (!GhostActorClass)
+	// 선택된 고스트 액터 클래스가 있는지 확인
+	if (!SelectedGhostClass)
 	{
-		UE_LOG(LogTemp, Error, TEXT("GhostActorClass is not set! Please set it in the Blueprint."));
+		UE_LOG(LogTemp, Error, TEXT("SelectedGhostClass is not set! Please select a building from the menu first."));
 		return;
 	}
 
@@ -168,13 +169,13 @@ void UInv_BuildingComponent::StartBuildMode()
 	FVector SpawnLocation = OwningPC->GetPawn()->GetActorLocation() + (OwningPC->GetPawn()->GetActorForwardVector() * 300.0f);
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 
-	GhostActorInstance = GetWorld()->SpawnActor<AActor>(GhostActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+	GhostActorInstance = GetWorld()->SpawnActor<AActor>(SelectedGhostClass, SpawnLocation, SpawnRotation, SpawnParams);
 
 	if (IsValid(GhostActorInstance))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Ghost Actor spawned successfully!"));
+		UE_LOG(LogTemp, Warning, TEXT("Ghost Actor spawned successfully! (BuildingID: %d)"), CurrentBuildingID);
 		
-		// 고스트 액터의 충돌 비활성화 (선택사항)
+		// 고스트 액터의 충돌 비활성화
 		GhostActorInstance->SetActorEnableCollision(false);
 	}
 	else
@@ -195,6 +196,106 @@ void UInv_BuildingComponent::EndBuildMode()
 		GhostActorInstance = nullptr;
 		UE_LOG(LogTemp, Warning, TEXT("Ghost Actor destroyed."));
 	}
+}
+
+void UInv_BuildingComponent::ToggleBuildMenu()
+{
+	if (!OwningPC.IsValid()) return;
+
+	if (IsValid(BuildMenuInstance))
+	{
+		// 위젯이 열려있으면 닫기
+		CloseBuildMenu();
+	}
+	else
+	{
+		// 위젯이 없으면 열기
+		OpenBuildMenu();
+	}
+}
+
+void UInv_BuildingComponent::OpenBuildMenu()
+{
+	if (!OwningPC.IsValid()) return;
+
+	// 이미 열려있으면 무시
+	if (IsValid(BuildMenuInstance)) return;
+
+	// 빌드 메뉴 위젯 클래스가 설정되어 있는지 확인
+	if (!BuildMenuWidgetClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("BuildMenuWidgetClass is not set! Please set WBP_BuildMenu in BP_Inv_BuildingComponent."));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("=== OPENING BUILD MENU ==="));
+
+	// 위젯 생성
+	BuildMenuInstance = CreateWidget<UUserWidget>(OwningPC.Get(), BuildMenuWidgetClass);
+	if (!IsValid(BuildMenuInstance))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to create Build Menu Widget!"));
+		return;
+	}
+
+	// 화면에 추가
+	BuildMenuInstance->AddToViewport();
+
+	// 입력 모드 변경: UI와 게임 동시
+	FInputModeGameAndUI InputMode;
+	InputMode.SetWidgetToFocus(BuildMenuInstance->TakeWidget());
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	OwningPC->SetInputMode(InputMode);
+
+	// 마우스 커서 보이기
+	OwningPC->SetShowMouseCursor(true);
+
+	UE_LOG(LogTemp, Warning, TEXT("Build Menu opened successfully!"));
+}
+
+void UInv_BuildingComponent::CloseBuildMenu()
+{
+	if (!OwningPC.IsValid()) return;
+
+	if (!IsValid(BuildMenuInstance)) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("=== CLOSING BUILD MENU ==="));
+
+	// 위젯 제거
+	BuildMenuInstance->RemoveFromParent();
+	BuildMenuInstance = nullptr;
+
+	// 입력 모드 변경: 게임만
+	FInputModeGameOnly InputMode;
+	OwningPC->SetInputMode(InputMode);
+
+	// 마우스 커서 숨기기
+	OwningPC->SetShowMouseCursor(false);
+
+	UE_LOG(LogTemp, Warning, TEXT("Build Menu closed."));
+}
+
+void UInv_BuildingComponent::OnBuildingSelectedFromWidget(TSubclassOf<AActor> GhostClass, TSubclassOf<AActor> ActualBuildingClass, int32 BuildingID)
+{
+	if (!GhostClass || !ActualBuildingClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OnBuildingSelectedFromWidget: Invalid class parameters!"));
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("=== BUILDING SELECTED FROM WIDGET ==="));
+	UE_LOG(LogTemp, Warning, TEXT("BuildingID: %d"), BuildingID);
+
+	// 선택된 건물 정보 저장
+	SelectedGhostClass = GhostClass;
+	SelectedBuildingClass = ActualBuildingClass;
+	CurrentBuildingID = BuildingID;
+
+	// 빌드 메뉴 닫기
+	CloseBuildMenu();
+
+	// 빌드 모드 시작 (고스트 스폰)
+	StartBuildMode();
 }
 
 void UInv_BuildingComponent::TryPlaceBuilding()
@@ -223,14 +324,21 @@ void UInv_BuildingComponent::TryPlaceBuilding()
 		return;
 	}
 
+	if (!SelectedBuildingClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Cannot place building - SelectedBuildingClass is invalid!"));
+		return;
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("=== TRY PLACING BUILDING (Client Request) ==="));
+	UE_LOG(LogTemp, Warning, TEXT("BuildingID: %d"), CurrentBuildingID);
 	
 	// 고스트 액터의 현재 위치와 회전 가져오기
 	const FVector BuildingLocation = GhostActorInstance->GetActorLocation();
 	const FRotator BuildingRotation = GhostActorInstance->GetActorRotation();
 	
-	// 서버에 건물 배치 요청
-	Server_PlaceBuilding(GhostActorClass, BuildingLocation, BuildingRotation);
+	// 서버에 실제 건물 배치 요청
+	Server_PlaceBuilding(SelectedBuildingClass, BuildingLocation, BuildingRotation);
 }
 
 void UInv_BuildingComponent::Server_PlaceBuilding_Implementation(TSubclassOf<AActor> BuildingClass, FVector Location, FRotator Rotation)

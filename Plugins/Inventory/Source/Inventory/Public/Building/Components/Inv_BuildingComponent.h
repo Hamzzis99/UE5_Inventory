@@ -26,10 +26,20 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+public:
+	// 블루프린트에서 호출 가능: 위젯에서 건물 선택 시
+	UFUNCTION(BlueprintCallable, Category = "Building")
+	void OnBuildingSelectedFromWidget(TSubclassOf<AActor> GhostClass, TSubclassOf<AActor> ActualBuildingClass, int32 BuildingID);
+
 private:
 	// 빌드 모드 시작/종료 함수
 	void StartBuildMode();
 	void EndBuildMode();
+	
+	// 빌드 메뉴 토글 함수
+	void ToggleBuildMenu();
+	void OpenBuildMenu();
+	void CloseBuildMenu();
 	
 	// 설치 액션 함수
 	void TryPlaceBuilding();
@@ -45,11 +55,37 @@ private:
 	// PlayerController 약한 참조
 	TWeakObjectPtr<APlayerController> OwningPC;
 
+	// === 빌드 메뉴 위젯 관련 ===
+	
+	// 빌드 메뉴 위젯 클래스 (블루프린트에서 WBP_BuildMenu 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building|UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> BuildMenuWidgetClass;
+
+	// 생성된 빌드 메뉴 위젯 인스턴스
+	UPROPERTY()
+	TObjectPtr<UUserWidget> BuildMenuInstance;
+
+	// === 현재 선택된 건물 정보 ===
+	
+	// 현재 선택된 고스트 액터 클래스
+	UPROPERTY()
+	TSubclassOf<AActor> SelectedGhostClass;
+
+	// 현재 선택된 실제 건물 액터 클래스
+	UPROPERTY()
+	TSubclassOf<AActor> SelectedBuildingClass;
+
+	// 현재 선택된 건물 ID
+	UPROPERTY()
+	int32 CurrentBuildingID = -1;
+
+	// === Input Mapping Context ===
+
 	// Input Mapping Context
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building|Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputMappingContext> BuildingMappingContext;
 
-	// 빌드 모드 토글 액션 (고스트 메시 표시용)
+	// 빌드 모드 토글 액션 (빌드 메뉴 열기/닫기)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building|Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> IA_Building;
 
@@ -57,9 +93,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building|Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> IA_BuildingAction;
 
-	// 고스트 액터 클래스 (블루프린트에서 설정)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Building|Ghost", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AActor> GhostActorClass;
+	// === 고스트 액터 ===
 
 	// 실제 스폰된 고스트 액터 인스턴스
 	UPROPERTY()
