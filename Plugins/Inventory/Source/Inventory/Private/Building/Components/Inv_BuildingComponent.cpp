@@ -12,10 +12,6 @@
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
-#include "InventoryManagement/FastArray/Inv_FastArray.h"
-#include "Items/Inv_InventoryItem.h"
-#include "Items/Fragments/Inv_ItemFragment.h"
-#include "Crafting/Interfaces/Inv_CraftingInterface.h"
 
 
 // Sets default values for this component's properties
@@ -264,7 +260,7 @@ void UInv_BuildingComponent::OpenBuildMenu()
 
 	UE_LOG(LogTemp, Warning, TEXT("=== OPENING BUILD MENU ==="));
 
-	// ⭐ Crafting Menu가 열려있으면 닫기
+	// Crafting Menu가 열려있으면 닫기
 	CloseCraftingMenuIfOpen();
 
 	// 위젯 생성

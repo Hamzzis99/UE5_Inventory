@@ -7,7 +7,6 @@
 #include "Components/HorizontalBox.h"
 #include "Building/Components/Inv_BuildingComponent.h"
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
-#include "InventoryManagement/FastArray/Inv_FastArray.h"
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
 #include "GameFramework/PlayerController.h"

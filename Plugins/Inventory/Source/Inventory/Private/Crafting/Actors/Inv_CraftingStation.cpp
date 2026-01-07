@@ -36,40 +36,48 @@ void AInv_CraftingStation::OnInteract_Implementation(APlayerController* PlayerCo
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("=== 크래프팅 스테이션 상호작용! ==="));
+	UE_LOG(LogTemp, Warning, TEXT("Player: %s"), *PlayerController->GetName());
 	UE_LOG(LogTemp, Warning, TEXT("Station: %s"), *GetName());
-	UE_LOG(LogTemp, Warning, TEXT("Menu Class: %s"), *CraftingMenuClass->GetName());
 
-	// 이미 메뉴가 열려있으면 닫기
-	if (IsValid(CurrentCraftingMenu))
+	// 이미 이 플레이어의 메뉴가 열려있으면 닫기
+	if (PlayerMenuMap.Contains(PlayerController))
 	{
-		ForceCloseMenu();
-		UE_LOG(LogTemp, Log, TEXT("크래프팅 메뉴 닫힘"));
+		ForceCloseMenu(PlayerController);
+		UE_LOG(LogTemp, Log, TEXT("크래프팅 메뉴 닫힘 (Player: %s)"), *PlayerController->GetName());
 		return;
 	}
 
 	// 크래프팅 메뉴 생성 및 표시
-	CurrentCraftingMenu = CreateWidget<UUserWidget>(PlayerController, CraftingMenuClass);
-	if (IsValid(CurrentCraftingMenu))
+	UUserWidget* NewMenu = CreateWidget<UUserWidget>(PlayerController, CraftingMenuClass);
+	if (IsValid(NewMenu))
 	{
-		CurrentCraftingMenu->AddToViewport();
+		NewMenu->AddToViewport();
 		
 		// 입력 모드를 UI로 변경
 		FInputModeGameAndUI InputMode;
-		InputMode.SetWidgetToFocus(CurrentCraftingMenu->TakeWidget());
+		InputMode.SetWidgetToFocus(NewMenu->TakeWidget());
 		PlayerController->SetInputMode(InputMode);
 		PlayerController->SetShowMouseCursor(true);
 
-		// ⭐ PlayerController 저장 및 거리 체크 Timer 시작
-		MenuOwnerController = PlayerController;
+		// PlayerMenuMap에 저장
+		PlayerMenuMap.Add(PlayerController, NewMenu);
+
+		// Timer 시작 (Lambda로 PlayerController 전달)
+		FTimerHandle TimerHandle;
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUFunction(this, FName("CheckDistanceToPlayer"), PlayerController);
+		
 		GetWorld()->GetTimerManager().SetTimer(
-			DistanceCheckTimerHandle,
-			this,
-			&AInv_CraftingStation::CheckDistanceToPlayer,
-			0.5f, // 0.5초마다 체크
+			TimerHandle,
+			TimerDelegate,
+			DistanceCheckInterval,
 			true  // 반복
 		);
 		
-		UE_LOG(LogTemp, Log, TEXT("크래프팅 메뉴 열림! 거리 체크 시작 (0.5초마다)"));
+		PlayerTimerMap.Add(PlayerController, TimerHandle);
+		
+		UE_LOG(LogTemp, Log, TEXT("크래프팅 메뉴 열림! 거리 체크 시작 (%.2f초마다, Player: %s)"), 
+			DistanceCheckInterval, *PlayerController->GetName());
 	}
 	else
 	{
@@ -87,31 +95,36 @@ float AInv_CraftingStation::GetInteractionDistance_Implementation() const
 	return InteractionDistance;
 }
 
-void AInv_CraftingStation::CheckDistanceToPlayer()
+void AInv_CraftingStation::CheckDistanceToPlayer(APlayerController* PC)
 {
 	// PlayerController가 유효한지 확인
-	if (!MenuOwnerController.IsValid())
+	if (!IsValid(PC))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("PlayerController가 유효하지 않음. 메뉴 강제 닫기."));
-		ForceCloseMenu();
+		ForceCloseMenu(PC);
 		return;
 	}
 
 	// 메뉴가 여전히 열려있는지 확인
-	if (!IsValid(CurrentCraftingMenu))
+	if (!PlayerMenuMap.Contains(PC))
 	{
-		UE_LOG(LogTemp, Log, TEXT("메뉴가 이미 닫혔음. Timer 정지."));
-		GetWorld()->GetTimerManager().ClearTimer(DistanceCheckTimerHandle);
-		MenuOwnerController.Reset();
+		UE_LOG(LogTemp, Log, TEXT("메뉴가 이미 닫혔음. Timer 정지. (Player: %s)"), *PC->GetName());
+		
+		// Timer 정지
+		if (PlayerTimerMap.Contains(PC))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(PlayerTimerMap[PC]);
+			PlayerTimerMap.Remove(PC);
+		}
 		return;
 	}
 
 	// PlayerController의 Pawn 가져오기
-	APawn* PlayerPawn = MenuOwnerController->GetPawn();
+	APawn* PlayerPawn = PC->GetPawn();
 	if (!IsValid(PlayerPawn))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerPawn이 유효하지 않음. 메뉴 강제 닫기."));
-		ForceCloseMenu();
+		UE_LOG(LogTemp, Warning, TEXT("PlayerPawn이 유효하지 않음. 메뉴 강제 닫기. (Player: %s)"), *PC->GetName());
+		ForceCloseMenu(PC);
 		return;
 	}
 
@@ -121,36 +134,38 @@ void AInv_CraftingStation::CheckDistanceToPlayer()
 	// InteractionDistance보다 멀어지면 메뉴 닫기
 	if (Distance > InteractionDistance)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("플레이어가 너무 멀어짐! (거리: %.1f / 최대: %.1f) 메뉴 자동 닫기"), Distance, InteractionDistance);
-		ForceCloseMenu();
+		UE_LOG(LogTemp, Warning, TEXT("플레이어가 너무 멀어짐! (거리: %.1f / 최대: %.1f) 메뉴 자동 닫기 (Player: %s)"), 
+			Distance, InteractionDistance, *PC->GetName());
+		ForceCloseMenu(PC);
 	}
 }
 
-void AInv_CraftingStation::ForceCloseMenu()
+void AInv_CraftingStation::ForceCloseMenu(APlayerController* PC)
 {
+	if (!IsValid(PC)) return;
+
 	// 메뉴 제거
-	if (IsValid(CurrentCraftingMenu))
+	if (PlayerMenuMap.Contains(PC))
 	{
-		CurrentCraftingMenu->RemoveFromParent();
-		CurrentCraftingMenu = nullptr;
+		UUserWidget* Menu = PlayerMenuMap[PC];
+		if (IsValid(Menu))
+		{
+			Menu->RemoveFromParent();
+		}
+		PlayerMenuMap.Remove(PC);
 	}
 
 	// 입력 모드 복구
-	if (MenuOwnerController.IsValid())
-	{
-		FInputModeGameOnly InputMode;
-		MenuOwnerController->SetInputMode(InputMode);
-		MenuOwnerController->SetShowMouseCursor(false);
-	}
+	FInputModeGameOnly InputMode;
+	PC->SetInputMode(InputMode);
+	PC->SetShowMouseCursor(false);
 
 	// Timer 정지
-	if (GetWorld())
+	if (PlayerTimerMap.Contains(PC))
 	{
-		GetWorld()->GetTimerManager().ClearTimer(DistanceCheckTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(PlayerTimerMap[PC]);
+		PlayerTimerMap.Remove(PC);
 	}
 
-	// PlayerController 참조 초기화
-	MenuOwnerController.Reset();
-
-	UE_LOG(LogTemp, Log, TEXT("크래프팅 메뉴 강제 닫힘. Timer 정지됨."));
+	UE_LOG(LogTemp, Log, TEXT("크래프팅 메뉴 강제 닫힘. Timer 정지됨. (Player: %s)"), *PC->GetName());
 }
