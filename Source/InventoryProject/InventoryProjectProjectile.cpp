@@ -34,16 +34,39 @@ AInventoryProjectProjectile::AInventoryProjectProjectile()
 
 void AInventoryProjectProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// 서버에서만 데미지 처리
-	if (HasAuthority() && OtherActor && (OtherActor != this) && (OtherActor != GetOwner()))
+	// 서버에서만 처리 (클라이언트는 무시)
+	if (!HasAuthority())
 	{
-		UGameplayStatics::ApplyDamage(OtherActor, DamageValue, GetInstigatorController(), this, UDamageType::StaticClass());
-
-		// [디버깅] 적중 로그 (빨간색)
-		FString HitLog = FString::Printf(TEXT("HIT! Damage [%.1f] applied to [%s]"), DamageValue, *OtherActor->GetName());
-		UE_LOG(LogTemp, Error, TEXT("%s"), *HitLog);
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, HitLog);
-
-		Destroy();
+		return;
 	}
+	
+	// 유효하지 않은 대상 무시
+	if (!OtherActor || OtherActor == this || OtherActor == GetOwner())
+	{
+		return;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("[발사체] %s 적중! 데미지 %.1f 적용"), *OtherActor->GetName(), DamageValue);
+	
+	// 즉시 충돌 비활성화 (중복 충돌 방지)
+	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	// 데미지 적용
+	UGameplayStatics::ApplyDamage(
+		OtherActor, 
+		DamageValue, 
+		GetInstigatorController(), 
+		this, 
+		UDamageType::StaticClass()
+	);
+	
+	// 화면 디버깅
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, 
+			FString::Printf(TEXT("HIT! %s ← %.0f"), *OtherActor->GetName(), DamageValue));
+	}
+	
+	// 발사체 즉시 파괴
+	Destroy();
 }
