@@ -11,23 +11,23 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "InventoryProject.h"
+#include "Engine/World.h"
+
+DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AInventoryProjectCharacter::AInventoryProjectCharacter()
 {
-	// Set size for collision capsule
+	// 캡슐 콜리전 설정
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
-	// Don't rotate when the controller rotates. Let that just affect the camera.
+	   
+	// 컨트롤러 회전에 맞춰 캐릭터가 회전하지 않도록 설정
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// Configure character movement
+	// 캐릭터 이동 컴포넌트 설정
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-
-	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
-	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
@@ -35,78 +35,96 @@ AInventoryProjectCharacter::AInventoryProjectCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-	// Create a camera boom (pulls in towards the player if there is a collision)
+	// 카메라 붐 생성
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f;
 	CameraBoom->bUsePawnControlRotation = true;
 
-	// Create a follow camera
+	// 팔로우 카메라 생성
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
-
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
 void AInventoryProjectCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+	   
+	   // 점프 바인딩
+	   EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+	   EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AInventoryProjectCharacter::Move);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AInventoryProjectCharacter::Look);
+	   // 이동/시점 바인딩
+	   EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AInventoryProjectCharacter::Move);
+	   EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AInventoryProjectCharacter::Look);
+	   EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AInventoryProjectCharacter::Look);
 
-		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AInventoryProjectCharacter::Look);
+	   // [추가] 사격 바인딩
+	   if (FireAction)
+	   {
+		   EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AInventoryProjectCharacter::OnFire);
+	   }
 	}
 	else
 	{
-		UE_LOG(LogInventoryProject, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+	   UE_LOG(LogInventoryProject, Error, TEXT("'%s' Failed to find an Enhanced Input component!"), *GetNameSafe(this));
 	}
 }
 
 void AInventoryProjectCharacter::Move(const FInputActionValue& Value)
 {
-	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	// route the input
 	DoMove(MovementVector.X, MovementVector.Y);
 }
 
 void AInventoryProjectCharacter::Look(const FInputActionValue& Value)
 {
-	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-	// route the input
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
+}
+
+void AInventoryProjectCharacter::OnFire(const FInputActionValue& Value)
+{
+	// 1. 발사 위치: 캐릭터 위치에서 전방으로 100 유닛
+	FVector SpawnLocation = GetActorLocation() + (GetActorForwardVector() * 100.0f);
+	
+	// 2. 발사 방향: 컨트롤러가 바라보는 방향 (에임 방향)
+	FRotator SpawnRotation = GetControlRotation();
+
+	// 3. 서버에 발사 요청 (RPC 호출)
+	Server_Fire(SpawnLocation, SpawnRotation);
+}
+
+void AInventoryProjectCharacter::Server_Fire_Implementation(FVector Location, FRotator Rotation)
+{
+	if (ProjectileClass)
+	{
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = GetInstigator();
+
+			// 서버에서 투사체 소환
+			World->SpawnActor<AActor>(ProjectileClass, Location, Rotation, SpawnParams);
+		}
+	}
 }
 
 void AInventoryProjectCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
 	{
-		// find out which way is forward
-		const FRotator Rotation = GetController()->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+	   const FRotator Rotation = GetController()->GetControlRotation();
+	   const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	   const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	   const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		// add movement 
-		AddMovementInput(ForwardDirection, Forward);
-		AddMovementInput(RightDirection, Right);
+	   AddMovementInput(ForwardDirection, Forward);
+	   AddMovementInput(RightDirection, Right);
 	}
 }
 
@@ -114,20 +132,10 @@ void AInventoryProjectCharacter::DoLook(float Yaw, float Pitch)
 {
 	if (GetController() != nullptr)
 	{
-		// add yaw and pitch input to controller
-		AddControllerYawInput(Yaw);
-		AddControllerPitchInput(Pitch);
+	   AddControllerYawInput(Yaw);
+	   AddControllerPitchInput(Pitch);
 	}
 }
 
-void AInventoryProjectCharacter::DoJumpStart()
-{
-	// signal the character to jump
-	Jump();
-}
-
-void AInventoryProjectCharacter::DoJumpEnd()
-{
-	// signal the character to stop jumping
-	StopJumping();
-}
+void AInventoryProjectCharacter::DoJumpStart() { Jump(); }
+void AInventoryProjectCharacter::DoJumpEnd() { StopJumping(); }
