@@ -48,6 +48,9 @@ private:
 	// 재료 소비 함수 (Building과 동일한 방식)
 	void ConsumeMaterials();
 
+	// 제작 완료 후 아이템을 인벤토리에 추가
+	void AddCraftedItemToInventory();
+
 	// 델리게이트 바인딩/언바인딩
 	void BindInventoryDelegates();
 	void UnbindInventoryDelegates();

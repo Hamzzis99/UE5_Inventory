@@ -8,6 +8,7 @@
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
 #include "InventoryManagement/Utils/Inv_InventoryStatics.h"
 #include "Items/Inv_InventoryItem.h"
+#include "Items/Components/Inv_ItemComponent.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
 
 void UInv_CraftingButton::NativeOnInitialized()
@@ -106,14 +107,17 @@ void UInv_CraftingButton::OnButtonClicked()
 	// 재료 소비
 	ConsumeMaterials();
 
-	// ⭐ 즉시 버튼 비활성화 (서버 응답 기다리지 않고)
+	// 제작 완료 후 인벤토리에 아이템 추가
+	AddCraftedItemToInventory();
+
+	// 즉시 버튼 비활성화 (서버 응답 기다리지 않고)
 	if (IsValid(Button_Main))
 	{
 		Button_Main->SetIsEnabled(false);
 		UE_LOG(LogTemp, Log, TEXT("제작 버튼 즉시 비활성화 (중복 클릭 방지)"));
 	}
 
-	// ⭐ 0.5초 후 강제로 UI 업데이트 (서버 동기화 대기)
+	// 0.5초 후 강제로 UI 업데이트 (서버 동기화 대기)
 	FTimerHandle UpdateTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(UpdateTimerHandle, [this]()
 	{
@@ -122,9 +126,7 @@ void UInv_CraftingButton::OnButtonClicked()
 		UpdateButtonState();
 	}, 0.5f, false);
 
-	// 아이템 생성 (나중에 구현)
-	// TODO: 4단계에서 인벤토리에 아이템 추가
-	UE_LOG(LogTemp, Warning, TEXT("제작 완료! (아이템 생성은 아직 미구현)"));
+	UE_LOG(LogTemp, Warning, TEXT("제작 완료!"));
 }
 
 bool UInv_CraftingButton::HasRequiredMaterials()
@@ -436,4 +438,41 @@ void UInv_CraftingButton::ConsumeMaterials()
 
 	UE_LOG(LogTemp, Warning, TEXT("=== ConsumeMaterials 완료 ==="));
 }
+
+void UInv_CraftingButton::AddCraftedItemToInventory()
+{
+	UE_LOG(LogTemp, Warning, TEXT("=== [CLIENT] AddCraftedItemToInventory 시작 ==="));
+
+	// ItemActorClass 확인
+	if (!ItemActorClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CLIENT] ItemActorClass가 설정되지 않았습니다! Blueprint에서 제작할 아이템을 설정하세요."));
+		return;
+	}
+
+	// InventoryComponent 가져오기
+	APlayerController* PC = GetOwningPlayer();
+	if (!IsValid(PC))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CLIENT] PlayerController를 찾을 수 없습니다!"));
+		return;
+	}
+
+	UInv_InventoryComponent* InvComp = PC->FindComponentByClass<UInv_InventoryComponent>();
+	if (!IsValid(InvComp))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CLIENT] InventoryComponent를 찾을 수 없습니다!"));
+		return;
+	}
+
+	// 디버깅: Blueprint 정보 출력
+	UE_LOG(LogTemp, Warning, TEXT("[CLIENT] 제작할 아이템 Blueprint: %s"), *ItemActorClass->GetName());
+
+	// 서버 RPC 호출 (서버에서 안전하게 스폰)
+	InvComp->Server_CraftItem(ItemActorClass);
+
+	UE_LOG(LogTemp, Warning, TEXT("=== [CLIENT] 서버에 제작 요청 전송 완료 ==="));
+}
+
+
 
