@@ -10,6 +10,7 @@
 class UButton;
 class UImage;
 class UTextBlock;
+class UHorizontalBox;
 class UInv_InventoryItem;
 
 /**
@@ -40,6 +41,12 @@ private:
 	// 재료 체크 함수 (Building과 동일)
 	bool HasRequiredMaterials();
 	void UpdateButtonState();
+	
+	// 재료 UI 업데이트 (이미지 표시/숨김)
+	void UpdateMaterialUI();
+
+	// 재료 소비 함수 (Building과 동일한 방식)
+	void ConsumeMaterials();
 
 	// 델리게이트 바인딩/언바인딩
 	void BindInventoryDelegates();
@@ -69,6 +76,44 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> Text_ItemName;
 
+	// === 재료 UI 컨테이너 및 위젯 (반드시 Blueprint에 있어야 함) ===
+	
+	// 재료 1 컨테이너 (HorizontalBox) - 이미지 + 텍스트를 감쌈
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UHorizontalBox> HorizontalBox_Material1;
+
+	// 재료 1 이미지
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Image_Material1;
+
+	// 재료 1 개수 텍스트
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Text_Material1Amount;
+
+	// 재료 2 컨테이너 (HorizontalBox) - 이미지 + 텍스트를 감쌈
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UHorizontalBox> HorizontalBox_Material2;
+
+	// 재료 2 이미지
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Image_Material2;
+
+	// 재료 2 개수 텍스트
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Text_Material2Amount;
+
+	// 재료 3 컨테이너 (HorizontalBox) - 이미지 + 텍스트를 감쌈
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UHorizontalBox> HorizontalBox_Material3;
+
+	// 재료 3 이미지
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Image_Material3;
+
+	// 재료 3 개수 텍스트
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> Text_Material3Amount;
+
 	// === 제작 아이템 정보 (블루프린트에서 설정 가능) ===
 	
 	// 제작할 아이템 이름
@@ -93,6 +138,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true"))
 	int32 RequiredAmount = 0;
 
+	// 필요한 재료 1 아이콘 (Blueprint에서 직접 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UTexture2D> MaterialIcon1;
+
 	// 필요한 재료 2 태그 (Craftables 중 선택, None이면 미사용)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true", Categories = "GameItems.Craftables"))
 	FGameplayTag RequiredMaterialTag2;
@@ -100,5 +149,21 @@ private:
 	// 필요한 재료 2 개수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true"))
 	int32 RequiredAmount2 = 0;
+
+	// 필요한 재료 2 아이콘 (Blueprint에서 직접 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UTexture2D> MaterialIcon2;
+
+	// 필요한 재료 3 태그 (Craftables 중 선택, None이면 미사용)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true", Categories = "GameItems.Craftables"))
+	FGameplayTag RequiredMaterialTag3;
+
+	// 필요한 재료 3 개수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true"))
+	int32 RequiredAmount3 = 0;
+
+	// 필요한 재료 3 아이콘 (Blueprint에서 직접 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UTexture2D> MaterialIcon3;
 };
 

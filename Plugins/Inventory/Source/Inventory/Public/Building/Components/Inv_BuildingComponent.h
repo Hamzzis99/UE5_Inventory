@@ -51,6 +51,9 @@ private:
 	void OpenBuildMenu();
 	void CloseBuildMenu();
 	
+	// Crafting Menu 닫기 (B키 눌렀을 때)
+	void CloseCraftingMenuIfOpen();
+	
 	// 설치 액션 함수
 	void TryPlaceBuilding();
 

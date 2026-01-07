@@ -10,10 +10,12 @@
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "InventoryManagement/Components/Inv_InventoryComponent.h"
 #include "InventoryManagement/FastArray/Inv_FastArray.h"
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
+#include "Crafting/Interfaces/Inv_CraftingInterface.h"
 
 
 // Sets default values for this component's properties
@@ -262,6 +264,9 @@ void UInv_BuildingComponent::OpenBuildMenu()
 
 	UE_LOG(LogTemp, Warning, TEXT("=== OPENING BUILD MENU ==="));
 
+	// ⭐ Crafting Menu가 열려있으면 닫기
+	CloseCraftingMenuIfOpen();
+
 	// 위젯 생성
 	BuildMenuInstance = CreateWidget<UUserWidget>(OwningPC.Get(), BuildMenuWidgetClass);
 	if (!IsValid(BuildMenuInstance))
@@ -305,6 +310,28 @@ void UInv_BuildingComponent::CloseBuildMenu()
 	OwningPC->SetShowMouseCursor(false);
 
 	UE_LOG(LogTemp, Warning, TEXT("Build Menu closed."));
+}
+
+void UInv_BuildingComponent::CloseCraftingMenuIfOpen()
+{
+	if (!OwningPC.IsValid() || !GetWorld()) return;
+
+	// 간단한 방법: 모든 CraftingMenu 타입 위젯을 찾아서 제거
+	TArray<UUserWidget*> FoundWidgets;
+	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), FoundWidgets, UUserWidget::StaticClass(), false);
+
+	for (UUserWidget* Widget : FoundWidgets)
+	{
+		if (!IsValid(Widget)) continue;
+
+		// 클래스 이름에 "CraftingMenu"가 포함되어 있으면 제거
+		FString WidgetClassName = Widget->GetClass()->GetName();
+		if (WidgetClassName.Contains(TEXT("CraftingMenu")))
+		{
+			Widget->RemoveFromParent();
+			UE_LOG(LogTemp, Log, TEXT("Crafting Menu 닫힘: %s (BuildMenu 열림)"), *WidgetClassName);
+		}
+	}
 }
 
 void UInv_BuildingComponent::OnBuildingSelectedFromWidget(
