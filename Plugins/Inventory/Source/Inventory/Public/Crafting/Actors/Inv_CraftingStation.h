@@ -53,5 +53,18 @@ private:
 	// 현재 열려있는 크래프팅 메뉴 참조
 	UPROPERTY()
 	TObjectPtr<UUserWidget> CurrentCraftingMenu;
+
+	// 메뉴를 연 PlayerController
+	UPROPERTY()
+	TWeakObjectPtr<APlayerController> MenuOwnerController;
+
+	// 거리 체크 타이머
+	FTimerHandle DistanceCheckTimerHandle;
+
+	// 거리 체크 함수
+	void CheckDistanceToPlayer();
+
+	// 메뉴를 강제로 닫는 함수
+	void ForceCloseMenu();
 };
 

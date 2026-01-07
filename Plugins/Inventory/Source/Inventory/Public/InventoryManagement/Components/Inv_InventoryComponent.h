@@ -116,6 +116,7 @@ private:
 	bool bInventoryMenuOpen; //인벤토리 메뉴 열림 여부
 	void OpenInventoryMenu();
 	void CloseInventoryMenu();
+	void CloseOtherMenus(); // BuildMenu와 CraftingMenu 닫기
 	
 	//아이템 드롭 시 빙글빙글 돌아요
 	UPROPERTY(EditAnywhere, Category = "Inventory")

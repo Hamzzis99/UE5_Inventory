@@ -10,6 +10,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
+#include "Building/Components/Inv_BuildingComponent.h"
 
 UInv_InventoryComponent::UInv_InventoryComponent() : InventoryList(this)
 {
@@ -577,9 +578,28 @@ void UInv_InventoryComponent::CloseInventoryMenu()
 	InventoryMenu->SetVisibility(ESlateVisibility::Collapsed);
 	bInventoryMenuOpen = false;
 
+	// ⭐ BuildMenu와 CraftingMenu도 함께 닫기
+	CloseOtherMenus();
+
 	if (!OwningController.IsValid()) return;
 
 	FInputModeGameOnly InputMode;
 	OwningController->SetInputMode(InputMode);
 	OwningController->SetShowMouseCursor(false);
 }
+
+void UInv_InventoryComponent::CloseOtherMenus()
+{
+	if (!OwningController.IsValid() || !GetWorld()) return;
+
+	// BuildMenu 닫기
+	UInv_BuildingComponent* BuildingComp = OwningController->FindComponentByClass<UInv_BuildingComponent>();
+	if (IsValid(BuildingComp))
+	{
+		BuildingComp->CloseBuildMenu();
+		UE_LOG(LogTemp, Log, TEXT("인벤토리 닫힘: BuildMenu도 함께 닫힘"));
+	}
+
+	// CraftingMenu는 거리 체크로 자동으로 닫힘 (Timer 방식)
+}
+
