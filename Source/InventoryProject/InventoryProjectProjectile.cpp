@@ -17,36 +17,33 @@ AInventoryProjectProjectile::AInventoryProjectProjectile()
 	CollisionComponent->OnComponentHit.AddDynamic(this, &AInventoryProjectProjectile::OnHit);
 	RootComponent = CollisionComponent;
 
-	// 2. 메쉬 설정 (블루프린트에서 모델을 입힐 수 있게 함)
+	// 2. 메쉬 설정
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
 	ProjectileMesh->SetupAttachment(RootComponent);
-	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 메쉬는 충돌 계산 제외
+	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	// 3. 이동 컴포넌트 설정
+	// 3. 이동 설정
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComponent;
-	ProjectileMovement->InitialSpeed = 3000.f; // 속도 기본값
+	ProjectileMovement->InitialSpeed = 3000.f;
 	ProjectileMovement->MaxSpeed = 3000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
-	ProjectileMovement->bShouldBounce = false;
 
-	// 총알 수명 (메모리 관리)
-	InitialLifeSpan = 3.0f;
-}
-
-void AInventoryProjectProjectile::BeginPlay()
-{
-	Super::BeginPlay();
+	InitialLifeSpan = 3.0f; // 3초 뒤 자동 소멸
 }
 
 void AInventoryProjectProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// 서버에서만 데미지 판정 처리
+	// 서버에서만 데미지 처리
 	if (HasAuthority() && OtherActor && (OtherActor != this) && (OtherActor != GetOwner()))
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, DamageValue, GetInstigatorController(), this, UDamageType::StaticClass());
-		
-		// 충돌 후 소멸
+
+		// [디버깅] 적중 로그 (빨간색)
+		FString HitLog = FString::Printf(TEXT("HIT! Damage [%.1f] applied to [%s]"), DamageValue, *OtherActor->GetName());
+		UE_LOG(LogTemp, Error, TEXT("%s"), *HitLog);
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, HitLog);
+
 		Destroy();
 	}
 }

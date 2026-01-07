@@ -4,10 +4,6 @@
 #include "GameFramework/Actor.h"
 #include "InventoryProjectProjectile.generated.h"
 
-class USphereComponent;
-class UProjectileMovementComponent;
-class UStaticMeshComponent;
-
 UCLASS()
 class INVENTORYPROJECT_API AInventoryProjectProjectile : public AActor
 {
@@ -16,26 +12,23 @@ class INVENTORYPROJECT_API AInventoryProjectProjectile : public AActor
 public:	
 	AInventoryProjectProjectile();
 
-	/** 충돌 컴포넌트 */
+	/** 충돌 감지용 구체 */
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
-	USphereComponent* CollisionComponent;
+	class USphereComponent* CollisionComponent;
 
-	/** 투사체 이동 컴포넌트 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	UProjectileMovementComponent* ProjectileMovement;
+	/** 발사체 이동 컴포넌트 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	class UProjectileMovementComponent* ProjectileMovement;
 
-	/** 총알 메쉬 (블루프린트에서 모델 설정 가능) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* ProjectileMesh;
+	/** 외형 메쉬 (블루프린트에서 모델 선택 가능) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+	class UStaticMeshComponent* ProjectileMesh;
 
-	/** 설정: 데미지 수치 */
+	/** 데미지 수치 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float DamageValue = 20.0f;
 
-	/** 충돌 시 호출될 함수 */
+	/** 충돌 시 실행될 함수 */
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-protected:
-	virtual void BeginPlay() override;
 };
