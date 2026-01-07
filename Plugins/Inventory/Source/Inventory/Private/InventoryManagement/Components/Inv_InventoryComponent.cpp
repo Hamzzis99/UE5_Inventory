@@ -258,16 +258,16 @@ void UInv_InventoryComponent::Server_CraftItem_Implementation(TSubclassOf<AActor
 	UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] ItemActorClass 전체 경로: %s"), *ItemActorClass->GetPathName());
 	UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] ItemActorClass 클래스 이름: %s"), *ItemActorClass.Get()->GetName());
 
-	// Blueprint 컴포넌트 접근을 위해 임시 인스턴스 생성 (BeginPlay 없이!)
+	// Blueprint 컴포넌트 접근을 위해 임시 인스턴스 생성
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.bNoFail = true;
-	SpawnParams.bDeferConstruction = true; // BeginPlay 호출 안 함!
 	
 	FVector TempLocation = FVector(0, 0, -50000); // 매우 아래쪽
 	FRotator TempRotation = FRotator::ZeroRotator;
+	FTransform TempTransform(TempRotation, TempLocation);
 	
-	AActor* TempActor = GetWorld()->SpawnActor<AActor>(ItemActorClass, TempLocation, TempRotation, SpawnParams);
+	AActor* TempActor = GetWorld()->SpawnActorDeferred<AActor>(ItemActorClass, TempTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 	if (!IsValid(TempActor))
 	{
 		UE_LOG(LogTemp, Error, TEXT("[SERVER CRAFT] 임시 인스턴스 생성 실패!"));
@@ -275,6 +275,10 @@ void UInv_InventoryComponent::Server_CraftItem_Implementation(TSubclassOf<AActor
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] 임시 인스턴스 생성 성공: %s"), *TempActor->GetName());
+	
+	// FinishSpawning 호출 - Blueprint 컴포넌트 초기화! (BeginPlay는 호출되지 않음)
+	TempActor->FinishSpawning(TempTransform);
+	UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] FinishSpawning 호출 완료 - 컴포넌트 초기화됨!"));
 
 	// ItemComponent 찾기 (Blueprint 컴포넌트 포함)
 	UInv_ItemComponent* DefaultItemComp = nullptr;

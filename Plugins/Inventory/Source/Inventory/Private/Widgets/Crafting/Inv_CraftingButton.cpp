@@ -95,11 +95,22 @@ void UInv_CraftingButton::SetCraftingInfo(const FText& Name, UTexture2D* Icon, T
 
 void UInv_CraftingButton::OnButtonClicked()
 {
+	// 쿨다운 체크 (연타 방지)
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	if (CurrentTime - LastCraftTime < CraftingCooldown)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("⏱️ 제작 쿨다운 중! 남은 시간: %.2f초"), CraftingCooldown - (CurrentTime - LastCraftTime));
+		return;
+	}
+
 	if (!HasRequiredMaterials())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("재료가 부족합니다!"));
 		return;
 	}
+
+	// 쿨다운 시간 기록
+	LastCraftTime = CurrentTime;
 
 	UE_LOG(LogTemp, Warning, TEXT("=== 아이템 제작 시작! ==="));
 	UE_LOG(LogTemp, Warning, TEXT("아이템: %s"), *ItemName.ToString());

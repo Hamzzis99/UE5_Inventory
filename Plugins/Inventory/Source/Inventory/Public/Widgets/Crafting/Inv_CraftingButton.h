@@ -168,5 +168,14 @@ private:
 	// 필요한 재료 3 아이콘 (Blueprint에서 직접 설정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Materials", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UTexture2D> MaterialIcon3;
+
+	// === 버튼 쿨다운 (연타 방지) ===
+
+	// 제작 쿨다운 시간 (초 단위, 블루프린트에서 수정 가능)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Settings", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "5.0"))
+	float CraftingCooldown = 0.5f;
+
+	// 마지막 제작 시간 (내부 사용)
+	float LastCraftTime = 0.f;
 };
 
