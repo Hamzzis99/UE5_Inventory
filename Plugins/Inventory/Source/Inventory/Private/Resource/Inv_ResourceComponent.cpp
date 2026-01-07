@@ -376,19 +376,36 @@ void UInv_ResourceComponent::DestroyOwnerActor()
 
 void UInv_ResourceComponent::PlaySoundAtResource(USoundBase* Sound)
 {
-	// 사운드가 설정되지 않았으면 재생 안 함
-	if (!Sound) return;
-
 	AActor* Owner = GetOwner();
-	if (!IsValid(Owner)) return;
+	if (!IsValid(Owner))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[자원 사운드] ❌ Owner가 유효하지 않음!"));
+		return;
+	}
 
-	// 서버에서만 사운드 재생 (클라이언트는 리플리케이션으로 자동 재생)
-	if (!Owner->HasAuthority()) return;
+	const bool bIsServer = Owner->HasAuthority();
+	const FString RoleStr = bIsServer ? TEXT("🔴 서버") : TEXT("🔵 클라이언트");
+
+	// 사운드가 설정되지 않았으면 재생 안 함
+	if (!Sound)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[자원 사운드 %s] ⚠️ 사운드가 설정되지 않음 (nullptr)"), *RoleStr);
+		return;
+	}
 
 	// 자원 위치에서 3D 사운드 재생
 	const FVector SoundLocation = Owner->GetActorLocation();
 	
-	// 사운드 재생 (올바른 API 시그니처 사용)
+	UE_LOG(LogTemp, Warning, TEXT("========================================"));
+	UE_LOG(LogTemp, Warning, TEXT("[자원 사운드 %s] 🔊 사운드 재생 시도!"), *RoleStr);
+	UE_LOG(LogTemp, Warning, TEXT("  - 사운드: %s"), *Sound->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("  - 위치: %s"), *SoundLocation.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("  - 볼륨: %.2f"), SoundVolumeMultiplier);
+	UE_LOG(LogTemp, Warning, TEXT("  - 거리: %.1f"), SoundAttenuationDistance);
+	UE_LOG(LogTemp, Warning, TEXT("  - World 유효: %s"), GetWorld() ? TEXT("✅ YES") : TEXT("❌ NO"));
+	
+	// 서버/클라이언트 모두에서 사운드 재생 (로컬 사운드)
+	// 멀티플레이 환경에서는 각자의 클라이언트에서 들어야 함!
 	UGameplayStatics::PlaySoundAtLocation(
 		GetWorld(),                    // World Context
 		Sound,                         // 재생할 사운드
@@ -400,7 +417,7 @@ void UInv_ResourceComponent::PlaySoundAtResource(USoundBase* Sound)
 		nullptr                        // Sound Concurrency (nullptr = 제한 없음)
 	);
 
-	UE_LOG(LogTemp, Log, TEXT("[자원 사운드] %s 재생 (위치: %s, 볼륨: %.2f, 거리: %.1f)"), 
-		*Sound->GetName(), *SoundLocation.ToString(), SoundVolumeMultiplier, SoundAttenuationDistance);
+	UE_LOG(LogTemp, Warning, TEXT("  ✅ PlaySoundAtLocation 호출 완료!"));
+	UE_LOG(LogTemp, Warning, TEXT("========================================"));
 }
 
