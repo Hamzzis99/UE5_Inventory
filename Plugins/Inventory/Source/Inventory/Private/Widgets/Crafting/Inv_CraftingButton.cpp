@@ -1,5 +1,39 @@
 // Gihyeon's Inventory Project
 
+// [SERVER] Server_CraftItem()
+// ├─ 1. 임시 Actor 스폰 (TempActor)
+// ├─ 2. ItemManifest 추출
+// ├─ 3. TempActor 파괴
+// ├─ 4. ItemManifest.Manifest(Owner) → UInv_InventoryItem 생성
+// ├─ 5. InventoryList.AddEntry(NewItem) ← FastArray에 추가!
+// │   ├─ Entries.AddDefaulted_GetRef()
+// │   ├─ Entry.Item = NewItem
+// │   ├─ AddRepSubObj(NewItem) ← 리플리케이션 등록!
+// │   └─ MarkItemDirty(Entry) ← 자동 네트워크 전송!
+// │
+// └─ [네트워크 전송] ────────────────────────────► [CLIENT]
+//
+// [CLIENT] PostReplicatedAdd() ← 자동 호출!
+// ├─ OnItemAdded.Broadcast(NewItem) ← 델리게이트 발동!
+// │
+// └─ [InventoryGrid] OnItemAdded 수신
+//     └─ AddItem(NewItem) 호출
+//         ├─ HasRoomForItem(NewItem) ← 🔍 공간 체크!
+//         │   └─ Result.SlotAvailabilities 계산
+//         │
+//         └─ AddItemToIndices(Result, NewItem)
+//             └─ for (Availability : Result.SlotAvailabilities)
+//                 ├─ AddItemAtIndex(NewItem, Index, ...)
+//                 │   ├─ CreateSlottedItem() ← UI 위젯 생성!
+//                 │   │   └─ UInv_SlottedItem 생성
+//                 │   ├─ AddSlottedItemToCanvas() ← Canvas에 추가!
+//                 │   │   └─ CanvasPanel->AddChild(SlottedItem)
+//                 │   └─ SlottedItems.Add(Index, SlottedItem)
+//                 │
+//                 └─ UpdateGridSlots(NewItem, Index, ...)
+//                     └─ GridSlots[Index]->SetInventoryItem(NewItem)
+
+
 #include "Widgets/Crafting/Inv_CraftingButton.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
