@@ -139,7 +139,7 @@ void UInv_CraftingButton::OnButtonClicked()
 
 	if (!HasRequiredMaterials())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("재료가 부족합니다!"));
+		UE_LOG(LogTemp, Warning, TEXT("❌ 재료가 부족합니다!"));
 		return;
 	}
 
@@ -149,10 +149,10 @@ void UInv_CraftingButton::OnButtonClicked()
 	UE_LOG(LogTemp, Warning, TEXT("=== 아이템 제작 시작! ==="));
 	UE_LOG(LogTemp, Warning, TEXT("아이템: %s"), *ItemName.ToString());
 
-	// 재료 소비
-	ConsumeMaterials();
+	// ⚠️ 재료 차감은 서버에서 공간 체크 후 수행!
+	// ConsumeMaterials(); ← 제거! 서버에서 처리!
 
-	// 제작 완료 후 인벤토리에 아이템 추가
+	// 제작 완료 후 인벤토리에 아이템 추가 (서버에서 재료 차감도 함께 처리)
 	AddCraftedItemToInventory();
 
 	// 즉시 버튼 비활성화 (서버 응답 기다리지 않고)
@@ -513,8 +513,13 @@ void UInv_CraftingButton::AddCraftedItemToInventory()
 	// 디버깅: Blueprint 정보 출력
 	UE_LOG(LogTemp, Warning, TEXT("[CLIENT] 제작할 아이템 Blueprint: %s"), *ItemActorClass->GetName());
 
-	// 서버 RPC 호출 (서버에서 안전하게 스폰)
-	InvComp->Server_CraftItem(ItemActorClass);
+	// ⭐ 서버 RPC 호출: 공간 체크 → 재료 차감 → 아이템 생성 (통합!)
+	InvComp->Server_CraftItemWithMaterials(
+		ItemActorClass,
+		RequiredMaterialTag, RequiredAmount,
+		RequiredMaterialTag2, RequiredAmount2,
+		RequiredMaterialTag3, RequiredAmount3
+	);
 
 	UE_LOG(LogTemp, Warning, TEXT("=== [CLIENT] 서버에 제작 요청 전송 완료 ==="));
 }

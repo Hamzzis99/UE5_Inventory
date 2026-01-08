@@ -8,11 +8,13 @@
 //#include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"
 #include "Components/ActorComponent.h"
 #include "InventoryManagement/FastArray/Inv_FastArray.h"
+#include "Items/Fragments/Inv_ItemFragment.h"
 #include "Inv_InventoryComponent.generated.h"
 
 class UInv_ItemComponent;
 class UInv_InventoryItem;
 class UInv_InventoryBase;
+struct FInv_ItemManifest;
 
 //델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChange, UInv_InventoryItem*, Item);
@@ -60,6 +62,13 @@ public:
 	UFUNCTION(Server, Reliable) // 크래프팅: 서버에서 아이템 생성 및 인벤토리 추가
 	void Server_CraftItem(TSubclassOf<AActor> ItemActorClass);
 
+	// ⭐ 크래프팅 통합 RPC: 공간 체크 → 재료 차감 → 아이템 생성
+	UFUNCTION(Server, Reliable)
+	void Server_CraftItemWithMaterials(TSubclassOf<AActor> ItemActorClass,
+		const FGameplayTag& MaterialTag1, int32 Amount1,
+		const FGameplayTag& MaterialTag2, int32 Amount2,
+		const FGameplayTag& MaterialTag3, int32 Amount3);
+
 	UFUNCTION(NetMulticast, Reliable) // 모든 클라이언트의 UI 업데이트 (Building 재료 차감)
 	void Multicast_ConsumeMaterialsUI(const FGameplayTag& MaterialTag, int32 Amount);
 
@@ -106,6 +115,28 @@ private:
 	TWeakObjectPtr<APlayerController> OwningController;
 
 	void ConstructInventory();
+
+	// ⭐ 서버 전용: InventoryList 기반 공간 체크 (UI 없이 작동!)
+	bool HasRoomInInventoryList(const FInv_ItemManifest& Manifest) const;
+
+	// ⭐ Grid 크기 설정 (Blueprint에서 설정, 서버/클라이언트 공통 사용)
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|Grid Settings")
+	int32 EquippablesRows = 8;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|Grid Settings")
+	int32 EquippablesColumns = 4;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|Grid Settings")
+	int32 ConsumablesRows = 3;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|Grid Settings")
+	int32 ConsumablesColumns = 5;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|Grid Settings")
+	int32 CraftablesRows = 3;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|Grid Settings")
+	int32 CraftablesColumns = 5;
 
 	UPROPERTY(Replicated)
 	FInv_InventoryFastArray InventoryList; // 인벤토리 
