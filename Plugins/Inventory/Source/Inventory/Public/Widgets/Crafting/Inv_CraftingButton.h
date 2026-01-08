@@ -324,8 +324,16 @@ private:
 
 	// === 버튼 쿨다운 (연타 방지) ===
 
-	// 제작 쿨다운 시간 (초 단위, 블루프린트에서 수정 가능)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crafting|Settings", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "5.0"))
+	// ⭐ 제작 쿨다운 시간 (초 단위) - Blueprint에서 수정 가능!
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "제작|쿨다운", meta = (
+		AllowPrivateAccess = "true", 
+		DisplayName = "제작 쿨다운 시간 (초)", 
+		ToolTip = "제작 버튼 연타 방지를 위한 쿨다운 시간입니다. 0.5초 권장 (0.1 ~ 5.0초 범위)",
+		ClampMin = "0.1", 
+		ClampMax = "5.0",
+		UIMin = "0.1",
+		UIMax = "2.0"
+	))
 	float CraftingCooldown = 0.5f;
 
 	// 마지막 제작 시간 (내부 사용)

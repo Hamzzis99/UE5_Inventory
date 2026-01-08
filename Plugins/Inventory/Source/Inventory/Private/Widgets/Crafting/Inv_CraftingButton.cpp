@@ -129,8 +129,16 @@ void UInv_CraftingButton::SetCraftingInfo(const FText& Name, UTexture2D* Icon, T
 
 void UInv_CraftingButton::OnButtonClicked()
 {
-	// 쿨다운 체크 (연타 방지)
-	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	// ⭐ World 유효성 체크
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ GetWorld() 실패!"));
+		return;
+	}
+
+	// ⭐ 쿨다운 체크 (연타 방지)
+	const float CurrentTime = World->GetTimeSeconds();
 	if (CurrentTime - LastCraftTime < CraftingCooldown)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("⏱️ 제작 쿨다운 중! 남은 시간: %.2f초"), CraftingCooldown - (CurrentTime - LastCraftTime));
@@ -143,7 +151,7 @@ void UInv_CraftingButton::OnButtonClicked()
 		return;
 	}
 
-	// 쿨다운 시간 기록
+	// ⭐ 쿨다운 시간 기록
 	LastCraftTime = CurrentTime;
 
 	UE_LOG(LogTemp, Warning, TEXT("=== 아이템 제작 시작! ==="));
@@ -152,24 +160,33 @@ void UInv_CraftingButton::OnButtonClicked()
 	// ⚠️ 재료 차감은 서버에서 공간 체크 후 수행!
 	// ConsumeMaterials(); ← 제거! 서버에서 처리!
 
-	// 제작 완료 후 인벤토리에 아이템 추가 (서버에서 재료 차감도 함께 처리)
-	AddCraftedItemToInventory();
-
-	// 즉시 버튼 비활성화 (서버 응답 기다리지 않고)
+	// ⭐ 즉시 버튼 비활성화 (연타 방지 - 쿨다운 동안 강제 비활성화)
 	if (IsValid(Button_Main))
 	{
 		Button_Main->SetIsEnabled(false);
 		UE_LOG(LogTemp, Log, TEXT("제작 버튼 즉시 비활성화 (중복 클릭 방지)"));
 	}
 
-	// 0.5초 후 강제로 UI 업데이트 (서버 동기화 대기)
-	FTimerHandle UpdateTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(UpdateTimerHandle, [this]()
-	{
-		UE_LOG(LogTemp, Warning, TEXT("타이머: 강제 UI 업데이트 실행!"));
-		UpdateMaterialUI();
-		UpdateButtonState();
-	}, 0.5f, false);
+	// ⭐ 쿨다운 후 버튼 상태 재검사 타이머 설정
+	FTimerHandle CooldownTimerHandle;
+	World->GetTimerManager().SetTimer(
+		CooldownTimerHandle,
+		[this]()
+		{
+			// ⭐ 쿨다운 종료 후 재료 UI 강제 업데이트 (10/10 버그 방지!)
+			UpdateMaterialUI();
+			
+			// 쿨다운 종료 후 재료 다시 체크해서 버튼 상태 업데이트
+			UpdateButtonState();
+			UE_LOG(LogTemp, Log, TEXT("제작 쿨다운 완료! 버튼 상태 재계산"));
+		},
+		CraftingCooldown,
+		false
+	);
+
+	// 제작 완료 후 인벤토리에 아이템 추가 (서버에서 재료 차감도 함께 처리)
+	AddCraftedItemToInventory();
+
 
 	UE_LOG(LogTemp, Warning, TEXT("제작 완료!"));
 }

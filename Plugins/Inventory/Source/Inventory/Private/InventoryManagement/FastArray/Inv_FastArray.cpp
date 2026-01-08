@@ -22,10 +22,42 @@ void FInv_InventoryFastArray::PreReplicatedRemove(const TArrayView<int32> Remove
 	UInv_InventoryComponent* IC = Cast<UInv_InventoryComponent>(OwnerComponent);
 	if (!IsValid(IC)) return;
 
+	UE_LOG(LogTemp, Warning, TEXT("=== PreReplicatedRemove 호출됨! (FastArray) ==="));
+	UE_LOG(LogTemp, Warning, TEXT("제거된 항목 개수: %d / 최종 크기: %d"), RemovedIndices.Num(), FinalSize);
+
 	for (int32 Index : RemovedIndices)
 	{
-		IC->OnItemRemoved.Broadcast(Entries[Index].Item); // 아이템 제거 델리게이트 브로드캐스트 항목에 접근?
+		if (!Entries.IsValidIndex(Index))
+		{
+			UE_LOG(LogTemp, Error, TEXT("❌ 잘못된 Index: %d"), Index);
+			continue;
+		}
+
+		UInv_InventoryItem* RemovedItem = Entries[Index].Item;
+		if (IsValid(RemovedItem))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("🗑️ 제거될 아이템: %s (Index: %d)"), 
+				*RemovedItem->GetItemManifest().GetItemType().ToString(), Index);
+			
+			// ⭐ OnItemRemoved 델리게이트 브로드캐스트
+			IC->OnItemRemoved.Broadcast(RemovedItem);
+			
+			// ⭐ OnStackChange 델리게이트도 브로드캐스트 (UI 즉시 업데이트!)
+			FInv_SlotAvailabilityResult Result;
+			Result.Item = RemovedItem;
+			Result.bStackable = false;
+			Result.TotalRoomToFill = 0; // 제거되었으므로 0
+			IC->OnStackChange.Broadcast(Result);
+			
+			UE_LOG(LogTemp, Warning, TEXT("✅ OnItemRemoved & OnStackChange 브로드캐스트 완료!"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("⚠️ Index %d의 Item이 nullptr"), Index);
+		}
 	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("=== PreReplicatedRemove 완료! ==="));
 }
 
 void FInv_InventoryFastArray::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)

@@ -874,6 +874,51 @@ void UInv_InventoryComponent::BeginPlay()
 
 	ConstructInventory();
 	
+	// ⭐ InventoryMenu의 Grid 크기를 Component 설정에 동기화 (Blueprint Widget → Component)
+	SyncGridSizesFromWidget();
+}
+
+// ⭐ Blueprint Widget의 Grid 크기를 Component 설정으로 가져오기
+void UInv_InventoryComponent::SyncGridSizesFromWidget()
+{
+	UE_LOG(LogTemp, Warning, TEXT("========================================"));
+	UE_LOG(LogTemp, Warning, TEXT("[Grid 동기화] Grid 크기 참조 시작..."));
+	
+	// ⭐ 1순위: Blueprint에서 직접 선택한 Widget 참조
+	if (IsValid(InventoryGridReference))
+	{
+		GridRows = InventoryGridReference->GetRows();
+		GridColumns = InventoryGridReference->GetColumns();
+		
+		UE_LOG(LogTemp, Warning, TEXT("[Grid 동기화] ✅ Grid (Blueprint 직접 참조): %d x %d = %d칸"), 
+			GridRows, GridColumns, GridRows * GridColumns);
+	}
+	// 2순위: InventoryMenu에서 자동으로 가져오기 (Grid_Equippables 사용)
+	else if (IsValid(InventoryMenu))
+	{
+		UInv_SpatialInventory* SpatialInv = Cast<UInv_SpatialInventory>(InventoryMenu);
+		if (IsValid(SpatialInv) && IsValid(SpatialInv->GetGrid_Equippables()))
+		{
+			GridRows = SpatialInv->GetGrid_Equippables()->GetRows();
+			GridColumns = SpatialInv->GetGrid_Equippables()->GetColumns();
+			
+			UE_LOG(LogTemp, Warning, TEXT("[Grid 동기화] ✅ Grid (InventoryMenu 자동 - Grid_Equippables): %d x %d = %d칸"), 
+				GridRows, GridColumns, GridRows * GridColumns);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[Grid 동기화] ⚠️ Grid 참조 없음 - 기본값 사용: %d x %d = %d칸"), 
+				GridRows, GridColumns, GridRows * GridColumns);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Grid 동기화] ⚠️ InventoryMenu 없음 - 기본값 사용: %d x %d = %d칸"), 
+			GridRows, GridColumns, GridRows * GridColumns);
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("[Grid 동기화] 완료! 모든 카테고리(Equippables/Consumables/Craftables)가 동일한 크기 사용"));
+	UE_LOG(LogTemp, Warning, TEXT("========================================"));
 }
 
 
@@ -952,37 +997,16 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 	UE_LOG(LogTemp, Warning, TEXT("[공간체크] 아이템 카테고리: %d"), (int32)Category);
 	UE_LOG(LogTemp, Warning, TEXT("[공간체크] 아이템 크기: %d x %d"), ItemSize.X, ItemSize.Y);
 
-	// ⭐ Grid 설정 가져오기 (Blueprint 설정값 또는 InventoryMenu)
-	int32 GridRows = 5;
-	int32 GridColumns = 4;
-	int32 MaxSlots = 20;
+	// ⭐ Grid 크기 설정 (Component 설정에서 가져오기)
+	int32 LocalGridRows = GridRows;  // ⭐ 지역 변수로 복사 (const 함수에서 수정 가능)
+	int32 LocalGridColumns = GridColumns;
+	int32 MaxSlots = LocalGridRows * LocalGridColumns;
 	UInv_InventoryGrid* TargetGrid = nullptr;
 	
-	// 1순위: InventoryComponent의 설정값 사용 (Blueprint에서 설정)
-	switch (Category)
-	{
-	case EInv_ItemCategory::Equippable:
-		GridRows = EquippablesRows;
-		GridColumns = EquippablesColumns;
-		break;
-	case EInv_ItemCategory::Consumable:
-		GridRows = ConsumablesRows;
-		GridColumns = ConsumablesColumns;
-		break;
-	case EInv_ItemCategory::Craftable:
-		GridRows = CraftablesRows;
-		GridColumns = CraftablesColumns;
-		break;
-	default:
-		UE_LOG(LogTemp, Warning, TEXT("[공간체크] ⚠️ 알 수 없는 카테고리: %d"), (int32)Category);
-		break;
-	}
+	UE_LOG(LogTemp, Warning, TEXT("[공간체크] Component 설정: %d x %d = %d칸 (모든 카테고리 공통)"), 
+		LocalGridRows, LocalGridColumns, MaxSlots);
 	
-	MaxSlots = GridRows * GridColumns;
-	
-	UE_LOG(LogTemp, Warning, TEXT("[공간체크] Component 설정: %d x %d = %d칸"), GridRows, GridColumns, MaxSlots);
-	
-	// 2순위: InventoryMenu가 있으면 실제 Grid의 HasRoomForItem 사용 (더 정확함!)
+	// ⭐ InventoryMenu가 있으면 실제 Grid의 HasRoomForItem 사용 (더 정확함!)
 	if (IsValid(InventoryMenu))
 	{
 		UInv_SpatialInventory* SpatialInv = Cast<UInv_SpatialInventory>(InventoryMenu);
@@ -1006,12 +1030,12 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 			
 			if (IsValid(TargetGrid))
 			{
-				GridRows = TargetGrid->GetRows();
-				GridColumns = TargetGrid->GetColumns();
+				LocalGridRows = TargetGrid->GetRows();  // ⭐ 지역 변수 사용
+				LocalGridColumns = TargetGrid->GetColumns();
 				MaxSlots = TargetGrid->GetMaxSlots();
 				
 				UE_LOG(LogTemp, Warning, TEXT("[공간체크] Grid 설정: %d x %d = %d칸"), 
-					GridRows, GridColumns, MaxSlots);
+					LocalGridRows, LocalGridColumns, MaxSlots);
 				
 				// ⭐ 실제 Grid의 HasRoomForItem 호출!
 				FInv_SlotAvailabilityResult Result = TargetGrid->HasRoomForItem(Manifest);
@@ -1038,7 +1062,7 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 
 	// ========== Fallback: Virtual Grid 시뮬레이션 (서버 전용) ==========
 	UE_LOG(LogTemp, Warning, TEXT("[공간체크] Fallback 모드: Virtual Grid 시뮬레이션 시작"));
-	UE_LOG(LogTemp, Warning, TEXT("[공간체크] Grid 크기: %d x %d = %d칸"), GridRows, GridColumns, MaxSlots);
+	UE_LOG(LogTemp, Warning, TEXT("[공간체크] Grid 크기: %d x %d = %d칸"), LocalGridRows, LocalGridColumns, MaxSlots);
 	
 	// Virtual Grid 생성 (0 = 빈 칸, 1~ = 아이템 인덱스)
 	TArray<int32> VirtualGrid;
@@ -1048,7 +1072,7 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 		VirtualGrid[i] = 0; // 모두 빈 칸으로 초기화
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("[공간체크] 📋 Virtual Grid 초기화 완료 (%dx%d)"), GridRows, GridColumns);
+	UE_LOG(LogTemp, Warning, TEXT("[공간체크] 📋 Virtual Grid 초기화 완료 (%dx%d)"), LocalGridRows, LocalGridColumns);
 	
 	// 1. 현재 인벤토리의 아이템들을 Virtual Grid에 배치
 	UE_LOG(LogTemp, Warning, TEXT("[공간체크] 현재 인벤토리 내용을 Grid에 배치 중..."));
@@ -1073,11 +1097,11 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 			
 			// Virtual Grid에 빈 공간 찾기
 			bool bPlaced = false;
-			for (int32 Row = 0; Row <= GridRows - ExistingItemSize.Y && !bPlaced; Row++)
+			for (int32 Row = 0; Row <= LocalGridRows - ExistingItemSize.Y && !bPlaced; Row++)
 			{
-				for (int32 Col = 0; Col <= GridColumns - ExistingItemSize.X && !bPlaced; Col++)
+				for (int32 Col = 0; Col <= LocalGridColumns - ExistingItemSize.X && !bPlaced; Col++)
 				{
-					int32 StartIndex = Row * GridColumns + Col;
+					int32 StartIndex = Row * LocalGridColumns + Col;
 					
 					// 이 위치에 배치 가능한지 체크
 					bool bCanPlace = true;
@@ -1085,7 +1109,7 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 					{
 						for (int32 x = 0; x < ExistingItemSize.X && bCanPlace; x++)
 						{
-							int32 CheckIndex = (Row + y) * GridColumns + (Col + x);
+							int32 CheckIndex = (Row + y) * LocalGridColumns + (Col + x);
 							if (VirtualGrid[CheckIndex] != 0) // 이미 점유됨
 							{
 								bCanPlace = false;
@@ -1100,7 +1124,7 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 						{
 							for (int32 x = 0; x < ExistingItemSize.X; x++)
 							{
-								int32 PlaceIndex = (Row + y) * GridColumns + (Col + x);
+								int32 PlaceIndex = (Row + y) * LocalGridColumns + (Col + x);
 								VirtualGrid[PlaceIndex] = ItemIndex;
 							}
 						}
@@ -1122,12 +1146,12 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 	
 	// 2. Virtual Grid 상태 출력
 	UE_LOG(LogTemp, Warning, TEXT("[공간체크] 📊 현재 Virtual Grid 상태:"));
-	for (int32 Row = 0; Row < GridRows; Row++)
+	for (int32 Row = 0; Row < LocalGridRows; Row++)
 	{
 		FString RowStr = TEXT("  ");
-		for (int32 Col = 0; Col < GridColumns; Col++)
+		for (int32 Col = 0; Col < LocalGridColumns; Col++)
 		{
-			int32 Value = VirtualGrid[Row * GridColumns + Col];
+			int32 Value = VirtualGrid[Row * LocalGridColumns + Col];
 			RowStr += FString::Printf(TEXT("[%d]"), Value);
 		}
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *RowStr);
@@ -1165,9 +1189,9 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 	UE_LOG(LogTemp, Warning, TEXT("[공간체크] 🔍 새 아이템 배치 가능 여부 체크 (크기: %dx%d)"), ItemSize.X, ItemSize.Y);
 	
 	bool bHasRoom = false;
-	for (int32 Row = 0; Row <= GridRows - ItemSize.Y && !bHasRoom; Row++)
+	for (int32 Row = 0; Row <= LocalGridRows - ItemSize.Y && !bHasRoom; Row++)
 	{
-		for (int32 Col = 0; Col <= GridColumns - ItemSize.X && !bHasRoom; Col++)
+		for (int32 Col = 0; Col <= LocalGridColumns - ItemSize.X && !bHasRoom; Col++)
 		{
 			bool bCanPlace = true;
 			
@@ -1176,7 +1200,7 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 			{
 				for (int32 x = 0; x < ItemSize.X && bCanPlace; x++)
 				{
-					int32 CheckIndex = (Row + y) * GridColumns + (Col + x);
+					int32 CheckIndex = (Row + y) * LocalGridColumns + (Col + x);
 					if (VirtualGrid[CheckIndex] != 0) // 이미 점유됨
 					{
 						bCanPlace = false;
