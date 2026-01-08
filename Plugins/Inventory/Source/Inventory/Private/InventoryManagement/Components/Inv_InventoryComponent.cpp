@@ -810,4 +810,3 @@ void UInv_InventoryComponent::CloseOtherMenus()
 
 	// CraftingMenu는 거리 체크로 자동으로 닫힘 (Timer 방식)
 }
-
