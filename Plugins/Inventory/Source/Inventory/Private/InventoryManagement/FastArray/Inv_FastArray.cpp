@@ -36,20 +36,19 @@ void FInv_InventoryFastArray::PreReplicatedRemove(const TArrayView<int32> Remove
 		UInv_InventoryItem* RemovedItem = Entries[Index].Item;
 		if (IsValid(RemovedItem))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("🗑️ 제거될 아이템: %s (Index: %d)"), 
-				*RemovedItem->GetItemManifest().GetItemType().ToString(), Index);
+			// ⭐ GameplayTag 복사 (안전!)
+			FGameplayTag ItemType = RemovedItem->GetItemManifest().GetItemType();
 			
-			// ⭐ OnItemRemoved 델리게이트 브로드캐스트
+			UE_LOG(LogTemp, Warning, TEXT("🗑️ 제거될 아이템: %s (Index: %d)"), 
+				*ItemType.ToString(), Index);
+			
+			// ⭐ OnItemRemoved 델리게이트 브로드캐스트 (삭제 전이므로 안전)
 			IC->OnItemRemoved.Broadcast(RemovedItem);
 			
-			// ⭐ OnStackChange 델리게이트도 브로드캐스트 (UI 즉시 업데이트!)
-			FInv_SlotAvailabilityResult Result;
-			Result.Item = RemovedItem;
-			Result.bStackable = false;
-			Result.TotalRoomToFill = 0; // 제거되었으므로 0
-			IC->OnStackChange.Broadcast(Result);
+			// ⭐ OnMaterialStacksChanged 델리게이트 브로드캐스트 (Tag 기반 - 안전!)
+			IC->OnMaterialStacksChanged.Broadcast(ItemType);
 			
-			UE_LOG(LogTemp, Warning, TEXT("✅ OnItemRemoved & OnStackChange 브로드캐스트 완료!"));
+			UE_LOG(LogTemp, Warning, TEXT("✅ OnItemRemoved & OnMaterialStacksChanged 브로드캐스트 완료!"));
 		}
 		else
 		{

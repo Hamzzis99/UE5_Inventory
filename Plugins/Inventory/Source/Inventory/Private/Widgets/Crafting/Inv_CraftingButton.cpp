@@ -427,6 +427,12 @@ void UInv_CraftingButton::BindInventoryDelegates()
 		InvComp->OnStackChange.AddDynamic(this, &ThisClass::OnInventoryStackChanged);
 	}
 
+	// ⭐ OnMaterialStacksChanged 델리게이트 바인딩 (Tag 기반 - 안전!)
+	if (!InvComp->OnMaterialStacksChanged.IsAlreadyBound(this, &ThisClass::OnMaterialStacksChanged))
+	{
+		InvComp->OnMaterialStacksChanged.AddDynamic(this, &ThisClass::OnMaterialStacksChanged);
+	}
+
 	UE_LOG(LogTemp, Log, TEXT("CraftingButton: 인벤토리 델리게이트 바인딩 완료"));
 }
 
@@ -438,6 +444,7 @@ void UInv_CraftingButton::UnbindInventoryDelegates()
 	InvComp->OnItemAdded.RemoveDynamic(this, &ThisClass::OnInventoryItemAdded);
 	InvComp->OnItemRemoved.RemoveDynamic(this, &ThisClass::OnInventoryItemRemoved);
 	InvComp->OnStackChange.RemoveDynamic(this, &ThisClass::OnInventoryStackChanged);
+	InvComp->OnMaterialStacksChanged.RemoveDynamic(this, &ThisClass::OnMaterialStacksChanged);
 }
 
 void UInv_CraftingButton::OnInventoryItemAdded(UInv_InventoryItem* Item)
@@ -464,6 +471,21 @@ void UInv_CraftingButton::OnInventoryStackChanged(const FInv_SlotAvailabilityRes
 	UE_LOG(LogTemp, Log, TEXT("CraftingButton: 스택 변경됨! 버튼 상태 재계산..."));
 	UpdateMaterialUI(); // 재료 UI 업데이트
 	UpdateButtonState();
+}
+
+void UInv_CraftingButton::OnMaterialStacksChanged(const FGameplayTag& MaterialTag)
+{
+	// ⭐ Tag 기반이므로 Dangling Pointer 걱정 없음!
+	UE_LOG(LogTemp, Log, TEXT("CraftingButton: 재료 변경됨! (Tag: %s)"), *MaterialTag.ToString());
+	
+	// 이 버튼이 사용하는 재료인지 체크
+	if (RequiredMaterialTag.MatchesTagExact(MaterialTag) ||
+		RequiredMaterialTag2.MatchesTagExact(MaterialTag) ||
+		RequiredMaterialTag3.MatchesTagExact(MaterialTag))
+	{
+		UpdateMaterialUI(); // 재료 UI 즉시 업데이트
+		UpdateButtonState();
+	}
 }
 
 void UInv_CraftingButton::ConsumeMaterials()

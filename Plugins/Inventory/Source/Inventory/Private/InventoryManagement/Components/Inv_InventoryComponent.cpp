@@ -1092,44 +1092,90 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 			FGameplayTag EntryType = Entry.Item->GetItemManifest().GetItemType();
 			int32 StackCount = Entry.Item->GetTotalStackCount();
 			
-			UE_LOG(LogTemp, Warning, TEXT("[공간체크]   - [%d] %s x%d (크기: %dx%d)"), 
-				CurrentItemCount, *EntryType.ToString(), StackCount, ExistingItemSize.X, ExistingItemSize.Y);
+			// ⭐ 실제 Grid 위치 사용! (없으면 순차 배치 Fallback)
+			FIntPoint ActualPos = Entry.Item->GetGridPosition();
 			
-			// Virtual Grid에 빈 공간 찾기
+			UE_LOG(LogTemp, Warning, TEXT("[공간체크]   - [%d] %s x%d (크기: %dx%d, 실제위치: [%d,%d])"), 
+				CurrentItemCount, *EntryType.ToString(), StackCount, ExistingItemSize.X, ExistingItemSize.Y,
+				ActualPos.X, ActualPos.Y);
+			
+			// Virtual Grid에 배치
 			bool bPlaced = false;
-			for (int32 Row = 0; Row <= LocalGridRows - ExistingItemSize.Y && !bPlaced; Row++)
+			
+			// ⭐ 실제 위치가 있으면 그대로 사용!
+			if (ActualPos.X >= 0 && ActualPos.Y >= 0 &&
+				ActualPos.X + ExistingItemSize.X <= LocalGridColumns &&
+				ActualPos.Y + ExistingItemSize.Y <= LocalGridRows)
 			{
-				for (int32 Col = 0; Col <= LocalGridColumns - ExistingItemSize.X && !bPlaced; Col++)
+				// 실제 위치에 배치 가능한지 체크
+				bool bCanPlace = true;
+				for (int32 y = 0; y < ExistingItemSize.Y && bCanPlace; y++)
 				{
-					int32 StartIndex = Row * LocalGridColumns + Col;
-					
-					// 이 위치에 배치 가능한지 체크
-					bool bCanPlace = true;
-					for (int32 y = 0; y < ExistingItemSize.Y && bCanPlace; y++)
+					for (int32 x = 0; x < ExistingItemSize.X && bCanPlace; x++)
 					{
-						for (int32 x = 0; x < ExistingItemSize.X && bCanPlace; x++)
+						int32 CheckIndex = (ActualPos.Y + y) * LocalGridColumns + (ActualPos.X + x);
+						if (VirtualGrid[CheckIndex] != 0) // 이미 점유됨
 						{
-							int32 CheckIndex = (Row + y) * LocalGridColumns + (Col + x);
-							if (VirtualGrid[CheckIndex] != 0) // 이미 점유됨
-							{
-								bCanPlace = false;
-							}
+							bCanPlace = false;
 						}
 					}
-					
-					// 배치 가능하면 Grid에 표시
-					if (bCanPlace)
+				}
+				
+				if (bCanPlace)
+				{
+					// 실제 위치에 배치!
+					for (int32 y = 0; y < ExistingItemSize.Y; y++)
 					{
-						for (int32 y = 0; y < ExistingItemSize.Y; y++)
+						for (int32 x = 0; x < ExistingItemSize.X; x++)
 						{
-							for (int32 x = 0; x < ExistingItemSize.X; x++)
+							int32 PlaceIndex = (ActualPos.Y + y) * LocalGridColumns + (ActualPos.X + x);
+							VirtualGrid[PlaceIndex] = ItemIndex;
+						}
+					}
+					bPlaced = true;
+					UE_LOG(LogTemp, Warning, TEXT("[공간체크]     → ✅ 실제 위치 Grid[%d,%d]에 배치됨"), ActualPos.X, ActualPos.Y);
+				}
+			}
+			
+			// ⚠️ 실제 위치가 없거나 배치 실패하면 순차 배치 시도 (Fallback)
+			if (!bPlaced)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[공간체크]     → ⚠️ 실제 위치 사용 불가! Fallback 순차 배치 시도..."));
+				
+				for (int32 Row = 0; Row <= LocalGridRows - ExistingItemSize.Y && !bPlaced; Row++)
+				{
+					for (int32 Col = 0; Col <= LocalGridColumns - ExistingItemSize.X && !bPlaced; Col++)
+					{
+						int32 StartIndex = Row * LocalGridColumns + Col;
+						
+						// 이 위치에 배치 가능한지 체크
+						bool bCanPlace = true;
+						for (int32 y = 0; y < ExistingItemSize.Y && bCanPlace; y++)
+						{
+							for (int32 x = 0; x < ExistingItemSize.X && bCanPlace; x++)
 							{
-								int32 PlaceIndex = (Row + y) * LocalGridColumns + (Col + x);
-								VirtualGrid[PlaceIndex] = ItemIndex;
+								int32 CheckIndex = (Row + y) * LocalGridColumns + (Col + x);
+								if (VirtualGrid[CheckIndex] != 0) // 이미 점유됨
+								{
+									bCanPlace = false;
+								}
 							}
 						}
-						bPlaced = true;
-						UE_LOG(LogTemp, Warning, TEXT("[공간체크]     → Grid[%d,%d]에 배치됨"), Col, Row);
+						
+						// 배치 가능하면 Grid에 표시
+						if (bCanPlace)
+						{
+							for (int32 y = 0; y < ExistingItemSize.Y; y++)
+							{
+								for (int32 x = 0; x < ExistingItemSize.X; x++)
+								{
+									int32 PlaceIndex = (Row + y) * LocalGridColumns + (Col + x);
+									VirtualGrid[PlaceIndex] = ItemIndex;
+								}
+							}
+							bPlaced = true;
+							UE_LOG(LogTemp, Warning, TEXT("[공간체크]     → Fallback Grid[%d,%d]에 배치됨"), Col, Row);
+						}
 					}
 				}
 			}

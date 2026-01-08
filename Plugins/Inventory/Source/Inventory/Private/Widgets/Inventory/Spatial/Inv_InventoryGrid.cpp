@@ -1251,6 +1251,13 @@ void UInv_InventoryGrid::UpdateGridSlots(UInv_InventoryItem* NewItem, const int3
 	const FInv_GridFragment* GridFragment = GetFragment<FInv_GridFragment>(NewItem, FragmentTags::GridFragment); // 그리드 조각 가져오기
 	const FIntPoint Dimensions = GridFragment ? GridFragment->GetGridSize() : FIntPoint(1, 1); // 그리드 크기 가져오기
 
+	// ⭐ 아이템의 Grid 위치 저장! (서버→클라이언트 동기화!)
+	FIntPoint GridPos = UInv_WidgetUtils::GetPositionFromIndex(Index, Columns);
+	NewItem->SetGridPosition(GridPos);
+	
+	UE_LOG(LogTemp, Log, TEXT("[UpdateGridSlots] 아이템 %s를 Grid[%d,%d]에 배치 (Index=%d)"), 
+		*NewItem->GetItemManifest().GetItemType().ToString(), GridPos.X, GridPos.Y, Index);
+
 	//2D 격자 순회하면서 그리드 슬롯 업데이트
 	UInv_InventoryStatics::ForEach2D(GridSlots, Index, Dimensions, Columns, [&](UInv_GridSlot* GridSlot) // [&] 이건 뭔데?
 	{

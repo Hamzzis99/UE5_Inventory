@@ -218,6 +218,10 @@ private:
 	UFUNCTION()
 	void OnInventoryStackChanged(const FInv_SlotAvailabilityResult& Result);
 
+	// ⭐ Tag 기반 재료 변경 콜백 (Dangling Pointer 방지!)
+	UFUNCTION()
+	void OnMaterialStacksChanged(const FGameplayTag& MaterialTag);
+
 	// === 블루프린트에서 바인딩할 위젯들 (meta = (BindWidget)) ===
 	
 	// 클릭 가능한 버튼
