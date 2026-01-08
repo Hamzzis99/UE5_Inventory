@@ -165,6 +165,7 @@ class UImage;
 class UTextBlock;
 class UHorizontalBox;
 class UInv_InventoryItem;
+class UInv_InfoMessage;  // ⭐ 메시지 위젯
 
 /**
  * 크래프팅 메뉴에서 개별 아이템 제작 버튼 위젯

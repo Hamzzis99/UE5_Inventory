@@ -44,6 +44,9 @@
 #include "Items/Inv_InventoryItem.h"
 #include "Items/Components/Inv_ItemComponent.h"
 #include "Items/Fragments/Inv_ItemFragment.h"
+#include "Widgets/Inventory/InventoryBase/Inv_InventoryBase.h"  // ⭐ 공간 체크용
+#include "Widgets/Inventory/Spatial/Inv_SpatialInventory.h"     // ⭐ Grid 접근용
+#include "Widgets/Inventory/Spatial/Inv_InventoryGrid.h"        // ⭐ HasRoomInActualGrid용
 
 void UInv_CraftingButton::NativeOnInitialized()
 {
@@ -552,7 +555,121 @@ void UInv_CraftingButton::AddCraftedItemToInventory()
 	// 디버깅: Blueprint 정보 출력
 	UE_LOG(LogTemp, Warning, TEXT("[CLIENT] 제작할 아이템 Blueprint: %s"), *ItemActorClass->GetName());
 
-	// ⭐ 서버 RPC 호출: 공간 체크 → 재료 차감 → 아이템 생성 (통합!)
+	// ⭐⭐⭐ 클라이언트 측 공간 체크 (서버 RPC 전에!)
+	// 임시 Actor 스폰하여 ItemManifest 추출
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.bNoFail = true;
+
+	FVector TempLocation = FVector(0, 0, -50000); // 매우 아래쪽
+	FRotator TempRotation = FRotator::ZeroRotator;
+	FTransform TempTransform(TempRotation, TempLocation);
+
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CLIENT] World가 유효하지 않습니다!"));
+		return;
+	}
+
+	AActor* TempActor = World->SpawnActorDeferred<AActor>(ItemActorClass, TempTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (!IsValid(TempActor))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CLIENT] 임시 Actor 스폰 실패!"));
+		return;
+	}
+
+	TempActor->FinishSpawning(TempTransform);
+
+	UInv_ItemComponent* ItemComp = TempActor->FindComponentByClass<UInv_ItemComponent>();
+	if (!IsValid(ItemComp))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CLIENT] ItemComponent를 찾을 수 없습니다!"));
+		TempActor->Destroy();
+		return;
+	}
+
+	FInv_ItemManifest ItemManifest = ItemComp->GetItemManifest();
+	EInv_ItemCategory Category = ItemManifest.GetItemCategory();
+
+	// 임시 Actor 파괴
+	TempActor->Destroy();
+
+	// InventoryMenu 가져오기
+	UInv_InventoryBase* InventoryMenu = InvComp->GetInventoryMenu();
+	if (!IsValid(InventoryMenu))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[CLIENT] InventoryMenu가 nullptr - 공간 체크 스킵하고 서버로 전송"));
+		// Fallback: 서버에서 체크하도록 RPC 전송
+		InvComp->Server_CraftItemWithMaterials(
+			ItemActorClass,
+			RequiredMaterialTag, RequiredAmount,
+			RequiredMaterialTag2, RequiredAmount2,
+			RequiredMaterialTag3, RequiredAmount3
+		);
+		return;
+	}
+
+	// SpatialInventory 캐스팅
+	UInv_SpatialInventory* SpatialInv = Cast<UInv_SpatialInventory>(InventoryMenu);
+	if (!IsValid(SpatialInv))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[CLIENT] SpatialInventory 캐스팅 실패 - 공간 체크 스킵"));
+		InvComp->Server_CraftItemWithMaterials(
+			ItemActorClass,
+			RequiredMaterialTag, RequiredAmount,
+			RequiredMaterialTag2, RequiredAmount2,
+			RequiredMaterialTag3, RequiredAmount3
+		);
+		return;
+	}
+
+	// 카테고리에 맞는 Grid 가져오기
+	UInv_InventoryGrid* TargetGrid = nullptr;
+	switch (Category)
+	{
+	case EInv_ItemCategory::Equippable:
+		TargetGrid = SpatialInv->GetGrid_Equippables();
+		break;
+	case EInv_ItemCategory::Consumable:
+		TargetGrid = SpatialInv->GetGrid_Consumables();
+		break;
+	case EInv_ItemCategory::Craftable:
+		TargetGrid = SpatialInv->GetGrid_Craftables();
+		break;
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("[CLIENT] 알 수 없는 카테고리: %d"), (int32)Category);
+		break;
+	}
+
+	if (!IsValid(TargetGrid))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[CLIENT] TargetGrid가 nullptr - 공간 체크 스킵"));
+		InvComp->Server_CraftItemWithMaterials(
+			ItemActorClass,
+			RequiredMaterialTag, RequiredAmount,
+			RequiredMaterialTag2, RequiredAmount2,
+			RequiredMaterialTag3, RequiredAmount3
+		);
+		return;
+	}
+
+	// ⭐⭐⭐ 실제 UI Grid 상태 기반 공간 체크!
+	bool bHasRoom = TargetGrid->HasRoomInActualGrid(ItemManifest);
+
+	UE_LOG(LogTemp, Warning, TEXT("[CLIENT] 클라이언트 공간 체크 결과: %s"),
+		bHasRoom ? TEXT("✅ 공간 있음") : TEXT("❌ 공간 없음"));
+
+	if (!bHasRoom)
+	{
+		// 공간 없음! NoRoomInInventory 델리게이트 호출 (서버 RPC 전송 X)
+		UE_LOG(LogTemp, Warning, TEXT("[CLIENT] ❌ 인벤토리 공간 부족! 제작 취소"));
+		InvComp->NoRoomInInventory.Broadcast();
+		return; // ⭐ 서버 RPC 호출 없이 리턴!
+	}
+
+	// 공간 있음! 서버 RPC 호출
+	UE_LOG(LogTemp, Warning, TEXT("[CLIENT] ✅ 공간 확인됨! 서버로 제작 요청 전송"));
 	InvComp->Server_CraftItemWithMaterials(
 		ItemActorClass,
 		RequiredMaterialTag, RequiredAmount,

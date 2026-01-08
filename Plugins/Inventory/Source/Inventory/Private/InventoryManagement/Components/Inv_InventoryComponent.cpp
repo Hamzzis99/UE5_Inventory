@@ -1033,24 +1033,17 @@ bool UInv_InventoryComponent::HasRoomInInventoryList(const FInv_ItemManifest& Ma
 				LocalGridRows = TargetGrid->GetRows();  // ⭐ 지역 변수 사용
 				LocalGridColumns = TargetGrid->GetColumns();
 				MaxSlots = TargetGrid->GetMaxSlots();
-				
-				UE_LOG(LogTemp, Warning, TEXT("[공간체크] Grid 설정: %d x %d = %d칸"), 
+
+				UE_LOG(LogTemp, Warning, TEXT("[공간체크] Grid 설정: %d x %d = %d칸"),
 					LocalGridRows, LocalGridColumns, MaxSlots);
-				
-				// ⭐ 실제 Grid의 HasRoomForItem 호출!
-				FInv_SlotAvailabilityResult Result = TargetGrid->HasRoomForItem(Manifest);
-				
-				UE_LOG(LogTemp, Warning, TEXT("[공간체크] 🔍 Grid->HasRoomForItem() 결과:"));
-				UE_LOG(LogTemp, Warning, TEXT("[공간체크]   - TotalRoomToFill: %d"), Result.TotalRoomToFill);
-				UE_LOG(LogTemp, Warning, TEXT("[공간체크]   - bStackable: %s"), Result.bStackable ? TEXT("true") : TEXT("false"));
-				UE_LOG(LogTemp, Warning, TEXT("[공간체크]   - Remainder: %d"), Result.Remainder);
-				UE_LOG(LogTemp, Warning, TEXT("[공간체크]   - 사용 가능한 슬롯 개수: %d"), Result.SlotAvailabilities.Num());
-				
-				bool bHasRoom = (Result.TotalRoomToFill > 0);
-				UE_LOG(LogTemp, Warning, TEXT("[공간체크] %s"), 
-					bHasRoom ? TEXT("✅ 실제 Grid에 공간 있음!") : TEXT("❌ Grid 꽉 참!"));
+
+				// ⭐⭐⭐ 실제 UI GridSlots 상태 기반 공간 체크! (플레이어가 옮긴 위치 반영!)
+				bool bHasRoom = TargetGrid->HasRoomInActualGrid(Manifest);
+
+				UE_LOG(LogTemp, Warning, TEXT("[공간체크] 🔍 Grid->HasRoomInActualGrid() 결과: %s"),
+					bHasRoom ? TEXT("✅ 실제 UI Grid에 공간 있음!") : TEXT("❌ UI Grid 꽉 참!"));
 				UE_LOG(LogTemp, Warning, TEXT("========================================"));
-				
+
 				return bHasRoom;
 			}
 		}

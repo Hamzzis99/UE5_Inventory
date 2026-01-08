@@ -68,6 +68,9 @@ public:
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_ItemComponent* ItemComponent);
 	FInv_SlotAvailabilityResult HasRoomForItem(const UInv_InventoryItem* Item, const int32 StackAmountOverride = -1);
 	FInv_SlotAvailabilityResult HasRoomForItem(const FInv_ItemManifest& Manifest, const int32 StackAmountOverride = -1);
+
+	// ⭐ 실제 UI Grid 상태 확인 (크래프팅 공간 체크용)
+	bool HasRoomInActualGrid(const FInv_ItemManifest& Manifest) const;
 	
 private:
 

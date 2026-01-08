@@ -1670,3 +1670,69 @@ int32 UInv_InventoryGrid::GetTotalMaterialCountFromSlots(const FGameplayTag& Mat
 	return TotalCount;
 }
 
+// ⭐ 실제 UI Grid 상태 확인 (크래프팅 공간 체크용)
+bool UInv_InventoryGrid::HasRoomInActualGrid(const FInv_ItemManifest& Manifest) const
+{
+	// ⭐ GridSlots를 직접 참조하여 실제 UI 상태 기반 공간 체크!
+	// HasRoomForItem은 const가 아니므로 직접 구현
+
+	const FInv_GridFragment* GridFragment = Manifest.GetFragmentOfType<FInv_GridFragment>();
+	if (!GridFragment) return false;
+
+	FIntPoint ItemSize = GridFragment->GetGridSize();
+
+	UE_LOG(LogTemp, Warning, TEXT("[ACTUAL GRID CHECK] 아이템 크기: %dx%d"), ItemSize.X, ItemSize.Y);
+	UE_LOG(LogTemp, Warning, TEXT("[ACTUAL GRID CHECK] Grid 크기: %dx%d"), Columns, Rows);
+
+	// 실제 GridSlots 순회 (UI의 정확한 상태!)
+	for (int32 StartIndex = 0; StartIndex < GridSlots.Num(); ++StartIndex)
+	{
+		// 그리드 범위 체크
+		int32 StartX = StartIndex % Columns;
+		int32 StartY = StartIndex / Columns;
+
+		// 아이템이 그리드를 벗어나는지 확인
+		if (StartX + ItemSize.X > Columns || StartY + ItemSize.Y > Rows)
+		{
+			continue; // 범위 밖이면 스킵
+		}
+
+		// 해당 위치에서 ItemSize 크기만큼의 공간이 비어있는지 체크
+		bool bCanFit = true;
+
+		for (int32 Y = 0; Y < ItemSize.Y; ++Y)
+		{
+			for (int32 X = 0; X < ItemSize.X; ++X)
+			{
+				int32 CheckIndex = (StartY + Y) * Columns + (StartX + X);
+
+				if (CheckIndex >= GridSlots.Num())
+				{
+					bCanFit = false;
+					break;
+				}
+
+				UInv_GridSlot* CheckSlot = GridSlots[CheckIndex];
+				if (!IsValid(CheckSlot) || CheckSlot->GetInventoryItem().IsValid())
+				{
+					// 슬롯이 유효하지 않거나 이미 아이템이 있으면 실패
+					bCanFit = false;
+					break;
+				}
+			}
+
+			if (!bCanFit) break;
+		}
+
+		if (bCanFit)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ACTUAL GRID CHECK] ✅ 공간 발견! [%d, %d]부터 %dx%d"),
+				StartX, StartY, ItemSize.X, ItemSize.Y);
+			return true; // 공간 발견!
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[ACTUAL GRID CHECK] ❌ 공간 없음!"));
+	return false; // 공간 없음
+}
+
