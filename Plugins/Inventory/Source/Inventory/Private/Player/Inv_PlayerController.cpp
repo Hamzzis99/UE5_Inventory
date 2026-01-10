@@ -78,21 +78,15 @@ void AInv_PlayerController::PrimaryInteract()
 	if (!ThisActor.IsValid()) return;
 
 	// ==========================================================
-	// [0순위] 단순 상호작용 (인터페이스 검사)
+	// [0순위] 단순 상호작용 (인터페이스 검사) -> [수정] 서버 RPC 호출
 	// ==========================================================
-	// "이 물체가 인터페이스 명함을 가지고 있나?" 확인
 	if (ThisActor->Implements<UInv_Interface_Primary>())
 	{
-		// 인터페이스 함수 실행!
-		// Execute_ 접두사가 붙는 건 언리얼 인터페이스 호출 규칙입니다.
-		bool bHandled = IInv_Interface_Primary::Execute_ExecuteInteract(ThisActor.Get(), this);
-        
-		// 문이 열렸거나 처리가 되었다면(true), 
-		// 아래의 제작대나 아이템 줍기 로직은 무시하고 함수 종료!
-		if (bHandled)
-		{
-			return; 
-		}
+		// "서버야, 이 문 좀 열어줘!" (여기서 서버로 보냄)
+		Server_Interact(ThisActor.Get());
+       
+		// 서버로 보냈으니 클라이언트는 할 일 끝! 종료.
+		return; 
 	}
 	
 	// 1순위: 크래프팅 스테이션 상호작용
@@ -115,6 +109,20 @@ void AInv_PlayerController::PrimaryInteract()
 	InventoryComponent->TryAddItem(ItemComp);
 }
 
+// 서버에서 실행되는 함수 구현 (맵 변경 함수)
+void AInv_PlayerController::Server_Interact_Implementation(AActor* TargetActor)
+{
+	if (!TargetActor) return;
+
+	// 서버가 다시 한 번 확인 (인터페이스가 있는지?)
+	if (TargetActor->Implements<UInv_Interface_Primary>())
+	{
+		// 이제 '서버'에서 실행되므로 MoveMapActor::Interact() 내부의 권한 체크를 통과합니다!
+		IInv_Interface_Primary::Execute_ExecuteInteract(TargetActor, this);
+        
+		UE_LOG(LogTemp, Log, TEXT("[Server] 문 상호작용 성공: %s"), *TargetActor->GetName());
+	}
+}
 
 void AInv_PlayerController::CreateHUDWidget() // 위젯 생성 부분
 {
