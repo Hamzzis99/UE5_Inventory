@@ -9,7 +9,7 @@
 #include "Items/Components/Inv_ItemComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Widgets/HUD/Inv_HUDWidget.h"
-
+#include "Interfaces/Inv_Interface_Primary.cpp"
 
 
 AInv_PlayerController::AInv_PlayerController()
@@ -77,6 +77,24 @@ void AInv_PlayerController::PrimaryInteract()
 {
 	if (!ThisActor.IsValid()) return;
 
+	// ==========================================================
+	// [0순위] 단순 상호작용 (인터페이스 검사)
+	// ==========================================================
+	// "이 물체가 인터페이스 명함을 가지고 있나?" 확인
+	if (ThisActor->Implements<UInv_Interface_Primary>())
+	{
+		// 인터페이스 함수 실행!
+		// Execute_ 접두사가 붙는 건 언리얼 인터페이스 호출 규칙입니다.
+		bool bHandled = IInv_Interface_Primary::Execute_ExecuteInteract(ThisActor.Get(), this);
+        
+		// 문이 열렸거나 처리가 되었다면(true), 
+		// 아래의 제작대나 아이템 줍기 로직은 무시하고 함수 종료!
+		if (bHandled)
+		{
+			return; 
+		}
+	}
+	
 	// 1순위: 크래프팅 스테이션 상호작용
 	if (CurrentCraftingStation.IsValid() && CurrentCraftingStation == ThisActor)
 	{
