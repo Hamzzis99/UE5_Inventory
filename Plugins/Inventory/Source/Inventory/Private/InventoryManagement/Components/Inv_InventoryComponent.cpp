@@ -394,7 +394,30 @@ void UInv_InventoryComponent::Server_CraftItem_Implementation(TSubclassOf<AActor
 	UE_LOG(LogTemp, Warning, TEXT("=== [SERVER CRAFT] 인벤토리에 아이템 추가 완료! (임시 Actor 스폰 없음!) ==="));
 }
 
-// ⭐ 크래프팅 통합 RPC: 공간 체크 → 재료 차감 → 아이템 생성
+// ⭐ [SERVER-ONLY] 서버의 InventoryList를 기준으로 실제 재료 보유 여부를 확인합니다.
+bool UInv_InventoryComponent::HasRequiredMaterialsOnServer(const FGameplayTag& MaterialTag, int32 RequiredAmount) const
+{
+	// 유효하지 않은 태그나 수량 0은 항상 '재료 있음'으로 간주
+	if (!MaterialTag.IsValid() || RequiredAmount <= 0)
+	{
+		return true;
+	}
+
+	// GetTotalMaterialCount는 이미 서버의 InventoryList를 사용하므로 안전합니다.
+	const int32 CurrentAmount = GetTotalMaterialCount(MaterialTag);
+	
+	if (CurrentAmount < RequiredAmount)
+	{
+		// 이 로그는 서버에만 기록됩니다.
+		UE_LOG(LogTemp, Warning, TEXT("[CHEAT DETECTION?] Server check failed for material %s. Required: %d, Has: %d"), 
+			*MaterialTag.ToString(), RequiredAmount, CurrentAmount);
+		return false;
+	}
+
+	return true;
+}
+
+// ⭐ 크래프팅 통합 RPC: [안전성 강화] 서버 측 재료 검증 추가
 void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 	TSubclassOf<AActor> ItemActorClass,
 	const FGameplayTag& MaterialTag1, int32 Amount1,
@@ -416,7 +439,21 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 		return;
 	}
 
-	// ========== 1단계: 임시 Actor 스폰 및 ItemManifest 추출 ==========
+	// ========== ⭐ 1단계: [안전성 강화] 서버 측 재료 검증 ==========
+	// 클라이언트의 요청을 신뢰하지 않고, 서버가 직접 재료 보유 여부를 확인합니다.
+	if (!HasRequiredMaterialsOnServer(MaterialTag1, Amount1) ||
+		!HasRequiredMaterialsOnServer(MaterialTag2, Amount2) ||
+		!HasRequiredMaterialsOnServer(MaterialTag3, Amount3))
+	{
+		// 재료가 부족하므로 제작을 중단합니다. 클라이언트에는 별도 알림 없이, 서버 로그만 기록합니다.
+		// 이는 비정상적인 요청(치트 등)일 가능성이 높습니다.
+		UE_LOG(LogTemp, Error, TEXT("[SERVER CRAFT] 재료 부족! 클라이언트 요청 거부. (잠재적 치트 시도)"));
+		return;
+	}
+	UE_LOG(LogTemp, Log, TEXT("[SERVER CRAFT] ✅ 서버 측 재료 검증 통과."));
+
+
+	// ========== 2단계: 임시 Actor 스폰 및 ItemManifest 추출 ==========
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.bNoFail = true;
@@ -446,15 +483,15 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 	UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] 제작할 아이템: %s (카테고리: %d)"), 
 		*ItemManifest.GetItemType().ToString(), (int32)ItemManifest.GetItemCategory());
 
-	// ========== 2단계: 공간 체크 ==========
+	// ========== 3단계: 공간 체크 ==========
 	bool bHasRoom = HasRoomInInventoryList(ItemManifest);
 	
 	if (!bHasRoom)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] ❌ 인벤토리에 공간이 없습니다!"));
 		TempActor->Destroy();
-		NoRoomInInventory.Broadcast();
-		return; // ⭐ 재료 차감 없이 중단!
+		NoRoomInInventory.Broadcast(); // 클라이언트에 공간 없음 알림
+		return; // 재료 차감 없이 중단!
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] ✅ 인벤토리에 공간 있음!"));
@@ -462,7 +499,9 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 	// 임시 Actor 파괴
 	TempActor->Destroy();
 
-	// ========== 3단계: 재료 차감 (공간 확인 후!) ==========
+	// ========== 4단계: 재료 차감 (모든 검증 통과 후!) ==========
+	// Server_ConsumeMaterialsMultiStack은 서버에서만 호출 가능한 RPC이므로,
+	// _Implementation을 직접 호출하여 서버 내에서 함수를 실행합니다.
 	if (MaterialTag1.IsValid() && Amount1 > 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] 재료1 차감: %s x %d"), *MaterialTag1.ToString(), Amount1);
@@ -481,11 +520,12 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 		Server_ConsumeMaterialsMultiStack_Implementation(MaterialTag3, Amount3);
 	}
 
-	// ========== 4단계: 아이템 생성 ==========
+	// ========== 5단계: 아이템 생성 ==========
 	UInv_InventoryItem* NewItem = ItemManifest.Manifest(GetOwner());
 	if (!IsValid(NewItem))
 	{
 		UE_LOG(LogTemp, Error, TEXT("[SERVER CRAFT] ItemManifest.Manifest() 실패!"));
+		// 여기서 재료를 롤백하는 로직을 추가할 수 있으나, 현재는 생략합니다.
 		return;
 	}
 
@@ -914,7 +954,7 @@ void UInv_InventoryComponent::SyncGridSizesFromWidget()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Grid 동기화] ⚠️ InventoryMenu 없음 - 기본값 사용: %d x %d = %d칸"), 
-			GridRows, GridColumns, GridRows * GridColumns);
+				GridRows, GridColumns, GridRows * GridColumns);
 	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("[Grid 동기화] 완료! 모든 카테고리(Equippables/Consumables/Craftables)가 동일한 크기 사용"));

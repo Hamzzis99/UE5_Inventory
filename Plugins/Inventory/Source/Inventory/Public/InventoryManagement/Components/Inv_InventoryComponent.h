@@ -14,7 +14,7 @@
 class UInv_ItemComponent;
 class UInv_InventoryItem;
 class UInv_InventoryBase;
-class UInv_InventoryGrid;
+class UInv_InventoryGrid;  // ⭐ Forward declaration 추가
 struct FInv_ItemManifest;
 
 //델리게이트
@@ -127,6 +127,9 @@ private:
 
 	// ⭐ 서버 전용: InventoryList 기반 공간 체크 (UI 없이 작동!)
 	bool HasRoomInInventoryList(const FInv_ItemManifest& Manifest) const;
+
+	// ⭐ [SERVER-ONLY] 서버의 InventoryList를 기준으로 실제 재료 보유 여부를 확인합니다.
+	bool HasRequiredMaterialsOnServer(const FGameplayTag& MaterialTag, int32 RequiredAmount) const;
 
 	// ⭐ Grid 크기 (BeginPlay 시 Widget에서 자동 설정됨 - 모든 카테고리 공통 사용)
 	int32 GridRows = 6;
