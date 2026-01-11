@@ -43,7 +43,8 @@ void FInv_InventoryFastArray::PreReplicatedRemove(const TArrayView<int32> Remove
 				*ItemType.ToString(), Index);
 			
 			// ⭐ OnItemRemoved 델리게이트 브로드캐스트 (삭제 전이므로 안전)
-			IC->OnItemRemoved.Broadcast(RemovedItem);
+			// ⭐ Entry Index도 함께 전달하여 클라이언트에서 정확한 아이템 식별 가능!
+			IC->OnItemRemoved.Broadcast(RemovedItem, Index);
 			
 			// ⭐ OnMaterialStacksChanged 델리게이트 브로드캐스트 (Tag 기반 - 안전!)
 			IC->OnMaterialStacksChanged.Broadcast(ItemType);
@@ -84,9 +85,10 @@ void FInv_InventoryFastArray::PostReplicatedAdd(const TArrayView<int32> AddedInd
 			continue;
 		}
 		
-		UE_LOG(LogTemp, Warning, TEXT("[PostReplicatedAdd] Index: %d, ItemType: %s"), 
+		UE_LOG(LogTemp, Warning, TEXT("[PostReplicatedAdd] Index: %d, ItemType: %s"),
 			Index, *Entries[Index].Item->GetItemManifest().GetItemType().ToString());
-		IC->OnItemAdded.Broadcast(Entries[Index].Item);
+		// ⭐ Entry Index도 함께 전달하여 클라이언트에서 저장 가능!
+		IC->OnItemAdded.Broadcast(Entries[Index].Item, Index);
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("=== PostReplicatedAdd 완료! ==="));

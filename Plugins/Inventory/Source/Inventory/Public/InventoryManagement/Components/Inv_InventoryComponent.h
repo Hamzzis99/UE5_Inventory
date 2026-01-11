@@ -18,7 +18,8 @@ class UInv_InventoryGrid;  // ⭐ Forward declaration 추가
 struct FInv_ItemManifest;
 
 //델리게이트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryItemChange, UInv_InventoryItem*, Item);
+// ⭐ TwoParams로 변경: Item + EntryIndex (서버-클라이언트 포인터 불일치 해결용)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FInventoryItemChange, UInv_InventoryItem*, Item, int32, EntryIndex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FNoRoomInInventory);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStackChange, const FInv_SlotAvailabilityResult&, Result);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FItemEquipStatusChanged, UInv_InventoryItem*, Item);

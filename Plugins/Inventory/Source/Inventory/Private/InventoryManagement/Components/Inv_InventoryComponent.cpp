@@ -131,8 +131,10 @@ void UInv_InventoryComponent::Server_AddNewItem_Implementation(UInv_ItemComponen
 
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone) // 이 부분이 복제할 클라이언트가 없기 때문에 배열 복제 안 되는 거 (데디 서버로 변경할 때 참고해라)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[SERVER PICKUP] ListenServer/Standalone 모드 - OnItemAdded 델리게이트 브로드캐스트"));
-		OnItemAdded.Broadcast(NewItem);
+		// ⭐ Entry Index 계산 (새로 추가된 항목은 맨 뒤)
+		int32 NewEntryIndex = InventoryList.Entries.Num() - 1;
+		UE_LOG(LogTemp, Warning, TEXT("[SERVER PICKUP] ListenServer/Standalone 모드 - OnItemAdded 델리게이트 브로드캐스트 (EntryIndex=%d)"), NewEntryIndex);
+		OnItemAdded.Broadcast(NewItem, NewEntryIndex);
 	}
 	else
 	{
@@ -383,8 +385,10 @@ void UInv_InventoryComponent::Server_CraftItem_Implementation(TSubclassOf<AActor
 	// ListenServer/Standalone에서는 델리게이트 브로드캐스트
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] ListenServer/Standalone 모드 - OnItemAdded 델리게이트 브로드캐스트"));
-		OnItemAdded.Broadcast(NewItem);
+		// ⭐ Entry Index 계산 (새로 추가된 항목은 맨 뒤)
+		int32 NewEntryIndex = InventoryList.Entries.Num() - 1;
+		UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] ListenServer/Standalone 모드 - OnItemAdded 델리게이트 브로드캐스트 (EntryIndex=%d)"), NewEntryIndex);
+		OnItemAdded.Broadcast(NewItem, NewEntryIndex);
 	}
 	else
 	{
@@ -535,7 +539,9 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 	// ListenServer/Standalone에서는 델리게이트 브로드캐스트
 	if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
 	{
-		OnItemAdded.Broadcast(NewItem);
+		// ⭐ Entry Index 계산 (새로 추가된 항목은 맨 뒤)
+		int32 NewEntryIndex = InventoryList.Entries.Num() - 1;
+		OnItemAdded.Broadcast(NewItem, NewEntryIndex);
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("=== [SERVER CRAFT WITH MATERIALS] 완료 ==="));
@@ -562,6 +568,17 @@ void UInv_InventoryComponent::Server_ConsumeMaterials_Implementation(const FGame
 	int32 NewCount = CurrentCount - Amount;
 
 	UE_LOG(LogTemp, Warning, TEXT("Server: 재료 차감 (%d → %d)"), CurrentCount, NewCount);
+
+	// ⭐ Entry Index를 미리 찾아두기 (RemoveEntry 전에!)
+	int32 ItemEntryIndex = INDEX_NONE;
+	for (int32 i = 0; i < InventoryList.Entries.Num(); ++i)
+	{
+		if (InventoryList.Entries[i].Item == Item)
+		{
+			ItemEntryIndex = i;
+			break;
+		}
+	}
 
 	if (NewCount <= 0)
 	{
@@ -600,9 +617,9 @@ void UInv_InventoryComponent::Server_ConsumeMaterials_Implementation(const FGame
 	// 리플리케이션이 작동하면 각 클라이언트에서도 호출됨
 	if (NewCount <= 0)
 	{
-		// 아이템 제거됨
-		OnItemRemoved.Broadcast(Item);
-		UE_LOG(LogTemp, Warning, TEXT("OnItemRemoved 브로드캐스트 완료"));
+		// 아이템 제거됨 - ⭐ Entry Index 전달!
+		OnItemRemoved.Broadcast(Item, ItemEntryIndex);
+		UE_LOG(LogTemp, Warning, TEXT("OnItemRemoved 브로드캐스트 완료 (EntryIndex=%d)"), ItemEntryIndex);
 	}
 	else
 	{
@@ -611,7 +628,8 @@ void UInv_InventoryComponent::Server_ConsumeMaterials_Implementation(const FGame
 		Result.Item = Item;
 		Result.bStackable = true;
 		Result.TotalRoomToFill = NewCount;
-		
+		Result.EntryIndex = ItemEntryIndex; // ⭐ Entry Index 추가
+
 		// 슬롯 정보는 비워두고 (InventoryGrid가 Item으로 슬롯을 찾음)
 		OnStackChange.Broadcast(Result);
 		UE_LOG(LogTemp, Warning, TEXT("OnStackChange 브로드캐스트 완료 (NewCount: %d)"), NewCount);
