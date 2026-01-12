@@ -426,9 +426,11 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 	TSubclassOf<AActor> ItemActorClass,
 	const FGameplayTag& MaterialTag1, int32 Amount1,
 	const FGameplayTag& MaterialTag2, int32 Amount2,
-	const FGameplayTag& MaterialTag3, int32 Amount3)
+	const FGameplayTag& MaterialTag3, int32 Amount3,
+	int32 CraftedAmount)  // ⭐ 제작 개수 파라미터 추가!
 {
 	UE_LOG(LogTemp, Warning, TEXT("=== [SERVER CRAFT WITH MATERIALS] 시작 ==="));
+	UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] 제작 개수: %d"), CraftedAmount);
 
 	// 서버 권한 체크
 	if (!GetOwner()->HasAuthority())
@@ -571,16 +573,19 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 
 			if (CurrentCount < MaxStackSize)
 			{
-				// ⭐ 기존 스택에 추가! (픽업 로직의 Server_AddStacksToItem과 동일!)
-				UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT]   ⭐ 기존 스택에 추가! %d → %d"), CurrentCount, CurrentCount + 1);
+				// ⭐ 기존 스택에 CraftedAmount만큼 추가! (MaxStackSize 초과 방지)
+				int32 NewCount = FMath::Min(CurrentCount + CraftedAmount, MaxStackSize);
 
-				ExistingItem->SetTotalStackCount(CurrentCount + 1);
+				UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT]   ⭐ 기존 스택에 추가! %d → %d (추가량: %d)"),
+					CurrentCount, NewCount, CraftedAmount);
+
+				ExistingItem->SetTotalStackCount(NewCount);
 
 				// StackableFragment도 업데이트
 				FInv_ItemManifest& ExistingManifest = ExistingItem->GetItemManifestMutable();
 				if (FInv_StackableFragment* MutableStackFrag = ExistingManifest.GetFragmentOfTypeMutable<FInv_StackableFragment>())
 				{
-					MutableStackFrag->SetStackCount(CurrentCount + 1);
+					MutableStackFrag->SetStackCount(NewCount);
 					UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT]   ✅ StackableFragment도 업데이트: %d"), MutableStackFrag->GetStackCount());
 				}
 				else
@@ -606,26 +611,23 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 					}
 				}
 
-				// ListenServer/Standalone에서는 OnStackChange 델리게이트 브로드캐스트
+				// ListenServer/Standalone에서는 OnItemAdded 델리게이트 브로드캐스트 (Non-Craftable용)
 				if (GetOwner()->GetNetMode() == NM_ListenServer || GetOwner()->GetNetMode() == NM_Standalone)
 				{
-					FInv_SlotAvailabilityResult Result;
-					Result.Item = ExistingItem;
-					Result.bStackable = true;
-					Result.TotalRoomToFill = CurrentCount + 1;
-
 					// Entry Index 찾기
+					int32 EntryIndex = INDEX_NONE;
 					for (int32 i = 0; i < InventoryList.Entries.Num(); ++i)
 					{
 						if (InventoryList.Entries[i].Item == ExistingItem)
 						{
-							Result.EntryIndex = i;
+							EntryIndex = i;
 							break;
 						}
 					}
 
-					OnStackChange.Broadcast(Result);
-					UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT]   ✅ OnStackChange 브로드캐스트 완료!"));
+					// ⭐ OnItemAdded로 직접 UI 업데이트 (AddItem이 기존 슬롯 감지)
+					OnItemAdded.Broadcast(ExistingItem, EntryIndex);
+					UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT]   ✅ OnItemAdded 브로드캐스트 완료! (EntryIndex=%d)"), EntryIndex);
 				}
 
 				UE_LOG(LogTemp, Warning, TEXT("[SERVER CRAFT] ✅ 제작 완료! 기존 스택에 추가됨 (새 Entry 생성 안 함!)"));
@@ -695,17 +697,17 @@ void UInv_InventoryComponent::Server_CraftItemWithMaterials_Implementation(
 				InitialCount, FragmentCount);
 		}
 
-		// ⭐ 스택을 1로 초기화! (제작은 1개 생성)
-		if (InitialCount == 0)
+		// ⭐ 스택을 CraftedAmount로 초기화!
+		if (InitialCount == 0 || InitialCount != CraftedAmount)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("    ⭐ TotalStackCount가 0이므로 1로 초기화!"));
-			NewItem->SetTotalStackCount(1);
+			UE_LOG(LogTemp, Warning, TEXT("    ⭐ TotalStackCount를 CraftedAmount(%d)로 초기화!"), CraftedAmount);
+			NewItem->SetTotalStackCount(CraftedAmount);
 
 			// Fragment도 업데이트
 			FInv_ItemManifest& NewItemManifest = NewItem->GetItemManifestMutable();
 			if (FInv_StackableFragment* MutableFrag = NewItemManifest.GetFragmentOfTypeMutable<FInv_StackableFragment>())
 			{
-				MutableFrag->SetStackCount(1);
+				MutableFrag->SetStackCount(CraftedAmount);
 			}
 
 			UE_LOG(LogTemp, Warning, TEXT("    최종 TotalStackCount: %d"), NewItem->GetTotalStackCount());
