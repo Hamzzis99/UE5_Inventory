@@ -27,10 +27,6 @@ public:
 	UImage* GetImageIcon() const {return Image_Icon;} // 아이콘 이미지 가져오기
 	void SetGridIndex(int32 Index) { GridIndex = Index; } // 그리드 인덱스 설정
 	int32 GetGridIndex() const { return GridIndex; } // 그리드 인덱스 가져오기
-
-	// ⭐ FastArray Entry Index (서버-클라이언트 포인터 불일치 해결용)
-	void SetEntryIndex(int32 Index) { EntryIndex = Index; }
-	int32 GetEntryIndex() const { return EntryIndex; }
 	void SetGridDimensions(const FIntPoint& Dimensions) { GridDimensions = Dimensions; } // 그리드 크기 설정
 	FIntPoint GetGridDimensions() const { return GridDimensions; } // 그리드 크기 가져오기
 	void SetInventoryItem(UInv_InventoryItem* Item); // 인벤토리 아이템 설정
@@ -48,7 +44,6 @@ private:
 	TObjectPtr<UTextBlock> Text_StackCount;
 
 	int32 GridIndex;
-	int32 EntryIndex = INDEX_NONE; // ⭐ FastArray Entry Index
 	FIntPoint GridDimensions;
 	TWeakObjectPtr<UInv_InventoryItem> InventoryItem;
 	bool bIsStackable{ false };
