@@ -1073,8 +1073,53 @@ void UInv_InventoryGrid::AddItem(UInv_InventoryItem* Item, int32 EntryIndex)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AddItem] ❌ 실제 빈 슬롯을 찾지 못했습니다! 모든 슬롯이 이미 차지됨"));
-		UE_LOG(LogTemp, Warning, TEXT("========== [AddItem] 아이템 추가 실패 =========="));
+		UE_LOG(LogTemp, Warning, TEXT("[AddItem] ⚠️ 필터링 후 빈 슬롯 없음 (기존 스택 제외)"));
+		UE_LOG(LogTemp, Warning, TEXT("[AddItem] 🔍 4단계: 완전히 새로운 빈 슬롯 재검색 (스택 무시)"));
+		
+		// ⭐⭐⭐ 4단계: 스택 가능 여부 무시하고 완전히 빈 슬롯 찾기
+		// HasRoomForItem은 스택 가능 아이템의 경우 기존 스택을 우선 반환하므로,
+		// 기존 스택이 모두 차지된 경우 새로운 빈 슬롯을 찾지 못할 수 있음.
+		
+		TArray<FInv_SlotAvailability> CompletelyEmptySlots;
+		
+		// Grid 전체를 순회하며 완전히 비어있는 슬롯 찾기
+		for (int32 Index = 0; Index < GridSlots.Num(); ++Index)
+		{
+			// 이미 SlottedItems에 등록된 슬롯은 건너뜀
+			if (SlottedItems.Contains(Index))
+			{
+				continue;
+			}
+			
+			// GridSlot도 비어있는지 확인
+			if (GridSlots.IsValidIndex(Index) && IsValid(GridSlots[Index]))
+			{
+				if (!GridSlots[Index]->GetInventoryItem().IsValid())
+				{
+					// 완전히 비어있는 슬롯 발견!
+					FInv_SlotAvailability NewSlot(Index, Item->GetTotalStackCount(), false);
+					CompletelyEmptySlots.Add(NewSlot);
+					UE_LOG(LogTemp, Warning, TEXT("[AddItem]   슬롯[%d]: 완전히 비어있음 ✅"), Index);
+					break; // 하나만 찾으면 충분 (1x1 아이템)
+				}
+			}
+		}
+		
+		if (CompletelyEmptySlots.Num() > 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[AddItem] ✅ 완전히 빈 슬롯 발견! 개수: %d"), CompletelyEmptySlots.Num());
+			
+			Result.SlotAvailabilities = CompletelyEmptySlots;
+			AddItemToIndices(Result, Item);
+			
+			UE_LOG(LogTemp, Warning, TEXT("[AddItem] ✅ 새 빈 슬롯에 배치 완료! EntryIndex=%d"), EntryIndex);
+			UE_LOG(LogTemp, Warning, TEXT("========== [AddItem] 아이템 추가 완료 =========="));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[AddItem] ❌ 완전히 빈 슬롯도 찾지 못했습니다! 인벤토리가 가득 참!"));
+			UE_LOG(LogTemp, Warning, TEXT("========== [AddItem] 아이템 추가 실패 =========="));
+		}
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("========== [AddItem] 아이템 추가 완료 =========="));
