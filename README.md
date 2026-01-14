@@ -3,7 +3,7 @@
 - 원본 프로젝트 링크 : https://www.udemy.com/course/unreal-engine-5-inventory-systems/
 
 강의 내용 -
-- 인벤토리 격자
+- 인벤토리 UI 형식
 - 클라이언트에서만 로직 처리
 - 프록시 메시
 
