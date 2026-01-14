@@ -1,6 +1,6 @@
 졸업작품 Helluna에 적용 할 인벤토리 시스템.
 - 헬루나 프로젝트 : https://github.com/Hamzzis99/Helluna
-- 원본 링크 : https://www.udemy.com/course/unreal-engine-5-inventory-systems/learn/lecture/50209351?start=45#questions
+- 원본 프로젝트 링크 : https://www.udemy.com/course/unreal-engine-5-inventory-systems/
 
 강의 내용 -
 - 인벤토리 격자
