@@ -16,5 +16,8 @@
   - 재료 위젯 컴포넌트 제작
   - Virtual Inventory (인벤토리 저장 대비)
 
-https://www.youtube.com/channel/UCYLGcMpLfJ8BTCcNO4YkKFA
+최근 유튜브 : https://www.youtube.com/channel/UCYLGcMpLfJ8BTCcNO4YkKFA
 
+추가로 개발 예정인 기능
+- 무기 장착 컴포넌트
+- 인벤토리 세이브 기능
