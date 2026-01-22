@@ -74,13 +74,17 @@ void UInv_SpatialInventory::EquippedGridSlotClicked(UInv_EquippedGridSlot* Equip
 	UInv_InventoryComponent* InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer());
 	check(IsValid(InventoryComponent)); 
 	
+	// ⭐ [WeaponBridge] 무기 슬롯 인덱스 전달
+	int32 WeaponSlotIndex = EquippedGridSlot->GetWeaponSlotIndex();
+	UE_LOG(LogTemp, Warning, TEXT("⭐ [SpatialInventory] 장착 슬롯 클릭 - WeaponSlotIndex: %d"), WeaponSlotIndex);
+	
 	//장착된 곳에 서버RPC를 생성하는 부분
-	InventoryComponent->Server_EquipSlotClicked(HoverItem->GetInventoryItem(), nullptr);
+	InventoryComponent->Server_EquipSlotClicked(HoverItem->GetInventoryItem(), nullptr, WeaponSlotIndex);
 	
 	//데디케이티드 서버 제약 조건 설정 (민우님에게도 알려줄 것.)
 	if (GetOwningPlayer()->GetNetMode() != NM_DedicatedServer)
 	{
-		InventoryComponent->OnItemEquipped.Broadcast(HoverItem->GetInventoryItem()); // 아이템 장착 델리게이트 방송
+		InventoryComponent->OnItemEquipped.Broadcast(HoverItem->GetInventoryItem(), WeaponSlotIndex); // 아이템 장착 델리게이트 방송
 	}
 	
 	// Clear the Hover item
@@ -108,6 +112,10 @@ void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem*
 	// 이 아이템을 보유한 장착된 그리드 슬롯 가져오기
 	UInv_EquippedGridSlot* EquippedGridSlot = FindSlotWithEquippedItem(ItemToUnequip);
 	
+	// ⭐ [WeaponBridge] 장착 해제 시 WeaponSlotIndex 가져오기
+	int32 WeaponSlotIndex = IsValid(EquippedGridSlot) ? EquippedGridSlot->GetWeaponSlotIndex() : -1;
+	UE_LOG(LogTemp, Warning, TEXT("⭐ [SpatialInventory] 장착 슬롯 아이템 클릭 (해제) - WeaponSlotIndex: %d"), WeaponSlotIndex);
+	
 	// Clear the equipped slot of this item (set it's inventory item to nullptr)
 	// 이 아이템의 슬롯을 지우기
 	ClearSlotOfItem(EquippedGridSlot);
@@ -126,7 +134,7 @@ void UInv_SpatialInventory::EquippedSlottedItemClicked(UInv_EquippedSlottedItem*
 	
 	// Broadcast delegates for OnItemEquipped/OnItemUnequipped (from the IC)
 	// IC에서 OnItemEquipped/OnItemUnequipped에 대한 델리게이트 방송
-	BroadcastSlotClickedDelegates(ItemToEquip, ItemToUnequip);
+	BroadcastSlotClickedDelegates(ItemToEquip, ItemToUnequip, WeaponSlotIndex);
 }
 
 // 마우스 버튼 다운 이벤트 처리 인벤토리 아이템 드롭
@@ -248,17 +256,24 @@ void UInv_SpatialInventory::MakeEquippedSlottedItem(UInv_EquippedSlottedItem* Eq
 	EquippedGridSlot->SetEquippedSlottedItem(SlottedItem);
 }
 
-void UInv_SpatialInventory::BroadcastSlotClickedDelegates(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip) const
+void UInv_SpatialInventory::BroadcastSlotClickedDelegates(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip, int32 WeaponSlotIndex) const
 {
 	UInv_InventoryComponent* InventoryComponent = UInv_InventoryStatics::GetInventoryComponent(GetOwningPlayer());
 	check(IsValid(InventoryComponent));
-	InventoryComponent->Server_EquipSlotClicked(ItemToEquip, ItemToUnequip);
+	InventoryComponent->Server_EquipSlotClicked(ItemToEquip, ItemToUnequip, WeaponSlotIndex);
 	
 	// 데디서버일경우는 이런 걸 걱정 할 필요 없다.
 	if (GetOwningPlayer()->GetNetMode() != NM_DedicatedServer)
 	{
-		InventoryComponent->OnItemEquipped.Broadcast(ItemToEquip);
-		InventoryComponent->OnItemUnequipped.Broadcast(ItemToUnequip);
+		// ⭐ [WeaponBridge] 유효한 아이템이 있을 때만 브로드캐스트
+		if (IsValid(ItemToEquip))
+		{
+			InventoryComponent->OnItemEquipped.Broadcast(ItemToEquip, WeaponSlotIndex);
+		}
+		if (IsValid(ItemToUnequip))
+		{
+			InventoryComponent->OnItemUnequipped.Broadcast(ItemToUnequip, WeaponSlotIndex);
+		}
 	}
 }
 

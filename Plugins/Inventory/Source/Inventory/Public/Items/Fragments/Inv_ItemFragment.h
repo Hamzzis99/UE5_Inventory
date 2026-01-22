@@ -267,10 +267,16 @@ struct FInv_EquipmentFragment : public FInv_InventoryItemFragment
 	virtual void Assimilate(UInv_CompositeBase* Composite) const override;
 	virtual void Manifest() override;
 	
-	AInv_EquipActor* SpawnAttachedActor(USkeletalMeshComponent* AttachMesh) const; // 장착 장비 스폰
+	AInv_EquipActor* SpawnAttachedActor(USkeletalMeshComponent* AttachMesh, int32 WeaponSlotIndex = -1) const; // 장착 장비 스폰 (WeaponSlotIndex로 소켓 결정)
 	void DestroyAttachedActor() const; // 장착 장비 파괴 (해제)
 	FGameplayTag GetEquipmentType() const {return EquipmentType;}
 	void SetEquippedActor(AInv_EquipActor* EquipActor);
+	
+	// ============================================
+	// ⭐ [WeaponBridge] EquippedActor Getter 추가
+	// ⭐ 클라이언트에서 리플리케이트된 액터 접근용
+	// ============================================
+	AInv_EquipActor* GetEquippedActor() const { return EquippedActor.Get(); }
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory") // 인벤토리 장착 아이템
