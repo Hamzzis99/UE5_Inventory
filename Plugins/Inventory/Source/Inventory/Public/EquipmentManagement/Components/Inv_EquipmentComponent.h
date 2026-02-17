@@ -77,66 +77,98 @@ public:
 	void HandleSecondaryWeaponInput();
 
 	// ============================================
+	// ⭐ [WeaponBridge] 무기 장착 애니메이션 진행 중 플래그
+	// ⭐ true일 때 HandlePrimary/SecondaryWeaponInput 차단
+	// ⭐ WeaponBridgeComponent에서 SetWeaponEquipping()을 통해 제어
+	// ============================================
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Weapon", meta = (DisplayName = "무기 장착 중 설정"))
+	void SetWeaponEquipping(bool bNewEquipping);
+
+	UFUNCTION(BlueprintPure, Category = "Inventory|Weapon", meta = (DisplayName = "무기 장착 중 여부"))
+	bool IsWeaponEquipping() const { return bIsWeaponEquipping; }
+
+	// ============================================
 	// ⭐ [WeaponBridge] 현재 활성 무기 슬롯 Getter
 	// ============================================
 	UFUNCTION(BlueprintPure, Category = "Inventory|Weapon", meta = (DisplayName = "활성 무기 슬롯 가져오기"))
 	EInv_ActiveWeaponSlot GetActiveWeaponSlot() const { return ActiveWeaponSlot; }
-	
+
 protected:
-	
+
 	virtual void BeginPlay() override;
+	
+	// 🆕 [Phase 6] 컴포넌트 파괴 시 장착 액터 정리
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	TWeakObjectPtr<UInv_InventoryComponent> InventoryComponent;
 	TWeakObjectPtr<APlayerController> OwningPlayerController;
 	TWeakObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh; // 아이템 장착 골격
-	
+
 	// 델리게이트 바인딩을 대비하기 위한 함수들 콜백 함수들 
 	UFUNCTION()
 	void OnItemEquipped(UInv_InventoryItem* EquippedItem, int32 WeaponSlotIndex);
 
 	UFUNCTION()
 	void OnItemUnequipped(UInv_InventoryItem* UnequippedItem, int32 WeaponSlotIndex);
-	
+
 	void InitPlayerController(); //멀티플레이
 	void InitInventoryComponent();
 	AInv_EquipActor* SpawnEquippedActor(FInv_EquipmentFragment* EquipmentFragment, const FInv_ItemManifest& Manifest, USkeletalMeshComponent* AttachMesh, int32 WeaponSlotIndex = -1);
-	
+
 	UPROPERTY()
 	TArray<TObjectPtr<AInv_EquipActor>> EquippedActors;
-	
-	AInv_EquipActor* FindEquippedActor(const FGameplayTag& EquipmentTypeTag); 
+
+	AInv_EquipActor* FindEquippedActor(const FGameplayTag& EquipmentTypeTag);
 	void RemoveEquippedActor(const FGameplayTag& EquipmentTypeTag, int32 WeaponSlotIndex = -1);
-	
+
 	UFUNCTION()
 	void OnPossessedPawnChange(APawn* OldPawn, APawn* NewPawn); // 멀티플레이 장착 아이템 변경 할 떄 폰 변경 시 호출되는 함수
-	
-	bool bIsProxy{false};
+
+	bool bIsProxy{ false };
 
 	// ============================================
 	// ⭐ [WeaponBridge] 무기 상태 관리
 	// ============================================
-	
+
 	// 현재 활성 무기 슬롯
 	UPROPERTY(VisibleAnywhere, Category = "Inventory|Weapon", meta = (DisplayName = "활성 무기 슬롯"))
 	EInv_ActiveWeaponSlot ActiveWeaponSlot = EInv_ActiveWeaponSlot::None;
 
+	// ⭐ 무기 장착 애니메이션 진행 중 플래그
+	UPROPERTY(VisibleAnywhere, Category = "Inventory|Weapon", meta = (DisplayName = "무기 장착 중"))
+	bool bIsWeaponEquipping = false;
+
 	// ============================================
 	// ⭐ [WeaponBridge] 무기 꺼내기/집어넣기 내부 함수
 	// ============================================
-	
+
 	// 주무기 꺼내기 (등 → 손)
 	void EquipPrimaryWeapon();
-	
+
 	// 보조무기 꺼내기 (등 → 손)
 	void EquipSecondaryWeapon();
-	
+
 	// 무기 집어넣기 (손 → 등)
 	void UnequipWeapon();
-	
+
 	// 주무기 Actor 찾기 (EquippedActors에서)
 	AInv_EquipActor* FindPrimaryWeaponActor();
-	
+
 	// 보조무기 Actor 찾기 (EquippedActors에서)
 	AInv_EquipActor* FindSecondaryWeaponActor();
+
+	//================== 김민우 수정 =====================
+	//		UnequipWeapon(); 외부에서 호출하는 함수	추가
+	//==================================================
+public:
+	void ActiveUnequipWeapon();
+
+	// ============================================
+	// 🆕 [Phase 6] 장착된 액터 목록 Getter
+	// ⭐ 저장 시 장착 상태 확인용
+	// ============================================
+	const TArray<TObjectPtr<AInv_EquipActor>>& GetEquippedActors() const { return EquippedActors; }
+
 };
+
