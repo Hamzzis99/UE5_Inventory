@@ -30,6 +30,7 @@
 // ════════════════════════════════════════════════════════════════════════════════
 
 #include "Items/Fragments/Inv_AttachmentFragments.h"
+#include "Inventory.h"  // INV_DEBUG_ATTACHMENT 매크로
 #include "Widgets/Composite/Inv_CompositeBase.h"
 
 
@@ -102,6 +103,28 @@ FInv_AttachedItemData FInv_AttachmentHostFragment::DetachItem(int32 SlotIndex)
 	return FInv_AttachedItemData(); // 빈 데이터 반환 (분리할 게 없음)
 }
 
+// ════════════════════════════════════════════════════════════════
+// 📌 [Phase 4] Manifest — AttachedItems 보존
+// ════════════════════════════════════════════════════════════════
+// 호출 경로: 아이템 생성/줍기 시 Manifest() 호출 체인 → 이 함수
+// 처리 흐름:
+//   ⚠️ 의도적으로 AttachedItems를 건드리지 않음!
+//   드롭/줍기 사이클에서 부착물 데이터가 보존되어야 하므로
+//   SlotDefinitions는 에디터 데이터이므로 변경 불필요
+// Phase 연결: Phase 4 드롭/줍기 확장
+// ════════════════════════════════════════════════════════════════
+void FInv_AttachmentHostFragment::Manifest()
+{
+	// ⚠️ 의도적으로 AttachedItems를 건드리지 않음!
+	// 드롭/줍기 시 부착물 데이터가 보존되어야 함
+	// SlotDefinitions는 에디터 데이터이므로 변경 불필요
+
+#if INV_DEBUG_ATTACHMENT
+	UE_LOG(LogTemp, Log, TEXT("[Attachment Drop] AttachmentHostFragment::Manifest() — AttachedItems %d개 보존"),
+		AttachedItems.Num());
+#endif
+}
+
 // 무기 장착 시 모든 부착물의 스탯 일괄 적용
 // Phase 2에서 EquipmentComponent::OnItemEquipped() 확장 시 호출
 // 흐름: 무기 OnEquip → OnEquipAllAttachments → 각 부착물 Modifier OnEquip
@@ -143,7 +166,13 @@ void FInv_AttachmentHostFragment::OnUnequipAllAttachments(APlayerController* PC)
 // Phase 2의 Server_AttachItemToWeapon에서 AttachItem 호출 전에 검증용
 bool FInv_AttachableFragment::CanAttachToSlot(const FInv_AttachmentSlotDef& SlotDef) const
 {
-	return AttachmentType.MatchesTagExact(SlotDef.SlotType);
+	const bool bResult = AttachmentType.MatchesTagExact(SlotDef.SlotType);
+#if INV_DEBUG_ATTACHMENT
+	UE_LOG(LogTemp, Log, TEXT("[Attachment] CanAttachToSlot: 부착물=%s, 슬롯=%s → %s"),
+		*AttachmentType.ToString(), *SlotDef.SlotType.ToString(),
+		bResult ? TEXT("호환") : TEXT("불일치"));
+#endif
+	return bResult;
 }
 
 // 부착물 장착 시 스탯 적용 — 기존 FInv_EquipmentFragment::OnEquip과 동일한 패턴

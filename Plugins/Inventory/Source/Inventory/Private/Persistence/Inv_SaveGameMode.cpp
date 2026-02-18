@@ -24,6 +24,7 @@
 #include "EquipmentManagement/Components/Inv_EquipmentComponent.h"
 #include "EquipmentManagement/EquipActor/Inv_EquipActor.h"
 #include "Items/Components/Inv_ItemComponent.h"
+#include "Items/Fragments/Inv_AttachmentFragments.h"
 #include "GameplayTagContainer.h"
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -58,7 +59,9 @@ void AInv_SaveGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (bForceSaveOnListenServerShutdown &&
 		(GetNetMode() == NM_ListenServer || EndPlayReason == EEndPlayReason::Quit))
 	{
+#if INV_DEBUG_SAVE
 		UE_LOG(LogInventory, Warning, TEXT("[SaveGameMode] EndPlay - 리슨서버 종료 감지, 인벤토리 강제 저장 시작"));
+#endif
 		SaveAllPlayersInventory();
 	}
 
@@ -183,7 +186,14 @@ int32 AInv_SaveGameMode::SaveAllPlayersInventory()
 // ════════════════════════════════════════════════════════════════════════════════
 void AInv_SaveGameMode::OnPlayerInventoryLogout(const FString& PlayerId, APlayerController* PC)
 {
-	if (PlayerId.IsEmpty()) return;
+	if (PlayerId.IsEmpty())
+	{
+		UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] ❌ PlayerId 비어있음! 저장 중단!"));
+		return;
+	}
+#if INV_DEBUG_SAVE
+	UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] PlayerId='%s' 찾음!"), *PlayerId);
+#endif
 
 	// 인벤토리 저장
 	SavePlayerInventory(PlayerId, PC);
@@ -210,6 +220,11 @@ void AInv_SaveGameMode::OnInventoryControllerEndPlay(
 {
 	if (!IsValid(PlayerController)) return;
 
+#if INV_DEBUG_SAVE
+	UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] OnInventoryControllerEndPlay 진입! Controller=%s, SavedItems=%d"),
+		*GetNameSafe(PlayerController), SavedItems.Num());
+#endif
+
 	// ── PlayerId 찾기 ──
 	FString PlayerId;
 	if (FString* FoundPlayerId = ControllerToPlayerIdMap.Find(PlayerController))
@@ -222,7 +237,14 @@ void AInv_SaveGameMode::OnInventoryControllerEndPlay(
 		PlayerId = GetPlayerSaveId(PlayerController);
 	}
 
-	if (PlayerId.IsEmpty()) return;
+	if (PlayerId.IsEmpty())
+	{
+		UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] ❌ PlayerId 비어있음! 저장 중단!"));
+		return;
+	}
+#if INV_DEBUG_SAVE
+	UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] PlayerId='%s' 찾음!"), *PlayerId);
+#endif
 
 	// ── 장착 정보 병합 ──
 	// SavedItems에 장착 정보가 없으면 캐시된 데이터에서 복원
@@ -287,7 +309,14 @@ void AInv_SaveGameMode::LoadAndSendInventoryToClient(APlayerController* PC)
 	if (!HasAuthority() || !IsValid(PC)) return;
 
 	FString PlayerId = GetPlayerSaveId(PC);
-	if (PlayerId.IsEmpty()) return;
+	if (PlayerId.IsEmpty())
+	{
+		UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] ❌ PlayerId 비어있음! 저장 중단!"));
+		return;
+	}
+#if INV_DEBUG_SAVE
+	UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] PlayerId='%s' 찾음!"), *PlayerId);
+#endif
 
 	if (!IsValid(InventorySaveGame)) return;
 
@@ -322,7 +351,154 @@ void AInv_SaveGameMode::LoadAndSendInventoryToClient(APlayerController* PC)
 			continue;
 		}
 
-		// 인벤토리에 추가
+		// ── [Phase 6 Attachment] 부착물 복원 ──
+		// 아이템을 인벤토리에 추가하기 전에, 저장된 부착물 데이터를
+		// ItemComponent의 Manifest에 주입하여 복원
+		if (ItemData.Attachments.Num() > 0)
+		{
+	#if INV_DEBUG_ATTACHMENT
+		UE_LOG(LogTemp, Error, TEXT("[로드복원] 부착물 복원 시작: 무기=%s, 부착물=%d개"),
+				*ItemData.ItemType.ToString(), ItemData.Attachments.Num());
+#endif
+
+			FInv_ItemManifest WeaponManifest = ItemComp->GetItemManifest();
+			FInv_AttachmentHostFragment* HostFrag = WeaponManifest.GetFragmentOfTypeMutable<FInv_AttachmentHostFragment>();
+
+			UE_LOG(LogTemp, Error, TEXT("[로드복원] HostFrag=%s"),
+				HostFrag ? TEXT("유효") : TEXT("nullptr — 복원 불가!"));
+
+			if (HostFrag)
+			{
+				for (const FInv_SavedAttachmentData& AttSave : ItemData.Attachments)
+				{
+					// 부착물 아이템 액터를 임시 스폰하여 Manifest 복사
+					TSubclassOf<AActor> AttachClass = ResolveItemClass(AttSave.AttachmentItemType);
+
+					UE_LOG(LogTemp, Error, TEXT("[로드복원]   부착물[%d] Type=%s, ResolveClass=%s"),
+						AttSave.SlotIndex, *AttSave.AttachmentItemType.ToString(),
+						AttachClass ? TEXT("성공") : TEXT("실패! — DataTable 매핑 없음"));
+
+					if (!AttachClass) continue;
+
+					AActor* TempActor = GetWorld()->SpawnActor<AActor>(
+						AttachClass,
+						FVector(0.f, 0.f, -10000.f),
+						FRotator::ZeroRotator,
+						SpawnParams);
+					if (!IsValid(TempActor)) continue;
+
+					UInv_ItemComponent* TempItemComp = TempActor->FindComponentByClass<UInv_ItemComponent>();
+					if (!IsValid(TempItemComp))
+					{
+						TempActor->Destroy();
+						continue;
+					}
+
+					// FInv_AttachedItemData 구성 → HostFragment에 부착
+					FInv_AttachedItemData AttachedData;
+					AttachedData.SlotIndex = AttSave.SlotIndex;
+					AttachedData.AttachmentItemType = AttSave.AttachmentItemType;
+					AttachedData.ItemManifestCopy = TempItemComp->GetItemManifest();
+
+					// ════════════════════════════════════════════════════════════════
+					// 📌 [Phase 1 최적화] 부착물 Fragment 역직렬화
+					// ════════════════════════════════════════════════════════════════
+					if (AttSave.SerializedManifest.Num() > 0)
+					{
+						if (AttachedData.ItemManifestCopy.DeserializeAndApplyFragments(AttSave.SerializedManifest))
+						{
+#if INV_DEBUG_SAVE
+							UE_LOG(LogTemp, Warning,
+								TEXT("[로드복원]   ✅ 부착물 Fragment 역직렬화 성공: %s (%d바이트)"),
+								*AttSave.AttachmentItemType.ToString(), AttSave.SerializedManifest.Num());
+#endif
+						}
+						else
+						{
+							UE_LOG(LogTemp, Error,
+								TEXT("[로드복원]   ❌ 부착물 Fragment 역직렬화 실패: %s — CDO 기본값 사용"),
+								*AttSave.AttachmentItemType.ToString());
+						}
+					}
+
+					HostFrag->AttachItem(AttSave.SlotIndex, AttachedData);
+
+	#if INV_DEBUG_ATTACHMENT
+				UE_LOG(LogTemp, Error, TEXT("[로드복원]   부착물 복원 완료: %s → 슬롯 %d (현재 AttachedItems=%d)"),
+						*AttSave.AttachmentItemType.ToString(), AttSave.SlotIndex,
+						HostFrag->GetAttachedItems().Num());
+
+					UE_LOG(LogInventory, Log,
+						TEXT("[Attachment Save] 부착물 복원: %s → 슬롯 %d"),
+						*AttSave.AttachmentItemType.ToString(),
+						AttSave.SlotIndex);
+#endif
+
+					// 임시 액터 정리
+					TempActor->Destroy();
+				}
+
+				// 수정된 Manifest를 ItemComponent에 반영
+				ItemComp->InitItemManifest(WeaponManifest);
+
+	#if INV_DEBUG_ATTACHMENT
+			// 복원 후 검증: InitItemManifest 후에도 부착물이 유지되는지 확인
+				{
+					const FInv_AttachmentHostFragment* VerifyHost =
+						ItemComp->GetItemManifest().GetFragmentOfType<FInv_AttachmentHostFragment>();
+					UE_LOG(LogTemp, Error, TEXT("[로드복원] InitItemManifest 후 검증: HostFrag=%s, AttachedItems=%d"),
+						VerifyHost ? TEXT("유효") : TEXT("nullptr"),
+						VerifyHost ? VerifyHost->GetAttachedItems().Num() : -1);
+				}
+#endif
+			}
+		}
+
+		// ════════════════════════════════════════════════════════════════
+		// 📌 [Phase 1 최적화] Fragment 역직렬화 — 랜덤 스탯 복원
+		// ════════════════════════════════════════════════════════════════
+		// 저장된 바이너리 데이터에서 Fragment 값을 복원
+		//
+		// 처리 순서가 중요:
+		//   1. SpawnActor → CDO의 기본 Manifest (에셋 참조 포함)
+		//   2. [부착물 복원] → AttachedItems 주입
+		//   3. [여기] → Fragment 값 덮어쓰기 (랜덤 스탯 복원)
+		//   4. Server_AddNewItem → Manifest() → bRandomize=false이므로 값 유지
+		// ════════════════════════════════════════════════════════════════
+		if (ItemData.SerializedManifest.Num() > 0)
+		{
+			FInv_ItemManifest RestoredManifest = ItemComp->GetItemManifest();
+
+			if (RestoredManifest.DeserializeAndApplyFragments(ItemData.SerializedManifest))
+			{
+				// 역직렬화 성공 → ItemComponent에 반영
+				ItemComp->InitItemManifest(RestoredManifest);
+
+#if INV_DEBUG_SAVE
+				UE_LOG(LogTemp, Warning,
+					TEXT("[로드복원] ✅ [Phase 1 최적화] Fragment 역직렬화 성공: %s (%d바이트)"),
+					*ItemData.ItemType.ToString(), ItemData.SerializedManifest.Num());
+#endif
+			}
+			else
+			{
+				// 역직렬화 실패 → CDO 기본값 사용 (재랜덤)
+				UE_LOG(LogTemp, Error,
+					TEXT("[로드복원] ❌ [Phase 1 최적화] Fragment 역직렬화 실패: %s — CDO 기본값 사용"),
+					*ItemData.ItemType.ToString());
+			}
+		}
+		else
+		{
+#if INV_DEBUG_SAVE
+			// SaveVersion 2 이하 데이터 — SerializedManifest 없음 → 하위 호환 (CDO 기본값)
+			UE_LOG(LogTemp, Warning,
+				TEXT("[로드복원] ℹ️ [Phase 1 최적화] SerializedManifest 없음 (v2 하위호환): %s"),
+				*ItemData.ItemType.ToString());
+#endif
+		}
+
+		// 인벤토리에 추가 (부착물 데이터가 이미 포함된 상태)
 		InvComp->Server_AddNewItem(ItemComp, ItemData.StackCount, 0);
 
 		// 그리드 위치 설정
@@ -511,7 +687,14 @@ void AInv_SaveGameMode::OnPlayerInventoryStateReceived(
 	const TArray<FInv_SavedItemData>& SavedItems)
 {
 	FString PlayerId = GetPlayerSaveId(PlayerController);
-	if (PlayerId.IsEmpty()) return;
+	if (PlayerId.IsEmpty())
+	{
+		UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] ❌ PlayerId 비어있음! 저장 중단!"));
+		return;
+	}
+#if INV_DEBUG_SAVE
+	UE_LOG(LogTemp, Error, TEXT("🔍 [SavePipeline] PlayerId='%s' 찾음!"), *PlayerId);
+#endif
 
 	SaveCollectedItems(PlayerId, SavedItems);
 }

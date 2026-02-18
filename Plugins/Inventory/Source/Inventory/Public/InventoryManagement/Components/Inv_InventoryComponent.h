@@ -90,6 +90,22 @@ public:
 	
 	UFUNCTION(Server, Reliable) // 신뢰하는 것? 서버에 전달하는 것?
 	void Server_EquipSlotClicked(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip, int32 WeaponSlotIndex = -1);
+
+	// ════════════════════════════════════════════════════════════════
+	// 📌 [부착물 시스템 Phase 2] 부착/분리 Server RPC
+	// ════════════════════════════════════════════════════════════════
+
+	// 부착물 장착: 인벤토리 Grid에서 부착물을 무기 슬롯에 장착
+	UFUNCTION(Server, Reliable)
+	void Server_AttachItemToWeapon(int32 WeaponEntryIndex, int32 AttachmentEntryIndex, int32 SlotIndex);
+
+	// 부착물 분리: 무기 슬롯에서 부착물을 분리하여 인벤토리 Grid로 복귀
+	UFUNCTION(Server, Reliable)
+	void Server_DetachItemFromWeapon(int32 WeaponEntryIndex, int32 SlotIndex);
+
+	// 호환성 체크 (UI에서 드래그 중 슬롯 하이라이트용, 읽기 전용)
+	UFUNCTION(BlueprintCallable, Category = "Inventory|Attachment")
+	bool CanAttachToWeapon(int32 WeaponEntryIndex, int32 AttachmentEntryIndex, int32 SlotIndex) const;
 	
 	UFUNCTION(NetMulticast, Reliable) // 멀티캐스트 함수 (서버에서 모든 클라이언트로 호출)
 	void Multicast_EquipSlotClicked(UInv_InventoryItem* ItemToEquip, UInv_InventoryItem* ItemToUnequip, int32 WeaponSlotIndex = -1);
@@ -117,6 +133,13 @@ public:
 
 	// ⭐ [Phase 5 Fix] 마지막으로 추가된 Entry의 Grid 위치 설정 (로드 시 사용)
 	void SetLastEntryGridPosition(int32 GridIndex, uint8 GridCategory);
+
+	// ════════════════════════════════════════════════════════════════
+	// 📌 [부착물 시스템 Phase 3] Entry Index 검색 헬퍼
+	// ════════════════════════════════════════════════════════════════
+	// 아이템 포인터로 현재 InventoryList의 Entry Index를 찾는다.
+	// Entry가 추가/제거되면 인덱스가 변하므로, 캐시된 값 대신 이 함수를 사용할 것.
+	int32 FindEntryIndexForItem(const UInv_InventoryItem* Item) const;
 
 	// ⭐ [Phase 4 개선] 서버에서 직접 인벤토리 데이터 수집 (Logout 시 저장용)
 	// RPC 없이 서버의 FastArray에서 직접 읽어서 반환

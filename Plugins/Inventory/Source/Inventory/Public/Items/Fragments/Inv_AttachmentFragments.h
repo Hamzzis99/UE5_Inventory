@@ -141,6 +141,15 @@ struct FInv_AttachmentHostFragment : public FInv_ItemFragment
 	void OnEquipAllAttachments(APlayerController* PC);
 	void OnUnequipAllAttachments(APlayerController* PC);
 
+	// ════════════════════════════════════════════════════════════════
+	// 📌 [Phase 4] Manifest 시 AttachedItems 보존
+	// ════════════════════════════════════════════════════════════════
+	// 기본 Manifest()는 Fragment를 초기화하지만
+	// AttachedItems는 런타임 장착 데이터이므로 보존해야 함
+	// 드롭/줍기 시 부착물 데이터가 유지됨
+	// ════════════════════════════════════════════════════════════════
+	virtual void Manifest() override;
+
 private:
 	// 에디터에서 정의하는 슬롯 배열 (예: 총은 [Scope, Muzzle, Grip] 3개)
 	UPROPERTY(EditAnywhere, Category = "Attachment", meta = (DisplayName = "SlotDefinitions (슬롯 정의 배열)", Tooltip = "이 무기가 가진 부착물 슬롯 목록"))
@@ -179,6 +188,11 @@ struct FInv_AttachableFragment : public FInv_InventoryItemFragment
 	UStaticMesh* GetAttachmentMesh() const { return AttachmentMesh; }
 	const FTransform& GetAttachOffset() const { return AttachOffset; }
 
+	// [Phase 7] 효과 플래그 Getter
+	bool GetIsSuppressor() const { return bIsSuppressor; }
+	float GetZoomFOVOverride() const { return ZoomFOVOverride; }
+	bool GetIsLaser() const { return bIsLaser; }
+
 	// UI 동화 / Manifest 초기화
 	virtual void Assimilate(UInv_CompositeBase* Composite) const override;
 	virtual void Manifest() override;
@@ -201,4 +215,31 @@ private:
 	// 예: DamageModifier +5, ArmorModifier +3
 	UPROPERTY(EditAnywhere, Category = "Attachment", meta = (ExcludeBaseStruct, DisplayName = "EquipModifiers (장착 효과 목록)", Tooltip = "부착물 장착 시 적용될 스탯 효과들"))
 	TArray<TInstancedStruct<FInv_EquipModifier>> EquipModifiers;
+
+	// ════════════════════════════════════════════════════════════════
+	// [Phase 7] 부착물 효과 플래그
+	// ════════════════════════════════════════════════════════════════
+	// BP 에디터에서 체크/값 입력으로 효과를 설정한다.
+	// EquipActor::ApplyAttachmentEffects / RemoveAttachmentEffects에서 getter로 읽는다.
+	// 새 효과 추가 시 여기에 UPROPERTY + getter 1쌍만 추가하면 된다.
+	// ════════════════════════════════════════════════════════════════
+
+	// 소음기 여부 — true이면 EquipActor의 SuppressedFireSound를 사용한다
+	UPROPERTY(EditAnywhere, Category = "Attachment|Effects",
+		meta = (DisplayName = "소음기 여부",
+				Tooltip = "체크하면 무기 BP에 설정된 소음기 사운드로 전환"))
+	bool bIsSuppressor = false;
+
+	// 줌 FOV 오버라이드 — 0보다 크면 조준 시 이 FOV를 적용한다
+	UPROPERTY(EditAnywhere, Category = "Attachment|Effects",
+		meta = (DisplayName = "줌 FOV 오버라이드",
+				Tooltip = "0보다 크면 조준 시 이 FOV 사용 (예: 45 = 약 2배율)",
+				ClampMin = 0.0, ClampMax = 120.0))
+	float ZoomFOVOverride = 0.f;
+
+	// 레이저 여부 — true이면 EquipActor의 LaserBeamComponent를 활성화한다
+	UPROPERTY(EditAnywhere, Category = "Attachment|Effects",
+		meta = (DisplayName = "레이저 여부",
+				Tooltip = "체크하면 무기의 레이저 컴포넌트를 활성화"))
+	bool bIsLaser = false;
 };
