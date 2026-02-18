@@ -344,3 +344,113 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (DisplayName = "EquipmentType (장비 타입 태그)", Tooltip = "장비 종류를 구분하는 GameplayTag (예: Weapon.Sword, Armor.Helmet)"))
 	FGameplayTag EquipmentType = FGameplayTag::EmptyTag; // 장비 타입 태그
 };
+
+// ════════════════════════════════════════════════════════════════════════════════
+// 🔮 [미래 기능] 아이템 등급/레어리티 시스템
+// ════════════════════════════════════════════════════════════════════════════════
+//
+// ⚠️ 주의: 이 기능은 아직 구현하지 않음!
+//    "등급 / 레어리티" 만들어줘  ← 이 명령어가 올 때만 구현할 것
+//    그 전까지는 절대 코드를 작성하지 말 것
+//
+// ════════════════════════════════════════════════════════════════════════════════
+//
+// 📌 개요:
+//    FInv_LabeledValueFragment의 랜덤 스탯 값(Min~Max)을 기반으로
+//    아이템 등급(레어리티)을 자동 산정하는 시스템
+//
+// 📌 등급 정의 (UENUM):
+//    enum class EInv_ItemRarity : uint8
+//    {
+//        Common     = 0,   // 일반   — 회색/흰색
+//        Uncommon   = 1,   // 고급   — 초록색
+//        Rare       = 2,   // 희귀   — 파란색
+//        Epic       = 3,   // 영웅   — 보라색
+//        Legendary  = 4,   // 전설   — 주황색/금색
+//    };
+//
+// 📌 등급 산정 로직 (FInv_RarityFragment):
+//
+//    1. 아이템의 모든 FInv_LabeledValueFragment를 수집
+//    2. 각 Fragment의 Value가 Min~Max 범위에서 어디에 위치하는지 백분율 계산:
+//       float Ratio = (Value - Min) / (Max - Min);   // 0.0 ~ 1.0
+//    3. 전체 Fragment의 Ratio 평균을 구함:
+//       float AverageRatio = Sum(Ratio) / FragmentCount;
+//    4. 평균 비율로 등급 결정:
+//       0.0  ~ 0.2  → Common     (하위 20%)
+//       0.2  ~ 0.4  → Uncommon
+//       0.4  ~ 0.6  → Rare
+//       0.6  ~ 0.8  → Epic
+//       0.8  ~ 1.0  → Legendary  (상위 20%)
+//
+//    ⚠️ 예시: 무기에 "공격력(10~50)", "치명타(1~10)" 두 Fragment가 있을 때
+//       공격력 Value=45 → Ratio = (45-10)/(50-10) = 0.875
+//       치명타 Value=3  → Ratio = (3-1)/(10-1) = 0.222
+//       AverageRatio = (0.875 + 0.222) / 2 = 0.548 → Rare 등급
+//
+// 📌 새로 만들 Fragment:
+//
+//    USTRUCT(BlueprintType)
+//    struct FInv_RarityFragment : public FInv_ItemFragment
+//    {
+//        GENERATED_BODY()
+//
+//        EInv_ItemRarity GetRarity() const { return CachedRarity; }
+//        FLinearColor GetRarityColor() const;       // 등급별 테두리 색상 반환
+//        FText GetRarityDisplayName() const;        // "전설", "희귀" 등 텍스트
+//
+//        // Manifest() 시점에 호출 — 같은 Manifest 내 LabeledValueFragment들을 읽어서 등급 계산
+//        virtual void Manifest() override;
+//
+//    private:
+//        EInv_ItemRarity CachedRarity = EInv_ItemRarity::Common;
+//
+//        // 등급 임계값 (BP에서 커스터마이즈 가능)
+//        UPROPERTY(EditAnywhere) float UncommonThreshold = 0.2f;
+//        UPROPERTY(EditAnywhere) float RareThreshold     = 0.4f;
+//        UPROPERTY(EditAnywhere) float EpicThreshold     = 0.6f;
+//        UPROPERTY(EditAnywhere) float LegendaryThreshold= 0.8f;
+//    };
+//
+// 📌 Manifest() 구현 핵심:
+//    - FInv_ItemManifest::Manifest()에서 각 Fragment의 Manifest()를 호출함
+//    - FInv_RarityFragment::Manifest()가 호출될 때,
+//      부모 Manifest의 GetAllFragmentsOfType<FInv_LabeledValueFragment>()로
+//      스탯 Fragment들을 읽어서 위 로직으로 등급 계산
+//    - ⚠️ 순서 의존성: RarityFragment는 LabeledValueFragment보다 뒤에 와야 함
+//      (LabeledValueFragment의 Manifest()가 먼저 Value를 랜덤 확정해야 하므로)
+//    - Fragments 배열에서 RarityFragment를 마지막에 배치하면 해결됨
+//
+// 📌 수정 필요 파일:
+//    1. Inv_ItemFragment.h   — FInv_RarityFragment 구조체 추가 (이 파일)
+//    2. Inv_ItemManifest.h   — GetRarity() 헬퍼 함수 추가
+//       EInv_ItemRarity GetRarity() const {
+//           if (auto* Frag = GetFragmentOfType<FInv_RarityFragment>())
+//               return Frag->GetRarity();
+//           return EInv_ItemRarity::Common;
+//       }
+//    3. Inv_GridSlot.h/.cpp  — 등급별 테두리 색상 적용
+//       SetRarityBorderColor(Item->GetItemManifest().GetRarity());
+//       → Brush TintColor를 등급 색상으로 변경
+//    4. Inv_ItemDescription.h/.cpp — 등급 텍스트 표시
+//       "⚔️ 전설 등급" 같은 텍스트를 아이템 설명 팝업 상단에 추가
+//    5. Inv_HoverItem.h/.cpp — 드래그 중 아이템에도 등급 테두리 반영
+//
+// 📌 등급별 색상 맵 (GetRarityColor 구현):
+//    Common    → FLinearColor(0.5, 0.5, 0.5, 1)   // 회색
+//    Uncommon  → FLinearColor(0.1, 0.8, 0.2, 1)   // 초록
+//    Rare      → FLinearColor(0.2, 0.4, 1.0, 1)   // 파랑
+//    Epic      → FLinearColor(0.6, 0.2, 0.9, 1)   // 보라
+//    Legendary → FLinearColor(1.0, 0.6, 0.0, 1)   // 주황/금
+//
+// 📌 저장/로드 영향:
+//    CachedRarity는 SerializedManifest에 자동 포함됨
+//    (기존 Phase 3 직렬화 시스템이 Fragment 전체를 저장하므로)
+//    → 추가 저장 로직 불필요
+//
+// 📌 리플리케이션 영향:
+//    FastArray의 UInv_InventoryItem이 Manifest를 들고 있으므로
+//    MarkItemDirty() 시 자동 리플리케이션됨
+//    → 추가 리플리케이션 로직 불필요
+//
+// ════════════════════════════════════════════════════════════════════════════════
