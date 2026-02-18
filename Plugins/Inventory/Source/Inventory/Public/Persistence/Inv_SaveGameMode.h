@@ -150,15 +150,17 @@ public:
 	// ════════════════════════════════════════════════════════════════
 
 	/**
-	 * 인벤토리 로드 후 아이템 스폰 및 클라이언트 전송
+	 * 인벤토리 로드 후 클라이언트 전송
 	 *
-	 * 📌 처리 흐름:
+	 * 📌 처리 흐름 (Phase 4 — CDO 기반, SpawnActor 제거):
 	 *   1. GetPlayerSaveId(PC) → PlayerId
 	 *   2. InventorySaveGame->LoadPlayer(PlayerId, LoadedData)
 	 *   3. 각 아이템에 대해:
 	 *      a. ResolveItemClass(ItemType) → ActorClass (게임별 override)
-	 *      b. SpawnActor → ItemComponent 확인 → InvComp->Server_AddNewItem()
-	 *      c. 그리드 위치 복원 (SetLastEntryGridPosition)
+	 *      b. FindItemComponentTemplate(CDO/SCS) → Manifest 복사
+	 *      c. 부착물 복원 (CDO 기반), Fragment 역직렬화
+	 *      d. AddItemFromManifest() → 인벤토리에 직접 추가
+	 *      e. 그리드 위치 복원 (SetLastEntryGridPosition)
 	 *   4. 장착 복원:
 	 *      a. 데디서버: OnItemEquipped.Broadcast() 실행
 	 *      b. 리슨서버: 스킵 (Client RPC 경로에서 처리 — 이중 실행 방지)
@@ -262,6 +264,17 @@ public:
 	 */
 	static void MergeEquipmentState(APlayerController* PC, TArray<FInv_SavedItemData>& Items);
 
+	/**
+	 * [Phase 4] CDO/SCS에서 UInv_ItemComponent 템플릿 추출
+	 *
+	 * Blueprint에서 추가된 컴포넌트는 CDO->FindComponentByClass()로 접근 불가.
+	 * SimpleConstructionScript의 노드 트리에서 ComponentTemplate을 직접 탐색.
+	 *
+	 * @param ActorClass  아이템 Actor의 Blueprint 클래스
+	 * @return UInv_ItemComponent 템플릿 (CDO 소유, 수정 금지!). 실패 시 nullptr.
+	 */
+	static UInv_ItemComponent* FindItemComponentTemplate(TSubclassOf<AActor> ActorClass);
+
 	/** Controller에 EndPlay 델리게이트 바인딩 */
 	void BindInventoryEndPlay(AInv_PlayerController* InvPC);
 
@@ -329,4 +342,29 @@ protected:
 private:
 	/** 자동저장 타이머 핸들 */
 	FTimerHandle AutoSaveTimerHandle;
+
+	// ── Phase 1: 자동저장 배칭 ──
+
+	/** 자동저장 배칭 진행 중 여부 */
+	bool bAutoSaveBatchInProgress = false;
+
+	/** 아직 응답을 받지 못한 플레이어 수 */
+	int32 PendingAutoSaveCount = 0;
+
+	/** 배칭 타임아웃 타이머 핸들 */
+	FTimerHandle AutoSaveBatchTimeoutHandle;
+
+	/** 배칭 타임아웃 시간 (초) — 이 시간 안에 미응답 플레이어는 무시 */
+	static constexpr float AutoSaveBatchTimeoutSeconds = 5.0f;
+
+	/** 배칭된 데이터를 디스크에 1회 기록 */
+	void FlushAutoSaveBatch();
+
+	/** 배칭 타임아웃 콜백 */
+	void OnAutoSaveBatchTimeout();
+
+	// ── Phase 2: 비동기 저장 중복 방지 ──
+
+	/** 비동기 디스크 저장이 진행 중인지 여부 */
+	bool bAsyncSaveInProgress = false;
 };
