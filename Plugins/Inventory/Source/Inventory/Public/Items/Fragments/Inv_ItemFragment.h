@@ -8,6 +8,7 @@
 
 class APlayerController;
 class AInv_EquipActor;
+class UStaticMesh;
 
 // ════════════════════════════════════════════════════════════════════════════════
 // 📌 FInv_ItemFragment - 아이템 프래그먼트 기본 구조체
@@ -327,6 +328,25 @@ struct FInv_EquipmentFragment : public FInv_InventoryItemFragment
 	// ============================================
 	AInv_EquipActor* GetEquippedActor() const { return EquippedActor.Get(); }
 
+	// ════════════════════════════════════════════════════════════════
+	// 📌 [Phase 8] 프리뷰 메시 Getter
+	// ════════════════════════════════════════════════════════════════
+	// 사용처: Inv_AttachmentPanel::OpenForWeapon()
+	//   → EquipFrag->HasPreviewMesh()로 3D 프리뷰 가능 여부 판단
+	//   → EquipFrag->GetPreviewStaticMesh().LoadSynchronous()로 메시 로드
+	// ════════════════════════════════════════════════════════════════
+
+	TSoftObjectPtr<UStaticMesh> GetPreviewStaticMesh() const { return PreviewStaticMesh; }
+	FRotator GetPreviewRotationOffset() const { return PreviewRotationOffset; }
+	float GetPreviewCameraDistance() const { return PreviewCameraDistance; }
+
+	// 프리뷰 메시가 설정되어 있는지 확인
+	// Null이면 AttachmentPanel에서 2D 아이콘으로 폴백
+	bool HasPreviewMesh() const { return !PreviewStaticMesh.IsNull(); }
+
+	// ── 디자인타임 값 복원 (세이브/로드 후) ──
+	void RestoreDesignTimePreview(const FInv_EquipmentFragment& CDOEquip);
+
 private:
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (ExcludeBaseStruct, DisplayName = "EquipModifiers (장비 효과 목록)", Tooltip = "장착 시 적용될 스탯 효과들 (공격력, 방어력 등)"))
 	TArray<TInstancedStruct<FInv_EquipModifier>> EquipModifiers;
@@ -343,6 +363,49 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (DisplayName = "EquipmentType (장비 타입 태그)", Tooltip = "장비 종류를 구분하는 GameplayTag (예: Weapon.Sword, Armor.Helmet)"))
 	FGameplayTag EquipmentType = FGameplayTag::EmptyTag; // 장비 타입 태그
+
+	// ════════════════════════════════════════════════════════════════
+	// 📌 [Phase 8] 무기 3D 프리뷰 설정
+	// ════════════════════════════════════════════════════════════════
+	// 부착물 패널 중앙에 SceneCaptureComponent2D로 촬영하여 표시할 메시.
+	//
+	// TSoftObjectPtr 사용 이유:
+	//   - 하드 참조(TObjectPtr)를 쓰면 아이템 Manifest 로드 시 메시도 동시 로드됨
+	//   - 인벤토리에 무기 20개 있으면 20개 메시가 전부 메모리에 올라감
+	//   - TSoftObjectPtr은 경로만 저장, 실제 메시는 LoadSynchronous() 시점에만 로드
+	//   - 부착물 패널을 열 때만 로드 → 메모리 효율적
+	//
+	// BP 설정 방법:
+	//   BP_Inv_Rifle → ItemManifest → Fragments → EquipmentFragment
+	//   → "프리뷰 메시" 슬롯에 SM_Rifle_Preview 에셋 드래그&드롭
+	//
+	// 미설정 시 동작:
+	//   PreviewStaticMesh이 Null이면 기존 Image_WeaponIcon(2D 아이콘)으로 대체 표시
+	//   AttachmentPanel::OpenForWeapon()에서 HasPreviewMesh() 체크 후 분기
+	// ════════════════════════════════════════════════════════════════
+
+	// 부착물 패널 중앙에 표시할 StaticMesh
+	// 에셋 경로만 저장하고, 패널을 열 때 LoadSynchronous()로 로드
+	UPROPERTY(EditAnywhere, Category = "Inventory|Preview",
+		meta = (DisplayName = "프리뷰 메시 (StaticMesh)",
+				Tooltip = "부착물 패널 중앙에 3D로 표시할 메시. 미설정 시 2D 아이콘으로 대체."))
+	TSoftObjectPtr<UStaticMesh> PreviewStaticMesh;
+
+	// 프리뷰 표시 시 초기 회전 (총구 방향, 기울기 조정용)
+	// 예: 총구가 오른쪽을 향하게 하려면 Yaw = -90
+	UPROPERTY(EditAnywhere, Category = "Inventory|Preview",
+		meta = (DisplayName = "프리뷰 회전 오프셋",
+				Tooltip = "프리뷰 메시의 초기 회전. 총구 방향 조정에 사용. 예: Yaw=-90으로 총구를 오른쪽으로."))
+	FRotator PreviewRotationOffset = FRotator::ZeroRotator;
+
+	// SceneCapture 카메라와 메시 사이 거리
+	// 0이면 메시의 BoundingSphere 기준으로 자동 계산
+	// 큰 무기(런처)는 값을 크게, 작은 무기(권총)는 작게 조정
+	UPROPERTY(EditAnywhere, Category = "Inventory|Preview",
+		meta = (DisplayName = "프리뷰 카메라 거리",
+				Tooltip = "SceneCapture 카메라에서 메시까지 거리. 0이면 메시 크기 기반 자동 계산.",
+				ClampMin = 0.0))
+	float PreviewCameraDistance = 0.f;
 };
 
 // ════════════════════════════════════════════════════════════════════════════════
