@@ -31,7 +31,7 @@
 void UInv_AttachmentSlotWidget::InitSlot(int32 InSlotIndex, const FInv_AttachmentSlotDef& SlotDef, const FInv_AttachedItemData* AttachedData)
 {
 	SlotIndex = InSlotIndex;
-	SlotType = SlotDef.SlotType;
+	// SlotType은 WBP 디자이너에서 설정한 값을 사용 (여기서 덮어쓰지 않음)
 
 	// 슬롯 이름 설정
 	if (IsValid(Text_SlotName))
@@ -83,7 +83,7 @@ void UInv_AttachmentSlotWidget::SetOccupied(const FInv_AttachedItemData& Data)
 		{
 			FSlateBrush IconBrush;
 			IconBrush.SetResourceObject(Icon);
-			IconBrush.ImageSize = FVector2D(64.f, 64.f); // 슬롯 80x80 기준 패딩 8px
+			// 크기는 WBP의 SizeBox 레이아웃이 결정 — C++에서 강제하지 않음
 			Image_ItemIcon->SetBrush(IconBrush);
 			Image_ItemIcon->SetVisibility(ESlateVisibility::Visible); // 아이콘 보이기
 		}
