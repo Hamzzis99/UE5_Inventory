@@ -11,6 +11,7 @@
 // ════════════════════════════════════════════════════════════════════════════════
 
 #include "Widgets/Inventory/AttachmentSlots/Inv_AttachmentSlotWidget.h"
+#include "Inventory.h"
 
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
@@ -49,10 +50,12 @@ void UInv_AttachmentSlotWidget::InitSlot(int32 InSlotIndex, const FInv_Attachmen
 		SetEmpty();
 	}
 
+#if INV_DEBUG_ATTACHMENT
 	UE_LOG(LogTemp, Log, TEXT("[Attachment UI] 슬롯 %d 초기화: %s (점유=%s)"),
 		SlotIndex,
 		*SlotType.ToString(),
 		bIsOccupied ? TEXT("O") : TEXT("X"));
+#endif
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -68,10 +71,12 @@ void UInv_AttachmentSlotWidget::SetOccupied(const FInv_AttachedItemData& Data)
 {
 	bIsOccupied = true;
 
-	// 배경 브러시를 점유 상태로 변경
+	// 배경 브러시를 점유 상태로 변경 (ImageSize 보존)
 	if (IsValid(Image_Background))
 	{
-		Image_Background->SetBrush(Brush_Occupied);
+		FSlateBrush NewBrush = Brush_Occupied;
+		NewBrush.SetImageSize(FVector2f(SlotSize, SlotSize));
+		Image_Background->SetBrush(NewBrush);
 	}
 
 	// 부착물의 아이콘 표시
@@ -81,10 +86,9 @@ void UInv_AttachmentSlotWidget::SetOccupied(const FInv_AttachedItemData& Data)
 		UTexture2D* Icon = ImageFrag->GetIcon();
 		if (IsValid(Icon))
 		{
-			FSlateBrush IconBrush;
-			IconBrush.SetResourceObject(Icon);
-			// 크기는 WBP의 SizeBox 레이아웃이 결정 — C++에서 강제하지 않음
-			Image_ItemIcon->SetBrush(IconBrush);
+			// bMatchSize=false → 텍스처 원본 해상도를 ImageSize에 반영하지 않음
+			// WBP의 부모 레이아웃(SizeBox/Overlay)이 크기를 결정하도록 위임
+			Image_ItemIcon->SetBrushFromTexture(Icon, false);
 			Image_ItemIcon->SetVisibility(ESlateVisibility::Visible); // 아이콘 보이기
 		}
 	}
@@ -102,11 +106,15 @@ void UInv_AttachmentSlotWidget::SetOccupied(const FInv_AttachedItemData& Data)
 		{
 			DisplayName = TEXT("(태그 미설정)");
 		}
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] ⚠️ 슬롯 %d: AttachmentItemType이 비어있음! BP에서 태그 재설정 필요"), SlotIndex);
+#endif
 	}
 
+#if INV_DEBUG_ATTACHMENT
 	UE_LOG(LogTemp, Log, TEXT("[Attachment UI] 슬롯 %d 점유됨: %s"),
 		SlotIndex, *DisplayName);
+#endif
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -122,10 +130,12 @@ void UInv_AttachmentSlotWidget::SetEmpty()
 {
 	bIsOccupied = false;
 
-	// 배경 브러시를 빈 상태로 변경
+	// 배경 브러시를 빈 상태로 변경 (ImageSize 보존)
 	if (IsValid(Image_Background))
 	{
-		Image_Background->SetBrush(Brush_Empty);
+		FSlateBrush NewBrush = Brush_Empty;
+		NewBrush.SetImageSize(FVector2f(SlotSize, SlotSize));
+		Image_Background->SetBrush(NewBrush);
 	}
 
 	// 아이콘 숨기기
@@ -134,7 +144,9 @@ void UInv_AttachmentSlotWidget::SetEmpty()
 		Image_ItemIcon->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
+#if INV_DEBUG_ATTACHMENT
 	UE_LOG(LogTemp, Log, TEXT("[Attachment UI] 슬롯 %d 비워짐"), SlotIndex);
+#endif
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -166,10 +178,12 @@ FReply UInv_AttachmentSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeo
 	const bool bIsLeft = InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton;
 	const bool bIsRight = InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton;
 
+#if INV_DEBUG_ATTACHMENT
 	UE_LOG(LogTemp, Log, TEXT("[Attachment UI] 슬롯 %d 클릭됨 (좌/우=%s, 점유=%s)"),
 		SlotIndex,
 		bIsLeft ? TEXT("좌") : bIsRight ? TEXT("우") : TEXT("기타"),
 		bIsOccupied ? TEXT("O") : TEXT("X"));
+#endif
 
 	// 델리게이트 브로드캐스트 → 패널에서 좌/우 분기 처리
 	OnSlotClicked.Broadcast(SlotIndex, InMouseEvent);

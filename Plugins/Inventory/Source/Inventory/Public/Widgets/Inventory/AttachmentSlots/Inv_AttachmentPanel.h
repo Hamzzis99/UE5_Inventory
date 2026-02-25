@@ -17,20 +17,23 @@
 //    6. NativeTick → UpdateSlotHighlights + 드래그 회전 처리
 //    7. 닫기 버튼 → ClosePanel() → CleanupWeaponPreview
 //
-// 📌 계층 구조 (WBP에서 생성):
-//    Border_Background                ← UBorder (배경)
-//     └─ VerticalBox_Main             ← UVerticalBox
-//          ├─ HorizontalBox_Header    ← UHorizontalBox
-//          │    ├─ Image_WeaponIcon     ← UImage ★ BindWidget
-//          │    ├─ Text_WeaponName      ← UTextBlock ★ BindWidget
-//          │    └─ Button_Close         ← UButton ★ BindWidget
-//          │
-//          ├─ VerticalBox_Top           ← UVerticalBox (상단 슬롯 컨테이너)
-//          ├─ HorizontalBox_Middle      ← UHorizontalBox
-//          │    ├─ VerticalBox_Left       ← UVerticalBox (좌측 슬롯 컨테이너)
-//          │    ├─ Image_WeaponPreview    ← UImage ★ BindWidget (3D 프리뷰)
-//          │    └─ VerticalBox_Right      ← UVerticalBox (우측 슬롯 컨테이너)
-//          └─ VerticalBox_Bottom        ← UVerticalBox (하단 슬롯 컨테이너)
+// 📌 계층 구조 (WBP에서 생성 — 배그 스타일 가로형):
+//    CanvasPanel (Root)               ← 화면 내 위치 제어 (앵커 + 오프셋)
+//     └─ Overlay                      ← 배경 + 콘텐츠 겹치기
+//          ├─ Image "Border_Background"  ← 배경 텍스처 (Fill/Fill)
+//          └─ VerticalBox_Main           ← 전체 콘텐츠
+//               ├─ HorizontalBox_Header  ← 헤더
+//               │    ├─ Image_WeaponIcon   ★ BindWidget
+//               │    ├─ Text_WeaponName    ★ BindWidget
+//               │    └─ Button_Close       ★ BindWidget
+//               │
+//               └─ HorizontalBox_Body    ← 좌: 슬롯 리스트 / 우: 3D 프리뷰
+//                    ├─ VerticalBox_Slots   ← 부착물 슬롯 세로 배치
+//                    │    ├─ SlotWidget (Scope)
+//                    │    ├─ SlotWidget (Muzzle)
+//                    │    ├─ SlotWidget (Grip)
+//                    │    └─ SlotWidget (Magazine)
+//                    └─ Image_WeaponPreview ★ BindWidget (3D 프리뷰, Fill)
 //
 //    ※ WBP에 배치된 UInv_AttachmentSlotWidget을 WidgetTree에서 자동 수집
 //      각 슬롯 위젯의 Details에서 SlotType(GameplayTag) 설정 필요
@@ -70,6 +73,7 @@ class INVENTORY_API UInv_AttachmentPanel : public UUserWidget
 
 public:
 	virtual void NativeOnInitialized() override;
+	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	// ── 마우스 이벤트 (드래그 회전) ──
@@ -134,11 +138,21 @@ private:
 	TWeakObjectPtr<UInv_InventoryGrid> OwningGrid;
 
 	// ── Phase 8: 3D 프리뷰 ──
+
+	// 프리뷰 액터 BP 클래스 (WBP Class Defaults에서 선택 가능)
+	// BP에서 카메라 각도, 조명 위치/밝기, 거리 등을 자유롭게 조정
+	// 미설정 시 C++ 기본 클래스(AInv_WeaponPreviewActor) 사용
+	UPROPERTY(EditDefaultsOnly, Category = "부착물|프리뷰", meta = (DisplayName = "프리뷰 액터 클래스", ToolTip = "무기 3D 프리뷰에 사용할 액터 BP. 미설정 시 C++ 기본 클래스 사용."))
+	TSubclassOf<AInv_WeaponPreviewActor> WeaponPreviewActorClass;
+
 	UPROPERTY()
 	TWeakObjectPtr<AInv_WeaponPreviewActor> WeaponPreviewActor;
 
 	// 프리뷰 액터 스폰 Z 위치 (월드 아래쪽, 카메라에 안 잡힘)
 	static constexpr float PreviewSpawnZ = -10000.f;
+
+	// NativeConstruct에서 캐싱한 WBP의 원본 ImageSize (SetupWeaponPreview에서 복원용)
+	FVector2D CachedPreviewImageSize = FVector2D::ZeroVector;
 
 	// ── Phase 8: 드래그 회전 ──
 	bool bIsDragging = false;
@@ -165,6 +179,9 @@ private:
 	// 무기 3D 프리뷰 설정/정리
 	void SetupWeaponPreview();
 	void CleanupWeaponPreview();
+
+	// 프리뷰 액터에 현재 장착된 부착물 3D 메시 전체 갱신
+	void RefreshPreviewAttachments();
 
 	// Tick에서 호출: HoverItem 호환 슬롯 실시간 하이라이트
 	void UpdateSlotHighlights();

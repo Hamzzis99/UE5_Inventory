@@ -31,7 +31,7 @@
 //   2. SceneRoot 생성 → RootComponent
 //   3. PreviewMeshComponent 생성 → LightingChannel 1 전용
 //   4. CameraBoom(SpringArm) 생성
-//   5. SceneCapture 생성 → PRM_RenderScenePrimitives + MaxViewDistance 제한
+//   5. SceneCapture 생성 → PRM_UseShowOnlyList + MaxViewDistance 제한
 //   6. PreviewLight 생성 → LightingChannel 1 전용 (월드 조명 오염 방지)
 //
 // LightingChannels 격리 전략:
@@ -50,13 +50,15 @@ AInv_WeaponPreviewActor::AInv_WeaponPreviewActor()
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	RootComponent = SceneRoot;
 
-	// ── 무기 메시 (Channel 1 전용 → 월드 라이트 영향 안 받음) ──
+	// ── 무기 메시 ──
 	PreviewMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PreviewMesh"));
 	PreviewMeshComponent->SetupAttachment(SceneRoot);
 	PreviewMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewMeshComponent->CastShadow = false;
-	PreviewMeshComponent->LightingChannels.bChannel0 = false;
-	PreviewMeshComponent->LightingChannels.bChannel1 = true;
+	// ★ Channel0(기본) 사용: 패키징 빌드에서 Channel1이 SceneCapture와
+	// 호환되지 않는 문제 해결. ShowOnlyList로 월드 메시 격리는 이미 보장됨.
+	PreviewMeshComponent->LightingChannels.bChannel0 = true;
+	PreviewMeshComponent->LightingChannels.bChannel1 = false;
 
 	// ── 카메라 붐 (스프링 암) ──
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -69,16 +71,15 @@ AInv_WeaponPreviewActor::AInv_WeaponPreviewActor()
 	SceneCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCapture"));
 	SceneCapture->SetupAttachment(CameraBoom);
 
-	// PRM_RenderScenePrimitives: 카메라 시야 내 모든 프리미티브 렌더
-	// Z=-10000이므로 월드 오브젝트는 시야에 안 잡힘
-	// ShowOnlyList 사용 시 라이트가 제외되어 메시가 검정으로 렌더되는 문제 해결
-	SceneCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_RenderScenePrimitives;
+	// ★ ShowOnlyList 방식: 무기 메시+부착물만 렌더링
+	// 패키징 빌드에서 PropagateAlpha 셰이더가 달라 알파 손실되는 문제 해결.
+	// ShowOnlyList에 없는 프리미티브는 렌더링 안 됨 → 빈 픽셀은 ClearColor(알파=0) 유지.
+	SceneCapture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 
 	// 매 프레임 캡처 (회전, 부착물 변경 실시간 반영)
 	SceneCapture->bCaptureEveryFrame = true;
 	SceneCapture->bCaptureOnMovement = true;
 
-	// SceneColorHDR: 알파 채널 보존 (메시=1, 배경=0) → Material에서 투명 배경 구현
 	SceneCapture->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
 	SceneCapture->bAlwaysPersistRenderingState = true;
 
@@ -92,9 +93,27 @@ AInv_WeaponPreviewActor::AInv_WeaponPreviewActor()
 	// 시야 거리 제한: 프리뷰 메시(~100유닛) 외 원거리 오브젝트 캡처 방지
 	SceneCapture->MaxViewDistanceOverride = 500.f;
 
+	// FOV: 기본 30° (좁은 화각 → 무기가 화면 꽉 채움)
+	// BP 서브클래스에서 SceneCapture 컴포넌트의 FOVAngle을 직접 변경 가능
+	SceneCapture->FOVAngle = 30.f;
+
 	// 배경을 깔끔하게 하기 위해 안개/대기 효과 제거
 	SceneCapture->ShowFlags.SetFog(false);
 	SceneCapture->ShowFlags.SetVolumetricFog(false);
+	SceneCapture->ShowFlags.SetAtmosphere(false);
+	SceneCapture->ShowFlags.SetSkyLighting(false);
+	SceneCapture->ShowFlags.SetCloud(false);
+
+	// ★ Lumen GI/반사/그림자 비활성화 (캐릭터 프리뷰와 동일)
+	// ShowOnlyList 모드에서 월드 GI가 간섭하면 메시가 어둡게 보임
+	SceneCapture->ShowFlags.SetDynamicShadows(false);
+	SceneCapture->ShowFlags.SetGlobalIllumination(false);
+	SceneCapture->ShowFlags.SetScreenSpaceReflections(false);
+	SceneCapture->ShowFlags.SetAmbientOcclusion(false);
+	SceneCapture->ShowFlags.SetReflectionEnvironment(false);
+
+	// 무기 프리뷰 메시를 ShowOnlyList에 등록
+	SceneCapture->ShowOnlyComponents.Add(PreviewMeshComponent);
 
 	// ════════════════════════════════════════════════════════════════
 	// 📌 3점 조명 시스템 — 물리적 범위 격리
@@ -104,10 +123,10 @@ AInv_WeaponPreviewActor::AInv_WeaponPreviewActor()
 	//    전역 적용됨 → 월드 밤낮 조명을 오염시킴.
 	//    SpotLight/PointLight만 사용하여 AttenuationRadius로 물리적 격리.
 	//
-	// 격리 보장 (3중):
+	// 격리 보장 (2중):
 	//   1차: AttenuationRadius=500 → 빛이 500유닛 밖으로 안 나감
-	//   2차: LightingChannels=Channel1 → Channel0(월드) 불간섭
-	//   3차: Z=-10000 + 월드(Z=0) → 거리 10000 >> 500
+	//   2차: Z=-10000 + 월드(Z=0) → 거리 10000 >> 500
+	// ※ LightingChannels=Channel0 사용: 패키징 빌드에서 Channel1이 SceneCapture 미적용 이슈 대응
 	//
 	// Key Light (SpotLight): 정면 상단 → 메시 직접 조명
 	// Fill Light (PointLight): 반대편 → 그림자 면 밝힘
@@ -123,8 +142,8 @@ AInv_WeaponPreviewActor::AInv_WeaponPreviewActor()
 	PreviewLight->SetInnerConeAngle(30.f);      // 중심 밝은 영역
 	PreviewLight->SetOuterConeAngle(60.f);      // 빛 감쇠 경계
 	PreviewLight->CastShadows = false;
-	PreviewLight->LightingChannels.bChannel0 = false;
-	PreviewLight->LightingChannels.bChannel1 = true;
+	PreviewLight->LightingChannels.bChannel0 = true;
+	PreviewLight->LightingChannels.bChannel1 = false;
 
 	// ── Fill Light (보조 조명 — 그림자 면 밝힘) ──
 	FillLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("FillLight"));
@@ -133,8 +152,8 @@ AInv_WeaponPreviewActor::AInv_WeaponPreviewActor()
 	FillLight->Intensity = 3000.f;
 	FillLight->AttenuationRadius = 500.f;
 	FillLight->CastShadows = false;
-	FillLight->LightingChannels.bChannel0 = false;
-	FillLight->LightingChannels.bChannel1 = true;
+	FillLight->LightingChannels.bChannel0 = true;
+	FillLight->LightingChannels.bChannel1 = false;
 
 	// ── Rim Light (윤곽 조명 — 뒤쪽 상단 실루엣 강조) ──
 	RimLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("RimLight"));
@@ -143,8 +162,29 @@ AInv_WeaponPreviewActor::AInv_WeaponPreviewActor()
 	RimLight->Intensity = 5000.f;
 	RimLight->AttenuationRadius = 500.f;
 	RimLight->CastShadows = false;
-	RimLight->LightingChannels.bChannel0 = false;
-	RimLight->LightingChannels.bChannel1 = true;
+	RimLight->LightingChannels.bChannel0 = true;
+	RimLight->LightingChannels.bChannel1 = false;
+
+	// ── 배경 차단 큐브 (UDS 하늘/대기 가림막) ──
+	// SceneCapture의 ShowOnlyList/ShowFlags로는 UDS 같은 BP 스카이를 못 막음
+	// 프리뷰 액터를 감싸는 검정 큐브로 물리적으로 하늘을 차단
+	BackdropCube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BackdropCube"));
+	BackdropCube->SetupAttachment(SceneRoot);
+	BackdropCube->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BackdropCube->CastShadow = false;
+	// 음수 스케일 → 노멀 뒤집힘 → 내부에서 면이 보임
+	BackdropCube->SetRelativeScale3D(FVector(-5.f, 5.f, 5.f));
+	// 조명 채널 없음 → 어떤 라이트도 안 닿음 → 완전 검정 렌더
+	// 머티리얼의 luminance 기반 Opacity에서 검정=0 → 투명 처리됨
+	BackdropCube->LightingChannels.bChannel0 = false;
+	BackdropCube->LightingChannels.bChannel1 = false;
+
+	// 기본 큐브 메시 설정
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	if (CubeMesh.Succeeded())
+	{
+		BackdropCube->SetStaticMesh(CubeMesh.Object);
+	}
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -183,23 +223,79 @@ void AInv_WeaponPreviewActor::SetPreviewMesh(UStaticMesh* InMesh, const FRotator
 	// 초기 회전 오프셋 적용
 	PreviewMeshComponent->SetRelativeRotation(RotationOffset);
 
-	// 카메라 거리 설정
+	// 카메라 거리 설정 (우선순위: 아이템 개별값 > 자동 계산 > BP 설정값)
 	if (IsValid(CameraBoom))
 	{
 		if (CameraDistance > 0.f)
 		{
-			// BP에서 명시적으로 지정한 거리 사용
+			// 1순위: EquipmentFragment에서 명시적으로 지정한 아이템별 거리
 			CameraBoom->TargetArmLength = CameraDistance;
 		}
-		else
+		else if (bAutoCalculateDistance)
 		{
-			// 메시 크기 기반 자동 계산
+			// 2순위: 메시 크기 기반 자동 계산 (기본 동작)
 			CameraBoom->TargetArmLength = CalculateAutoDistance();
 		}
+		// else: 3순위 — BP에서 설정한 CameraBoom->TargetArmLength 유지 (덮어쓰지 않음)
 	}
 
 	// RenderTarget 준비 (bCaptureEveryFrame=true이므로 수동 캡처 불필요)
 	EnsureRenderTarget();
+
+	// ★ 패키징 빌드 디버깅 로그 (항상 출력)
+	UE_LOG(LogTemp, Warning, TEXT("========== [WeaponPreview Debug] =========="));
+	UE_LOG(LogTemp, Warning, TEXT("  Mesh: %s"), PreviewMeshComponent->GetStaticMesh() ? *PreviewMeshComponent->GetStaticMesh()->GetName() : TEXT("NULL"));
+	UE_LOG(LogTemp, Warning, TEXT("  Mesh Visible: %s"), PreviewMeshComponent->IsVisible() ? TEXT("YES") : TEXT("NO"));
+	UE_LOG(LogTemp, Warning, TEXT("  Mesh Location: %s"), *PreviewMeshComponent->GetComponentLocation().ToString());
+	UE_LOG(LogTemp, Warning, TEXT("  Mesh LightingChannel0: %s, Channel1: %s"),
+		PreviewMeshComponent->LightingChannels.bChannel0 ? TEXT("ON") : TEXT("OFF"),
+		PreviewMeshComponent->LightingChannels.bChannel1 ? TEXT("ON") : TEXT("OFF"));
+
+	if (IsValid(SceneCapture))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("  SceneCapture Valid: YES"));
+		UE_LOG(LogTemp, Warning, TEXT("  CaptureSource: %d"), (int32)SceneCapture->CaptureSource);
+		UE_LOG(LogTemp, Warning, TEXT("  TextureTarget: %s"), SceneCapture->TextureTarget ? TEXT("SET") : TEXT("NULL"));
+		UE_LOG(LogTemp, Warning, TEXT("  bCaptureEveryFrame: %s"), SceneCapture->bCaptureEveryFrame ? TEXT("YES") : TEXT("NO"));
+		UE_LOG(LogTemp, Warning, TEXT("  PrimitiveRenderMode: %d"), (int32)SceneCapture->PrimitiveRenderMode);
+		UE_LOG(LogTemp, Warning, TEXT("  ShowOnlyComponents Num: %d"), SceneCapture->ShowOnlyComponents.Num());
+		UE_LOG(LogTemp, Warning, TEXT("  ShowOnlyActors Num: %d"), SceneCapture->ShowOnlyActors.Num());
+		UE_LOG(LogTemp, Warning, TEXT("  MaxViewDistanceOverride: %.1f"), SceneCapture->MaxViewDistanceOverride);
+		UE_LOG(LogTemp, Warning, TEXT("  FOVAngle: %.1f"), SceneCapture->FOVAngle);
+		UE_LOG(LogTemp, Warning, TEXT("  AutoExposureBias: %.1f"), SceneCapture->PostProcessSettings.AutoExposureBias);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("  SceneCapture: INVALID!"));
+	}
+
+	if (IsValid(RenderTarget))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("  RenderTarget: %dx%d, Format=%d"),
+			RenderTarget->SizeX, RenderTarget->SizeY, (int32)RenderTarget->GetFormat());
+		UE_LOG(LogTemp, Warning, TEXT("  RenderTarget ClearColor: R=%.2f G=%.2f B=%.2f A=%.2f"),
+			RenderTarget->ClearColor.R, RenderTarget->ClearColor.G, RenderTarget->ClearColor.B, RenderTarget->ClearColor.A);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("  RenderTarget: INVALID!"));
+	}
+
+	if (IsValid(PreviewLight))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("  PreviewLight Intensity: %.0f, Visible: %s, Channel0: %s"),
+			PreviewLight->Intensity,
+			PreviewLight->IsVisible() ? TEXT("YES") : TEXT("NO"),
+			PreviewLight->LightingChannels.bChannel0 ? TEXT("ON") : TEXT("OFF"));
+	}
+
+	if (IsValid(CameraBoom))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("  CameraBoom ArmLength: %.1f"), CameraBoom->TargetArmLength);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("  Actor Location: %s"), *GetActorLocation().ToString());
+	UE_LOG(LogTemp, Warning, TEXT("=========================================="));
 
 #if INV_DEBUG_ATTACHMENT
 	UE_LOG(LogTemp, Log, TEXT("[Weapon Preview] 메시 설정 완료: %s, ArmLength=%.1f, Rotation=%s"),
@@ -218,11 +314,17 @@ void AInv_WeaponPreviewActor::SetPreviewMesh(UStaticMesh* InMesh, const FRotator
 //   2. CaptureScene() 호출로 회전 상태 즉시 반영
 // Phase 연결: Phase 8 — CharacterDisplay와 동일한 드래그 회전 패턴
 // ════════════════════════════════════════════════════════════════
-void AInv_WeaponPreviewActor::RotatePreview(float YawDelta)
+void AInv_WeaponPreviewActor::RotatePreview(float YawDelta, float PitchDelta)
 {
 	if (!IsValid(PreviewMeshComponent)) return;
 
-	PreviewMeshComponent->AddRelativeRotation(FRotator(0.f, YawDelta, 0.f));
+	// Pitch 클램프: 누적값이 ±MaxPitchAngle 범위를 벗어나지 않도록 제한
+	const float NewPitch = FMath::Clamp(AccumulatedPitch + PitchDelta, -MaxPitchAngle, MaxPitchAngle);
+	const float ClampedPitchDelta = NewPitch - AccumulatedPitch;
+	AccumulatedPitch = NewPitch;
+
+	// Yaw는 무제한, Pitch는 클램프된 값만 적용
+	PreviewMeshComponent->AddRelativeRotation(FRotator(ClampedPitchDelta, YawDelta, 0.f));
 	// bCaptureEveryFrame=true이므로 수동 캡처 불필요 — 다음 프레임에 자동 반영
 }
 
@@ -267,7 +369,7 @@ void AInv_WeaponPreviewActor::CaptureNow()
 // 처리 흐름:
 //   1. RenderTarget이 이미 있으면 스킵
 //   2. 없으면 NewObject<UTextureRenderTarget2D> 생성
-//   3. InitAutoFormat(512, 512) → 512x512 해상도
+//   3. InitAutoFormat(Width, Height) → BP에서 지정한 해상도
 //   4. SceneCapture->TextureTarget에 연결
 // ════════════════════════════════════════════════════════════════
 void AInv_WeaponPreviewActor::EnsureRenderTarget()
@@ -281,11 +383,14 @@ void AInv_WeaponPreviewActor::EnsureRenderTarget()
 		return;
 	}
 
-	// 512x512 해상도 — UI 프리뷰 용도로 충분
-	// ClearColor: 짙은 회색 배경 (T_Pop_Up 배경과 조화, 메시 대비 확보)
-	// 배경 완전 투명 (알파=0) → Material Translucent에서 배경이 사라짐
+	// ClearColor: 배경 완전 투명 (알파=0) → Material Translucent에서 배경이 사라짐
 	RenderTarget->ClearColor = FLinearColor(0.f, 0.f, 0.f, 0.f);
-	RenderTarget->InitAutoFormat(512, 512);
+	const int32 Width = FMath::Clamp(RenderTargetWidth, 128, 2048);
+	const int32 Height = FMath::Clamp(RenderTargetHeight, 128, 2048);
+	// ★ 명시적 HDR 포맷: 패키징 빌드에서 InitAutoFormat이 LDR(PF_B8G8R8A8)을
+	// 선택하면 알파 채널이 손실되어 배경 투명 처리가 깨짐.
+	// PF_FloatRGBA(RGBA16F)로 고정하여 어떤 빌드에서든 HDR+알파 보장.
+	RenderTarget->InitCustomFormat(Width, Height, PF_FloatRGBA, false);
 	RenderTarget->UpdateResourceImmediate(true);
 
 	if (IsValid(SceneCapture))
@@ -294,7 +399,7 @@ void AInv_WeaponPreviewActor::EnsureRenderTarget()
 	}
 
 #if INV_DEBUG_ATTACHMENT
-	UE_LOG(LogTemp, Log, TEXT("[Weapon Preview] RenderTarget 생성 완료 (512x512)"));
+	UE_LOG(LogTemp, Log, TEXT("[Weapon Preview] RenderTarget 생성 완료 (%dx%d)"), Width, Height);
 #endif
 }
 
@@ -310,28 +415,146 @@ void AInv_WeaponPreviewActor::EnsureRenderTarget()
 // ════════════════════════════════════════════════════════════════
 float AInv_WeaponPreviewActor::CalculateAutoDistance() const
 {
-	constexpr float DefaultDistance = 150.f;
-	constexpr float MinDistance = 100.f;
-	constexpr float MaxDistance = 1000.f;
-	constexpr float DistanceMultiplier = 2.5f; // 메시 크기 대비 여유 계수
-
-	if (!IsValid(PreviewMeshComponent)) return DefaultDistance;
+	if (!IsValid(PreviewMeshComponent)) return AutoDistanceDefault;
 
 	UStaticMesh* Mesh = PreviewMeshComponent->GetStaticMesh();
-	if (!IsValid(Mesh)) return DefaultDistance;
+	if (!IsValid(Mesh)) return AutoDistanceDefault;
 
 	const FBoxSphereBounds Bounds = Mesh->GetBounds();
 	const float SphereRadius = Bounds.SphereRadius;
 
-	if (SphereRadius <= KINDA_SMALL_NUMBER) return DefaultDistance;
+	if (SphereRadius <= KINDA_SMALL_NUMBER) return AutoDistanceDefault;
 
-	const float AutoDistance = SphereRadius * DistanceMultiplier;
-	const float ClampedDistance = FMath::Clamp(AutoDistance, MinDistance, MaxDistance);
+	const float AutoDistance = SphereRadius * AutoDistanceMultiplier;
+	const float ClampedDistance = FMath::Clamp(AutoDistance, AutoDistanceMin, AutoDistanceMax);
 
 #if INV_DEBUG_ATTACHMENT
-	UE_LOG(LogTemp, Log, TEXT("[Weapon Preview] 자동 거리 계산: SphereRadius=%.1f → AutoDist=%.1f → Clamped=%.1f"),
-		SphereRadius, AutoDistance, ClampedDistance);
+	UE_LOG(LogTemp, Log, TEXT("[Weapon Preview] 자동 거리 계산: SphereRadius=%.1f × %.1f → %.1f → Clamped=%.1f"),
+		SphereRadius, AutoDistanceMultiplier, AutoDistance, ClampedDistance);
 #endif
 
 	return ClampedDistance;
+}
+
+// ════════════════════════════════════════════════════════════════
+// 📌 AddAttachmentPreview — 슬롯에 부착물 3D 메시 추가
+// ════════════════════════════════════════════════════════════════
+// 호출 경로: AttachmentPanel::RefreshPreviewAttachments → 이 함수
+// 처리 흐름:
+//   1. 이미 해당 SlotIndex에 메시가 있으면 제거
+//   2. NewObject<UStaticMeshComponent> 생성 (런타임이므로 CreateDefaultSubobject 불가)
+//   3. 메시 설정 + LightingChannels Channel1 전용
+//   4. SocketName이 유효하고 PreviewMeshComponent에 소켓이 있으면 소켓 부착
+//      없으면 Offset의 Location/Rotation을 RelativeTransform으로 적용
+//   5. RegisterComponent + TMap에 저장
+// ════════════════════════════════════════════════════════════════
+void AInv_WeaponPreviewActor::AddAttachmentPreview(int32 SlotIndex, UStaticMesh* AttachMesh, FName SocketName, const FTransform& Offset)
+{
+	if (!IsValid(AttachMesh))
+	{
+#if INV_DEBUG_ATTACHMENT
+		UE_LOG(LogTemp, Warning, TEXT("[Weapon Preview] AddAttachmentPreview 실패: AttachMesh가 nullptr (SlotIndex=%d)"), SlotIndex);
+#endif
+		return;
+	}
+
+	if (!IsValid(PreviewMeshComponent))
+	{
+#if INV_DEBUG_ATTACHMENT
+		UE_LOG(LogTemp, Warning, TEXT("[Weapon Preview] AddAttachmentPreview 실패: PreviewMeshComponent 무효"));
+#endif
+		return;
+	}
+
+	// 이미 존재하면 제거 후 재생성
+	RemoveAttachmentPreview(SlotIndex);
+
+	// 런타임 동적 생성 (CreateDefaultSubobject는 생성자 전용)
+	UStaticMeshComponent* NewComp = NewObject<UStaticMeshComponent>(this,
+		*FString::Printf(TEXT("AttachPreview_%d"), SlotIndex));
+	if (!IsValid(NewComp)) return;
+
+	NewComp->SetStaticMesh(AttachMesh);
+	NewComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	NewComp->CastShadow = false;
+
+	// Channel0 사용 (PreviewMeshComponent와 동일 — 패키징 빌드 채널1 미적용 이슈 대응)
+	NewComp->LightingChannels.bChannel0 = true;
+	NewComp->LightingChannels.bChannel1 = false;
+
+	// 소켓 부착 시도: SocketName이 유효하고 메시에 소켓이 존재하면 소켓 부착
+	const bool bHasSocket = !SocketName.IsNone()
+		&& IsValid(PreviewMeshComponent->GetStaticMesh())
+		&& PreviewMeshComponent->GetStaticMesh()->FindSocket(SocketName) != nullptr;
+
+	if (bHasSocket)
+	{
+		NewComp->AttachToComponent(PreviewMeshComponent,
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+
+		// 소켓 위치에 추가 오프셋 적용
+		NewComp->SetRelativeTransform(Offset);
+	}
+	else
+	{
+		// 소켓 없음 → PreviewMeshComponent에 상대 Transform으로 부착
+		NewComp->AttachToComponent(PreviewMeshComponent,
+			FAttachmentTransformRules::KeepRelativeTransform);
+		NewComp->SetRelativeTransform(Offset);
+	}
+
+	NewComp->RegisterComponent();
+
+	// ShowOnlyList에 부착물 컴포넌트 추가 (SceneCapture가 렌더링하도록)
+	if (IsValid(SceneCapture))
+	{
+		SceneCapture->ShowOnlyComponents.Add(NewComp);
+	}
+
+	AttachmentMeshComponents.Add(SlotIndex, NewComp);
+
+#if INV_DEBUG_ATTACHMENT
+	UE_LOG(LogTemp, Log, TEXT("[Weapon Preview] 부착물 프리뷰 추가: Slot=%d, Mesh=%s, Socket=%s, bSocketUsed=%s"),
+		SlotIndex, *AttachMesh->GetName(),
+		*SocketName.ToString(),
+		bHasSocket ? TEXT("Y") : TEXT("N"));
+#endif
+}
+
+// ════════════════════════════════════════════════════════════════
+// 📌 RemoveAttachmentPreview — 특정 슬롯의 부착물 메시 제거
+// ════════════════════════════════════════════════════════════════
+void AInv_WeaponPreviewActor::RemoveAttachmentPreview(int32 SlotIndex)
+{
+	TObjectPtr<UStaticMeshComponent>* Found = AttachmentMeshComponents.Find(SlotIndex);
+	if (Found && IsValid(*Found))
+	{
+		// ShowOnlyList에서 먼저 제거
+		if (IsValid(SceneCapture))
+		{
+			SceneCapture->ShowOnlyComponents.Remove(*Found);
+		}
+		(*Found)->DestroyComponent();
+	}
+	AttachmentMeshComponents.Remove(SlotIndex);
+}
+
+// ════════════════════════════════════════════════════════════════
+// 📌 ClearAllAttachmentPreviews — 모든 부착물 메시 제거
+// ════════════════════════════════════════════════════════════════
+void AInv_WeaponPreviewActor::ClearAllAttachmentPreviews()
+{
+	for (auto& Pair : AttachmentMeshComponents)
+	{
+		if (IsValid(Pair.Value))
+		{
+			// ShowOnlyList에서 먼저 제거
+			if (IsValid(SceneCapture))
+			{
+				SceneCapture->ShowOnlyComponents.Remove(Pair.Value);
+			}
+			Pair.Value->DestroyComponent();
+		}
+	}
+	AttachmentMeshComponents.Empty();
 }

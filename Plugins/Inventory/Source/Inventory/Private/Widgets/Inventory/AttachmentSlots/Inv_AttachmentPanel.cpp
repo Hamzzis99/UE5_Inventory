@@ -1,4 +1,4 @@
-// Gihyeon's Inventory Project
+﻿// Gihyeon's Inventory Project
 //
 // ════════════════════════════════════════════════════════════════════════════════
 // 📌 부착물 패널 위젯 (Attachment Panel) — Phase 8 리뉴얼
@@ -49,6 +49,31 @@ void UInv_AttachmentPanel::NativeOnInitialized()
 
 	// WBP에 배치된 슬롯 위젯 자동 수집
 	CollectSlotWidgetsFromTree();
+
+	// WBP에서 디자이너가 지정한 Image_WeaponPreview의 Brush.ImageSize를 캐싱
+	// NativeOnInitialized는 Visibility와 무관하게 위젯 생성 시 항상 호출됨
+	// (NativeConstruct는 Collapsed→Visible 전환 시점이라 SetupWeaponPreview보다 늦음)
+	if (IsValid(Image_WeaponPreview))
+	{
+		CachedPreviewImageSize = Image_WeaponPreview->GetBrush().ImageSize;
+#if INV_DEBUG_ATTACHMENT
+		UE_LOG(LogTemp, Log, TEXT("[Attachment UI] CachedPreviewImageSize = (%.1f, %.1f)"),
+			CachedPreviewImageSize.X, CachedPreviewImageSize.Y);
+#endif
+	}
+}
+
+// ════════════════════════════════════════════════════════════════
+// 📌 NativeConstruct
+// ════════════════════════════════════════════════════════════════
+// ⚠️ CachedPreviewImageSize 캐싱은 여기서 하지 않음!
+//    이유: 위젯이 초기 Collapsed 상태일 때 NativeConstruct는
+//    SetVisibility(Visible) 시점에야 호출되므로,
+//    그보다 먼저 실행되는 SetupWeaponPreview()에서 캐싱값이 (0,0)이 됨.
+//    → 캐싱은 NativeOnInitialized에서 수행.
+void UInv_AttachmentPanel::NativeConstruct()
+{
+	Super::NativeConstruct();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -69,9 +94,10 @@ void UInv_AttachmentPanel::NativeTick(const FGeometry& MyGeometry, float InDelta
 		DragCurrentPosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetOwningPlayer());
 
 		const float HorizontalDelta = DragLastPosition.X - DragCurrentPosition.X;
-		if (!FMath::IsNearlyZero(HorizontalDelta))
+		const float VerticalDelta = DragLastPosition.Y - DragCurrentPosition.Y;
+		if (!FMath::IsNearlyZero(HorizontalDelta) || !FMath::IsNearlyZero(VerticalDelta))
 		{
-			WeaponPreviewActor->RotatePreview(HorizontalDelta);
+			WeaponPreviewActor->RotatePreview(HorizontalDelta, VerticalDelta);
 		}
 	}
 }
@@ -108,13 +134,17 @@ void UInv_AttachmentPanel::OpenForWeapon(UInv_InventoryItem* WeaponItem, int32 W
 {
 	if (!IsValid(WeaponItem))
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] OpenForWeapon 실패: WeaponItem이 nullptr"));
+#endif
 		return;
 	}
 
 	if (!WeaponItem->HasAttachmentSlots())
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] OpenForWeapon 실패: 부착물 슬롯이 없는 아이템"));
+#endif
 		return;
 	}
 
@@ -222,6 +252,7 @@ void UInv_AttachmentPanel::BuildSlotWidgets()
 	ResetAllSlots();
 
 	// ★ [디버그] 수집된 슬롯 위젯 상태 확인
+#if INV_DEBUG_ATTACHMENT
 	UE_LOG(LogTemp, Log, TEXT("[Attachment UI] 수집된 슬롯 위젯: %d개"), CollectedSlotWidgets.Num());
 	for (const auto& Collected : CollectedSlotWidgets)
 	{
@@ -231,6 +262,7 @@ void UInv_AttachmentPanel::BuildSlotWidgets()
 				*Collected->GetName(), *Collected->GetSlotType().ToString());
 		}
 	}
+#endif
 
 	if (!CurrentWeaponItem.IsValid()) return;
 
@@ -238,7 +270,9 @@ void UInv_AttachmentPanel::BuildSlotWidgets()
 	const FInv_AttachmentHostFragment* HostFrag = CurrentWeaponItem->GetItemManifest().GetFragmentOfType<FInv_AttachmentHostFragment>();
 	if (!HostFrag)
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Error, TEXT("[Attachment UI] AttachmentHostFragment를 찾을 수 없음!"));
+#endif
 		return;
 	}
 
@@ -267,8 +301,10 @@ void UInv_AttachmentPanel::BuildSlotWidgets()
 		UInv_AttachmentSlotWidget* SlotWidget = FindSlotWidgetByTag(SlotDefs[i].SlotType);
 		if (!IsValid(SlotWidget))
 		{
+#if INV_DEBUG_ATTACHMENT
 			UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] 슬롯[%d] %s: WBP에 해당 태그의 슬롯 위젯 없음 (건너뜀)"),
 				i, *SlotDefs[i].SlotType.ToString());
+#endif
 			SlotWidgets.Add(nullptr);
 			continue;
 		}
@@ -285,9 +321,11 @@ void UInv_AttachmentPanel::BuildSlotWidgets()
 		// 슬롯 보이기
 		SlotWidget->SetVisibility(ESlateVisibility::Visible);
 
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Log, TEXT("[Attachment UI] 슬롯[%d] %s → Widget=%s"),
 			i, *SlotDefs[i].SlotType.ToString(),
 			*SlotWidget->GetName());
+#endif
 
 		SlotWidgets.Add(SlotWidget);
 	}
@@ -418,7 +456,9 @@ void UInv_AttachmentPanel::OnSlotClicked(int32 SlotIndex, const FPointerEvent& M
 	// 슬롯 인덱스 유효성 검사
 	if (SlotIndex < 0 || SlotIndex >= SlotWidgets.Num())
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] 유효하지 않은 슬롯 인덱스: %d"), SlotIndex);
+#endif
 		return;
 	}
 
@@ -473,7 +513,9 @@ void UInv_AttachmentPanel::TryAttachHoverItem(int32 SlotIndex)
 	// 부착물 아이템인지 확인
 	if (!AttachmentItem->IsAttachableItem())
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] 장착 실패: 부착물이 아닌 아이템"));
+#endif
 		return;
 	}
 
@@ -483,12 +525,16 @@ void UInv_AttachmentPanel::TryAttachHoverItem(int32 SlotIndex)
 
 	if (AttachmentEntryIndex == INDEX_NONE)
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Error, TEXT("[Attachment UI] 장착 실패: 부착물 EntryIndex를 찾을 수 없음"));
+#endif
 		return;
 	}
 	if (WeaponEntryIndex == INDEX_NONE)
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Error, TEXT("[Attachment UI] 장착 실패: 무기 EntryIndex를 찾을 수 없음"));
+#endif
 		return;
 	}
 
@@ -499,7 +545,9 @@ void UInv_AttachmentPanel::TryAttachHoverItem(int32 SlotIndex)
 #endif
 	if (!InventoryComponent->CanAttachToWeapon(WeaponEntryIndex, AttachmentEntryIndex, SlotIndex))
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] 장착 실패: 호환 안 됨 (슬롯=%d)"), SlotIndex);
+#endif
 		return;
 	}
 
@@ -512,6 +560,30 @@ void UInv_AttachmentPanel::TryAttachHoverItem(int32 SlotIndex)
 		PreviewData.AttachmentItemType = AttachmentItem->GetItemManifest().GetItemType();
 		PreviewData.ItemManifestCopy = AttachmentItem->GetItemManifest();
 		SlotWidgets[SlotIndex]->SetOccupied(PreviewData);
+	}
+
+	// [낙관적 프리뷰] RPC 응답 전에 로컬 데이터로 즉시 프리뷰 추가
+	if (WeaponPreviewActor.IsValid() && CurrentWeaponItem.IsValid())
+	{
+		const FInv_AttachmentHostFragment* HostFrag =
+			CurrentWeaponItem->GetItemManifest().GetFragmentOfType<FInv_AttachmentHostFragment>();
+		const FInv_AttachableFragment* AttachFrag =
+			AttachmentItem->GetItemManifest().GetFragmentOfType<FInv_AttachableFragment>();
+
+		if (HostFrag && AttachFrag)
+		{
+			const FInv_AttachmentSlotDef* SlotDef = HostFrag->GetSlotDef(SlotIndex);
+			UStaticMesh* AttachMesh = AttachFrag->GetAttachmentMesh();
+			if (SlotDef && IsValid(AttachMesh))
+			{
+				// 소켓 폴백: 무기 SlotDef → 부착물 AttachableFragment → NAME_None
+				const FName PreviewSocket = !SlotDef->AttachSocket.IsNone()
+					? SlotDef->AttachSocket
+					: AttachFrag->GetAttachSocket();
+				WeaponPreviewActor->AddAttachmentPreview(
+					SlotIndex, AttachMesh, PreviewSocket, AttachFrag->GetAttachOffset());
+			}
+		}
 	}
 
 	// 서버 RPC 호출
@@ -547,7 +619,9 @@ void UInv_AttachmentPanel::TryDetachItem(int32 SlotIndex)
 	const int32 WeaponEntryIndex = FindCurrentWeaponEntryIndex();
 	if (WeaponEntryIndex == INDEX_NONE)
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Error, TEXT("[Attachment UI] 분리 실패: 무기 EntryIndex를 찾을 수 없음"));
+#endif
 		return;
 	}
 
@@ -555,6 +629,12 @@ void UInv_AttachmentPanel::TryDetachItem(int32 SlotIndex)
 	if (SlotWidgets.IsValidIndex(SlotIndex) && IsValid(SlotWidgets[SlotIndex]))
 	{
 		SlotWidgets[SlotIndex]->SetEmpty();
+	}
+
+	// [낙관적 프리뷰] RPC 응답 전에 즉시 프리뷰 제거
+	if (WeaponPreviewActor.IsValid())
+	{
+		WeaponPreviewActor->RemoveAttachmentPreview(SlotIndex);
 	}
 
 	// 서버 RPC 호출
@@ -593,7 +673,9 @@ int32 UInv_AttachmentPanel::FindCurrentWeaponEntryIndex() const
 	const int32 FoundIndex = InventoryComponent->FindEntryIndexForItem(CurrentWeaponItem.Get());
 	if (FoundIndex == INDEX_NONE)
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Error, TEXT("[Attachment UI] 무기 EntryIndex 검색 실패! CurrentWeaponItem 포인터가 InventoryList에 없음"));
+#endif
 	}
 	else
 	{
@@ -643,7 +725,9 @@ void UInv_AttachmentPanel::CollectSlotWidgetsFromTree()
 
 	if (!WidgetTree)
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Error, TEXT("[Attachment UI] WidgetTree가 nullptr — 슬롯 수집 불가"));
+#endif
 		return;
 	}
 
@@ -654,14 +738,18 @@ void UInv_AttachmentPanel::CollectSlotWidgetsFromTree()
 		{
 			if (!SlotWidget->GetSlotType().IsValid())
 			{
+#if INV_DEBUG_ATTACHMENT
 				UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] 슬롯 위젯 '%s'에 SlotType이 설정되지 않음! WBP에서 태그 지정 필요"),
 					*SlotWidget->GetName());
+#endif
 			}
 			CollectedSlotWidgets.Add(SlotWidget);
 		}
 	});
 
+#if INV_DEBUG_ATTACHMENT
 	UE_LOG(LogTemp, Log, TEXT("[Attachment UI] WidgetTree에서 슬롯 위젯 %d개 수집 완료"), CollectedSlotWidgets.Num());
+#endif
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -712,7 +800,9 @@ void UInv_AttachmentPanel::SetupWeaponPreview()
 	UStaticMesh* PreviewMesh = EquipFrag->GetPreviewStaticMesh().LoadSynchronous();
 	if (!IsValid(PreviewMesh))
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] 프리뷰 메시 로드 실패!"));
+#endif
 		if (IsValid(Image_WeaponPreview))
 		{
 			Image_WeaponPreview->SetVisibility(ESlateVisibility::Collapsed);
@@ -727,8 +817,13 @@ void UInv_AttachmentPanel::SetupWeaponPreview()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+	// BP 클래스가 설정되어 있으면 사용, 아니면 C++ 기본 클래스 폴백
+	UClass* ClassToSpawn = WeaponPreviewActorClass
+		? WeaponPreviewActorClass.Get()
+		: AInv_WeaponPreviewActor::StaticClass();
+
 	AInv_WeaponPreviewActor* NewPreview = World->SpawnActor<AInv_WeaponPreviewActor>(
-		AInv_WeaponPreviewActor::StaticClass(),
+		ClassToSpawn,
 		FVector(0.f, 0.f, PreviewSpawnZ),
 		FRotator::ZeroRotator,
 		SpawnParams
@@ -736,7 +831,9 @@ void UInv_AttachmentPanel::SetupWeaponPreview()
 
 	if (!IsValid(NewPreview))
 	{
+#if INV_DEBUG_ATTACHMENT
 		UE_LOG(LogTemp, Error, TEXT("[Attachment UI] WeaponPreviewActor 스폰 실패!"));
+#endif
 		return;
 	}
 
@@ -756,21 +853,42 @@ void UInv_AttachmentPanel::SetupWeaponPreview()
 	if (IsValid(RT) && IsValid(Image_WeaponPreview))
 	{
 		UMaterialInterface* PreviewMat = LoadObject<UMaterialInterface>(
-			nullptr, TEXT("/Game/UI/Materials/M_WeaponPreview"));
+			nullptr, TEXT("/Inventory/Widgets/Inventory/Attachment/M_WeaponPreview"));
 
 		if (IsValid(PreviewMat))
 		{
 			UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(PreviewMat, this);
 			MID->SetTextureParameterValue(TEXT("PreviewTexture"), RT);
 			Image_WeaponPreview->SetBrushFromMaterial(MID);
+
+			// SetBrushFromMaterial이 RenderTarget 해상도로 덮어쓴 ImageSize를
+			// NativeOnInitialized에서 캐싱한 WBP 원본 값으로 복원
+			FSlateBrush FixedBrush = Image_WeaponPreview->GetBrush();
+			if (!CachedPreviewImageSize.IsNearlyZero())
+			{
+				FixedBrush.ImageSize = CachedPreviewImageSize;
+			}
+			else
+			{
+				// 캐싱 실패 안전장치: WBP 기본값 (256, 256) 사용
+				FixedBrush.ImageSize = FVector2D(256.f, 256.f);
+#if INV_DEBUG_ATTACHMENT
+				UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] CachedPreviewImageSize가 0! 폴백값 (256, 256) 사용"));
+#endif
+			}
+			Image_WeaponPreview->SetBrush(FixedBrush);
 		}
 		else
 		{
 			// 폴백: Material 로드 실패 시 기존 방식 (알파 문제 있을 수 있음)
+#if INV_DEBUG_ATTACHMENT
 			UE_LOG(LogTemp, Warning, TEXT("[Attachment UI] M_WeaponPreview 로드 실패! FSlateBrush 폴백"));
+#endif
 			FSlateBrush PreviewBrush;
 			PreviewBrush.SetResourceObject(RT);
-			PreviewBrush.ImageSize = FVector2D(512.f, 512.f);
+			PreviewBrush.ImageSize = CachedPreviewImageSize.IsNearlyZero()
+				? FVector2D(256.f, 256.f)
+				: CachedPreviewImageSize;
 			PreviewBrush.DrawAs = ESlateBrushDrawType::Image;
 			PreviewBrush.Tiling = ESlateBrushTileType::NoTile;
 			Image_WeaponPreview->SetBrush(PreviewBrush);
@@ -779,6 +897,9 @@ void UInv_AttachmentPanel::SetupWeaponPreview()
 		// 크기는 WBP 디자이너에서 설정한 레이아웃을 그대로 사용
 		Image_WeaponPreview->SetVisibility(ESlateVisibility::Visible);
 	}
+
+	// 현재 장착된 부착물을 프리뷰 메시에 표시
+	RefreshPreviewAttachments();
 
 #if INV_DEBUG_ATTACHMENT
 	UE_LOG(LogTemp, Log, TEXT("[Attachment UI] 3D 프리뷰 설정 완료: Mesh=%s"), *PreviewMesh->GetName());
@@ -799,12 +920,66 @@ void UInv_AttachmentPanel::SetupWeaponPreview()
 }
 
 // ════════════════════════════════════════════════════════════════
+// 📌 RefreshPreviewAttachments — 프리뷰 액터에 부착물 3D 메시 갱신
+// ════════════════════════════════════════════════════════════════
+// 호출 경로: SetupWeaponPreview 끝 / TryAttachHoverItem 후 / TryDetachItem 후
+// 처리 흐름:
+//   1. ClearAllAttachmentPreviews (이전 부착물 전부 제거)
+//   2. HostFragment에서 AttachedItems 순회
+//   3. 각 부착물의 ItemManifestCopy → AttachableFragment에서 메시 + 오프셋
+//   4. SlotDef에서 AttachSocket 이름
+//   5. AddAttachmentPreview 호출
+// ════════════════════════════════════════════════════════════════
+void UInv_AttachmentPanel::RefreshPreviewAttachments()
+{
+	if (!WeaponPreviewActor.IsValid() || !CurrentWeaponItem.IsValid()) return;
+
+	// 기존 부착물 전부 제거 후 재구성
+	WeaponPreviewActor->ClearAllAttachmentPreviews();
+
+	const FInv_AttachmentHostFragment* HostFrag =
+		CurrentWeaponItem->GetItemManifest().GetFragmentOfType<FInv_AttachmentHostFragment>();
+	if (!HostFrag) return;
+
+	const TArray<FInv_AttachmentSlotDef>& SlotDefs = HostFrag->GetSlotDefinitions();
+	const TArray<FInv_AttachedItemData>& AttachedItems = HostFrag->GetAttachedItems();
+
+	for (const FInv_AttachedItemData& AttData : AttachedItems)
+	{
+		// SlotIndex 범위 검증
+		if (!SlotDefs.IsValidIndex(AttData.SlotIndex)) continue;
+
+		// 부착물의 AttachableFragment에서 메시 + 오프셋 가져오기
+		const FInv_AttachableFragment* AttachableFrag =
+			AttData.ItemManifestCopy.GetFragmentOfType<FInv_AttachableFragment>();
+		if (!AttachableFrag) continue;
+
+		UStaticMesh* AttachMesh = AttachableFrag->GetAttachmentMesh();
+		if (!IsValid(AttachMesh)) continue;
+
+		// 소켓 폴백: 무기 SlotDef → 부착물 AttachableFragment → NAME_None
+		const FName SocketName = !SlotDefs[AttData.SlotIndex].AttachSocket.IsNone()
+			? SlotDefs[AttData.SlotIndex].AttachSocket
+			: AttachableFrag->GetAttachSocket();
+		const FTransform& Offset = AttachableFrag->GetAttachOffset();
+
+		WeaponPreviewActor->AddAttachmentPreview(AttData.SlotIndex, AttachMesh, SocketName, Offset);
+	}
+
+#if INV_DEBUG_ATTACHMENT
+	UE_LOG(LogTemp, Log, TEXT("[Attachment UI] 프리뷰 부착물 갱신 완료: %d개 부착물"),
+		AttachedItems.Num());
+#endif
+}
+
+// ════════════════════════════════════════════════════════════════
 // 📌 CleanupWeaponPreview — 프리뷰 액터 파괴 및 정리
 // ════════════════════════════════════════════════════════════════
 void UInv_AttachmentPanel::CleanupWeaponPreview()
 {
 	if (WeaponPreviewActor.IsValid())
 	{
+		WeaponPreviewActor->ClearAllAttachmentPreviews();
 		WeaponPreviewActor->Destroy();
 		WeaponPreviewActor.Reset();
 	}
